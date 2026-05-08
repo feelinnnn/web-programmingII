@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
 .layout-container {
   display: flex;
   min-height: 100vh;
@@ -148,9 +149,10 @@
 }
 
 .showcase-title {
-  font-size: 34px;
-  font-style: italic;
-  font-family: 'Georgia', serif;
+  font-family: 'Great Vibes', cursive;
+  font-size: 48px;
+  font-weight: normal;
+  font-style: normal;
   margin: 0;
   color: #000;
 }

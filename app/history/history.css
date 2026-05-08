@@ -1,0 +1,169 @@
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+
+.layout-container {
+  display: flex;
+  min-height: 100vh;
+  font-family: sans-serif;
+  background-color: #FDF5E6; /* สีพื้นหลังครีมอ่อนๆ */
+}
+
+.main-content {
+  margin-left: 80px; /* เว้นที่ให้ Sidebar ของเดิมที่คุณมี */
+  width: calc(100% - 80px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Badges Page */
+.badges-page {
+  padding: 40px 50px;
+  width: 100%;
+  max-width: 100%; 
+  box-sizing: border-box;
+}
+
+/* Page Title (ฟอนต์ตัวเขียนตามรูป) */
+.page-title {
+  font-family: 'Great Vibes', cursive;
+  font-size: 48px;
+  color: #4A3525;
+  margin-top: 0;
+  margin-bottom: 30px;
+  font-weight: normal;
+}
+
+/* Section Container (กล่องสีขาว) */
+.badges-section {
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  border: 1px solid #EBE4D5;
+  padding: 20px 25px 30px 25px;
+  margin-bottom: 30px;
+  width: 100%;
+  box-sizing: border-box;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.badges-section:last-child {
+  margin-bottom: 0;
+}
+
+/* Section Header */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  border-bottom: 1px solid #F0F0F0;
+  padding-bottom: 15px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-title {
+  font-size: 22px;
+  font-weight: normal;
+  color: #555;
+}
+
+/* Status Dots */
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-dot.verified { background-color: #00E676; }
+.status-dot.pending { background-color: #FFEA00; }
+.status-dot.declined { background-color: #FF1744; }
+
+.total-count {
+  font-size: 14px;
+  color: #888;
+  font-weight: normal;
+}
+
+.see-all-btn {
+  background: none;
+  border: none;
+  color: #777;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 5px 0;
+  transition: all 0.2s;
+}
+
+.see-all-btn:hover {
+  color: #444;
+}
+
+/* Badges Grid */
+.badges-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 15px;
+}
+
+/* Badge Card (การ์ดสีน้ำตาล) */
+.badge-card {
+  background-color: #3A2A26;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 200px;
+}
+
+.badge-content {
+  flex: 1;
+  padding: 12px;
+  position: relative;
+}
+
+/* Badge Pills */
+.badge-pill {
+  display: inline-block;
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  color: #333;
+  font-weight: bold;
+}
+
+.pill-white { background-color: #FFF2D7; }
+.pill-yellow { background-color: #FFD45A; }
+.pill-orange { background-color: #FFA95A; }
+.pill-red { background-color: #FF5A5A; }
+.pill-green { background-color: #A0D585; }
+
+/* แถบชื่อด้านล่างของการ์ด */
+.badge-name {
+  background-color: #5D4E4A;
+  color: #D7CCC8;
+  font-size: 13px;
+  padding: 10px 12px;
+  border-top: 1px solid #4A3A36;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .badges-grid { grid-template-columns: repeat(5, 1fr); }
+}
+
+@media (max-width: 1000px) {
+  .badges-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .badges-grid { grid-template-columns: repeat(3, 1fr); }
+  .badges-page { padding: 20px; }
+}
+
+@media (max-width: 480px) {
+  .badges-grid { grid-template-columns: repeat(2, 1fr); }
+}
