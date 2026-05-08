@@ -4,7 +4,6 @@ import Navbar from "../components/Navbar";
 import './history.css';
 
 export default function BadgesPage() {
-  // เพิ่ม pillColor เข้าไปจำลองสีป้ายมุมซ้ายบนให้เหมือนรูป
   const verifiedBadges = [
     { id: 1, name: "Name", status: "verified", pillColor: "white" },
     { id: 2, name: "Name", status: "verified", pillColor: "yellow" },
@@ -37,7 +36,6 @@ export default function BadgesPage() {
         <div className="badges-page">
           <h1 className="page-title">Badges Status</h1>
 
-          {/* Verified Section */}
           <section className="badges-section">
             <div className="section-header">
               <div className="header-left">
@@ -63,7 +61,6 @@ export default function BadgesPage() {
             </div>
           </section>
 
-          {/* Pending Section */}
           <section className="badges-section">
             <div className="section-header">
               <div className="header-left">
@@ -89,7 +86,6 @@ export default function BadgesPage() {
             </div>
           </section>
 
-          {/* Declined Section */}
           <section className="badges-section">
             <div className="section-header">
               <div className="header-left">

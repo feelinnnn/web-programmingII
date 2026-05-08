@@ -17,7 +17,6 @@
   padding: 20px 0;
 }
 
-
 .navbar.expanded {
   width: 280px;
   padding: 20px 15px;
@@ -36,12 +35,14 @@
   justify-content: center;
   gap: 20px;
 }
-.logo-c{
+
+.logo-c {
   font-size: 40px;
   color: #FFF2D7;
+  margin: 0;
 }
+
 .logo-full { width: 120px; height: auto; object-fit: contain; }
-.logo-short { width: 32px; height: auto; object-fit: contain; }
 
 .hidemenu {
   width: 24px;
@@ -49,10 +50,11 @@
   cursor: pointer;
   transition: transform 0.2s;
 }
+
 .hidemenu:hover { transform: scale(1.1); } 
 
 .line {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.1);
   width: 100%;
   height: 1px;
   margin-bottom: 20px;
@@ -61,9 +63,18 @@
 .menu-items {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 8px;
   width: 100%;
   flex-grow: 1;
+}
+
+.menu-header {
+  color: #E2DFD2;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 0 12px;
+  margin-bottom: 5px;
+  margin-top: 10px;
 }
 
 .menu-item {
@@ -72,11 +83,12 @@
   gap: 15px;
   cursor: pointer;
   color: white;
-  font-size: 18px;
+  font-size: 16px;
   padding: 12px;
   border-radius: 8px;
   transition: background-color 0.2s;
   white-space: nowrap;
+  text-decoration: none;
 }
 
 .navbar.collapsed .menu-item {
@@ -85,7 +97,7 @@
 }
 
 .menu-item:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .pic {
@@ -94,19 +106,32 @@
   object-fit: contain;
 }
 
-.profile-bottom {
+.profile-bottom-card {
   display: flex;
   align-items: center;
-  gap: 15px;
   margin-top: auto;
-  color: white;
-  padding: 10px;
-  border-radius: 8px;
+  border-radius: 12px;
+  transition: background-color 0.2s;
   cursor: pointer;
-  white-space: nowrap;
 }
 
-.profile-bottom:hover {
+.profile-bottom-card.expanded {
+  padding: 12px 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.05);
+  justify-content: space-between;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.profile-bottom-card.collapsed {
+  padding: 10px;
+  border: none;
+  background-color: transparent;
+  justify-content: center;
+}
+
+.profile-bottom-card:hover {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -116,4 +141,61 @@
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid #aebfd1;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  margin-left: 12px;
+}
+
+.profile-name {
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.profile-role {
+  color: #A39D9B;
+  font-size: 12px;
+}
+
+.logout-icon {
+  color: #A39D9B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.logout-icon:hover {
+  color: white;
+}
+
+.profile-bottom-card {
+  display: flex;
+  align-items: center;
+  margin-top: auto;
+  border-radius: 12px;
+  transition: background-color 0.2s;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.profile-bottom-card.expanded {
+  padding: 12px 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.05);
+  justify-content: space-between;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.profile-bottom-card.collapsed {
+  padding: 10px;
+  border: none;
+  background-color: transparent;
+  justify-content: center;
 }

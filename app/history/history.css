@@ -4,17 +4,16 @@
   display: flex;
   min-height: 100vh;
   font-family: sans-serif;
-  background-color: #FDF5E6; /* สีพื้นหลังครีมอ่อนๆ */
+  background-color: #FDF5E6;
 }
 
 .main-content {
-  margin-left: 80px; /* เว้นที่ให้ Sidebar ของเดิมที่คุณมี */
+  margin-left: 80px;
   width: calc(100% - 80px);
   display: flex;
   flex-direction: column;
 }
 
-/* Badges Page */
 .badges-page {
   padding: 40px 50px;
   width: 100%;
@@ -22,7 +21,6 @@
   box-sizing: border-box;
 }
 
-/* Page Title (ฟอนต์ตัวเขียนตามรูป) */
 .page-title {
   font-family: 'Great Vibes', cursive;
   font-size: 48px;
@@ -32,7 +30,6 @@
   font-weight: normal;
 }
 
-/* Section Container (กล่องสีขาว) */
 .badges-section {
   background-color: #FFFFFF;
   border-radius: 8px;
@@ -48,7 +45,6 @@
   margin-bottom: 0;
 }
 
-/* Section Header */
 .section-header {
   display: flex;
   justify-content: space-between;
@@ -70,7 +66,6 @@
   color: #555;
 }
 
-/* Status Dots */
 .status-dot {
   width: 10px;
   height: 10px;
@@ -102,14 +97,12 @@
   color: #444;
 }
 
-/* Badges Grid */
 .badges-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   gap: 15px;
 }
 
-/* Badge Card (การ์ดสีน้ำตาล) */
 .badge-card {
   background-color: #3A2A26;
   border-radius: 8px;
@@ -125,7 +118,6 @@
   position: relative;
 }
 
-/* Badge Pills */
 .badge-pill {
   display: inline-block;
   font-size: 11px;
@@ -141,7 +133,6 @@
 .pill-red { background-color: #FF5A5A; }
 .pill-green { background-color: #A0D585; }
 
-/* แถบชื่อด้านล่างของการ์ด */
 .badge-name {
   background-color: #5D4E4A;
   color: #D7CCC8;
@@ -150,7 +141,6 @@
   border-top: 1px solid #4A3A36;
 }
 
-/* Responsive */
 @media (max-width: 1200px) {
   .badges-grid { grid-template-columns: repeat(5, 1fr); }
 }

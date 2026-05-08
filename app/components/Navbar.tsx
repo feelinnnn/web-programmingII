@@ -1,5 +1,6 @@
 "use client"; 
 import { useState } from 'react';
+import Link from 'next/link';
 import './Navbar.css'; 
 
 export default function Navbar() {
@@ -13,31 +14,56 @@ export default function Navbar() {
         ) : (
           <p className='logo-c'>C</p>
         )}
-        <img src="/picture-navbar/hidemenu.png" alt="Toggle Menu" className="hidemenu"onClick={() => setIsExpanded(!isExpanded)} />
+        <img 
+          src="/picture-navbar/hidemenu.png" 
+          alt="Toggle Menu" 
+          className="hidemenu" 
+          onClick={() => setIsExpanded(!isExpanded)} 
+        />
       </div>
+
       {isExpanded && <div className="line"></div>}
+
       <div className="menu-items">
-        <div className="menu-item">
+        {isExpanded && <div className="menu-header">Main Menu</div>}
+
+        <Link href="/" className="menu-item">
           <img src="/picture-navbar/home.png" alt="Home" className="pic" />
           {isExpanded && <span className="menu-text">Home</span>}
-        </div>
-        <div className="menu-item">
+        </Link>
+        <Link href="/lessons" className="menu-item">
           <img src="/picture-navbar/lesson.png" alt="Lessons" className="pic" />
           {isExpanded && <span className="menu-text">Lessons</span>}
-        </div>
-        <div className="menu-item">
+        </Link>
+        <Link href="/history" className="menu-item">
           <img src="/picture-navbar/history.png" alt="History" className="pic" />
           {isExpanded && <span className="menu-text">History</span>}
-        </div>
-        <div className="menu-item">
+        </Link>
+        <Link href="/bookmark" className="menu-item">
           <img src="/picture-navbar/bookmark.png" alt="Bookmark" className="pic" />
           {isExpanded && <span className="menu-text">Bookmark</span>}
-        </div>
+        </Link>
       </div>
-      <div className="profile-bottom">
+
+      <Link href="/profile" className={`profile-bottom-card ${isExpanded ? 'expanded' : 'collapsed'}`}>
         <img src="/avatar/Avatar.png" alt="Profile" className="profile-pic-bottom" />
-        {isExpanded && <span className="profile-name">Sense Seeya</span>}
-      </div>
+        
+        {isExpanded && (
+          <>
+            <div className="profile-info">
+              <span className="profile-name">Sense Seeya</span>
+              <span className="profile-role">Home Cook</span>
+            </div>
+            <div className="logout-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+            </div>
+          </>
+        )}
+      </Link>
     </nav>
   );
 }
