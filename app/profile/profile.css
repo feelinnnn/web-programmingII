@@ -1,0 +1,262 @@
+.layout-container {
+  display: flex;
+  min-height: 100vh;
+  font-family: sans-serif;
+}
+
+.main-content {
+  margin-left: 80px;
+  width: calc(100% - 80px);
+  display: flex;
+  flex-direction: column;
+}
+
+
+.profile-header {
+  background-color: #4B2E2B;
+  color: white;
+  padding-top: 40px;
+}
+
+.profile-info-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0 50px 30px 50px;
+}
+
+.profile-user-left {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+.large-avatar {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  border: 4px solid #aebfd1;
+  background-color: #fff;
+  object-fit: cover;
+}
+
+.user-details h1 {
+  margin: 0;
+  font-size: 36px;
+  font-weight: 500;
+  color: #D8AE7E;
+}
+
+.user-details .subtitle {
+  margin: 10px 0 0 0;
+  color: #D8AE7E;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.social-icons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.social-icons span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background-color: #D8AE7E;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.social-icons span:hover {
+  transform: scale(1.05);
+  background-color: #c49a6c;
+}
+
+.social-icons img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.edit-btn {
+  background-color: #D8AE7E;
+  color: #4a342e;
+  border: none;
+  padding: 6px 40px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 60px;
+}
+
+.stats-row {
+  display: flex;
+  border-top: 1px solid #8C5A3C;
+  background-color: #4B2E2B;
+}
+
+.stat-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15px 0;
+  border-right: 1px solid #8C5A3C;
+}
+
+.stat-box:last-child {
+  border-right: none;
+}
+
+.stat-box strong {
+  font-size: 20px;
+  color: #D8AE7E;
+}
+
+.stat-box span {
+  font-size: 12px;
+  color: #8f796a;
+  margin-top: 5px;
+}
+
+.showcase-section {
+  background-color: #fcf1d8;
+  flex: 1;
+  padding: 40px 50px;
+}
+
+.showcase-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.left-controls {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+.showcase-title {
+  font-size: 34px;
+  font-style: italic;
+  font-family: 'Georgia', serif;
+  margin: 0;
+  color: #000;
+}
+
+.toggle-group {
+  background-color: #D8AE7E;
+  border-radius: 8px;
+  display: flex;
+  padding: 3px;
+}
+
+.toggle-group button {
+  border: none;
+  background: transparent;
+  padding: 6px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #4a342e;
+}
+
+.toggle-group button.active {
+  background-color: #fff;
+}
+
+.right-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.right-controls button {
+  background-color: #D8AE7E;
+  border: none;
+  padding: 6px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #4a342e;
+}
+
+.filter-tags {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 40px;
+}
+
+.tag {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.count {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  padding: 2px 8px;
+  font-size: 12px;
+  color: #333;
+}
+
+.tag-all { background-color: #fff; border: 1px solid #ccc; color: #333; }
+.tag-green { background-color: #a7e4a7; color: #1e5c1e; }
+.tag-red { background-color: #ff6b6b; color: #fff; }
+.tag-orange { background-color: #ffb067; color: #6a3400; }
+.tag-yellow { background-color: #ffd966; color: #6a5c00; }
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 40px;
+}
+
+.card {
+  background-color: #3f2d29;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 180px;
+}
+
+.card-image-area {
+  flex: 1;
+  padding: 12px;
+}
+
+.card-badge {
+  background-color: #ffb067;
+  color: #6a3400;
+  padding: 4px 12px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: bold;
+  display: inline-block;
+}
+
+.card-footer {
+  background-color: #655452;
+  color: #e5dedb;
+  padding: 10px 15px;
+  font-size: 14px;
+}
