@@ -1,7 +1,7 @@
 "use client";
 
 import Navbar from "../components/Navbar";
-import './history.css';
+import './badge.css';
 
 export default function BadgesPage() {
   const verifiedBadges = [
