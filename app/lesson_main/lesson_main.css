@@ -1,0 +1,143 @@
+/* app/page.css */
+
+body {
+  margin: 0;
+  background: #efe4c9;
+}
+
+.page {
+  display: flex;
+  min-height: 100vh;
+}
+
+
+/* MAIN */
+
+.main-content {
+  margin-left: 80px;
+  width: calc(100% - 80px);
+  padding: 30px;
+}
+
+.section {
+  margin-bottom: 50px;
+}
+
+.script-title {
+  font-size: 2.2rem;
+  margin: 0;
+}
+
+.normal-title {
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+.subtitle {
+  margin-top: 5px;
+  margin-bottom: 25px;
+  font-size: 1.1rem;
+}
+
+/* HORIZONTAL */
+
+.horizontal-scroll {
+  display: flex;
+  gap: 30px;
+  max-width: 100%;
+  overflow-x: scroll;
+  padding-bottom: 10px;
+}
+
+.horizontal-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* CARDS */
+
+.lesson-card {
+  min-width: 220px;
+  background: #f4f4f4;
+  border-radius: 18px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.lesson-card.large {
+  min-width: 500px;
+}
+
+.card-image {
+  height: 140px;
+  background: linear-gradient(
+    to bottom,
+    #ff4b4b,
+    #ff8b42,
+    #ffe93d
+  );
+}
+
+.large .card-image {
+  height: 190px;
+}
+
+.card-content {
+  padding: 14px;
+  position: relative;
+  min-height: 110px;
+}
+
+.card-content h3 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.lesson-card:not(.large) .card-content h3 {
+  font-size: 1rem;
+}
+
+.card-content p {
+  margin-top: 10px;
+  color: #777;
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+.arrow {
+  position: absolute;
+  right: 14px;
+  bottom: 12px;
+  font-size: 1.6rem;
+}
+
+/* GRID */
+
+.lesson-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 30px;
+}
+
+/* FOOTER */
+
+.footer {
+  margin-top: 80px;
+  padding-bottom: 30px;
+}
+
+.lang-btn {
+  background: transparent;
+  border: 1px solid #5e3a3a;
+  color: #5e3a3a;
+  border-radius: 14px;
+  padding: 12px 24px;
+  cursor: pointer;
+  float: right;
+}
+
+.footer-line {
+  clear: both;
+  margin-top: 80px;
+  height: 40px;
+
+}

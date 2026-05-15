@@ -1,0 +1,103 @@
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background: #e8dcc7;
+}
+
+.page {
+  margin-left: 80px;
+  display: flex;
+}
+
+/* Main */
+.main {
+  flex: 1;
+  flex-direction: column;
+  padding: 20px;
+  padding-right: 40px;
+}
+
+/* Topbar */
+.topbar {
+  position: sticky;
+  top: 20px;
+  height: 75px;
+  max-width: 100%;
+  padding: 10px;
+  font-size: 20px;
+  
+  background: #4a2c2a;
+
+  border-radius: 12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 20px;
+}
+
+
+#search {
+  padding: 10px 15px;
+  border-radius: 20px;
+  width: 60%;
+  height: 40px;
+  border: 1px solid #ccc;
+  outline: none;
+  font-size: 16px;
+  background-color: whitesmoke;
+}
+
+#search:focus {
+  border-color: #4a2c2a;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+}
+
+.switch {
+  width: 40px;
+  height: 20px;
+  background: #ccc;
+  border-radius: 20px;
+}
+
+.filter {
+  color: white;
+  margin-left: auto;
+  height: 70%;
+}
+
+/* Grid */
+.grid {
+  margin-top: 20px;
+
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+/* Card */
+.card {
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+}
+
+.card-top {
+  height: 120px;
+  background: linear-gradient(to bottom, #ff4b4b, #ffcc33);
+}
+
+.card-bottom {
+  background: #ddd;
+  padding: 10px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
