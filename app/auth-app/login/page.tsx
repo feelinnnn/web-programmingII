@@ -17,7 +17,7 @@ export default function LoginPage() {
           title={"Welcome\nBack!"}
           subtitle="Please enter your details"
           linkLabel="Don't you have an account?"
-          linkHref="/register"
+          linkHref="/auth-app/register"
           linkText="Sign up"
         />
       }

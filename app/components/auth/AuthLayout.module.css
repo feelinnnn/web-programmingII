@@ -17,22 +17,22 @@
 
 .panelLeft .circle {
   position: absolute;
-  width: 620px;
-  height: 620px;
+  width: 900px;
+  height: 900px;
   background-color: var(--brown-dark);
   border-radius: 50%;
-  left: -120px;
+  left: -185px;
   top: 50%;
   transform: translateY(-50%);
 }
 
 .panelRight .circle {
   position: absolute;
-  width: 620px;
-  height: 620px;
+  width: 900px;
+  height: 900px;
   background-color: var(--brown-dark);
   border-radius: 50%;
-  right: -120px;
+  right: -185px;
   top: 50%;
   transform: translateY(-50%);
 }

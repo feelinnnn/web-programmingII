@@ -16,7 +16,7 @@ export default function RegisterPage() {
         <PanelContent
           title={"Get\nStarted!"}
           linkLabel="Already have an account?"
-          linkHref="/login"
+          linkHref="/auth-app/login"
           linkText="Sign in"
         />
       }

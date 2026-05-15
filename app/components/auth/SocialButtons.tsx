@@ -16,7 +16,7 @@ export default function SocialButtons({ mode }: SocialButtonsProps) {
       </div>
 
       <button type="button" className={styles.socialBtn}>
-      <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google Logo" width="20" height="20" />
+      <img src="https://www.gstatic.com/images/branding/product/2x/googleg_96dp.png" alt="Google Logo" width="20" height="20" />
       {label} Google
     </button>
 
