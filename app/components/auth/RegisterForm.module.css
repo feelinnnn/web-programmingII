@@ -1,0 +1,68 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.title {
+  font-family: var(--font-script);
+  font-size: 42px;
+  color: var(--text-dark);
+  font-weight: 400;
+  margin-bottom: 4px;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-dark);
+  font-family: var(--font-body);
+}
+
+.input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--input-border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: var(--font-body);
+  color: var(--text-dark);
+  background-color: var(--white);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input::placeholder {
+  color: #c0a880;
+}
+
+.input:focus {
+  border-color: var(--brown-medium);
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 14px;
+  background-color: var(--brown-dark);
+  color: var(--cream);
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 4px;
+}
+
+.submitBtn:hover {
+  background-color: var(--brown-medium);
+}
