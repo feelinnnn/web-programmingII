@@ -1,11 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-// Import Navbar โดยถอยออกจาก folder community และ app ไปหา components
 import Navbar from '../components/Navbar';
 import '../components/Navbar.css';
 
-// Import Components อื่นๆ (แก้ path ให้ถอยไปหาโฟลเดอร์ components ข้างนอก)
 import SearchBar from '../components/SearchBar/SearchBar';
 import CreatePost from '../components/CreatePost/CreatePost';
 import TodayFeed from '../components/TodayFeed/TodayFeed';

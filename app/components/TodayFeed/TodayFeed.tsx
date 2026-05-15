@@ -1,6 +1,6 @@
 import styles from './TodayFeed.module.css';
 
-// PostCard type — replace with your own import when ready
+// PostCard type — replace 
 export interface Post {
   id: string;
   author: string;
@@ -15,7 +15,7 @@ export interface Post {
 
 interface TodayFeedProps {
   posts: Post[];
-  // Replace children with your own PostCard component
+  // Replace own PostCard component
   renderPost: (post: Post) => React.ReactNode;
 }
 
