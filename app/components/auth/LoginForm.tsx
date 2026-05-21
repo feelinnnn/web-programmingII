@@ -9,16 +9,16 @@ export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const doLogin = (e: React.FormEvent) => {
     e.preventDefault();
     console.log({ email, password });
   };
 
   return (
-    <form onSubmit={handleSubmit} className={styles.form}>
+    <form onSubmit={doLogin} className={styles.form}>
       <h1 className={styles.title}>Login</h1>
 
-      <div className={styles.fieldGroup}>
+      <div className={styles.field}>
         <label className={styles.label}>Email</label>
         <input
           type="email"
@@ -29,7 +29,7 @@ export default function LoginForm() {
         />
       </div>
 
-      <div className={styles.fieldGroup}>
+      <div className={styles.field}>
         <label className={styles.label}>Password</label>
         <input
           type="password"
@@ -38,7 +38,7 @@ export default function LoginForm() {
           onChange={(e) => setPassword(e.target.value)}
           className={styles.input}
         />
-        <div className={styles.forgotWrapper}>
+        <div className={styles.forgotBlock}>
           <Link href="/forgot-password" className={styles.forgotLink}>
             Forgot Password?
           </Link>

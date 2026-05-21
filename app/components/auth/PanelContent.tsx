@@ -1,30 +1,27 @@
 import Link from 'next/link';
 import styles from './PanelContent.module.css';
 
-interface PanelContentProps {
+interface Props {
   title: string;
   subtitle?: string;
   linkLabel: string;
-  linkHref: string;
-  linkText: string;
+  link: {
+    href: string;
+    text: string;
+  };
 }
 
-export default function PanelContent({
-  title,
-  subtitle,
-  linkLabel,
-  linkHref,
-  linkText,
-}: PanelContentProps) {
+export default function PanelContent({ title, subtitle, linkLabel, link }: Props) {
   return (
-    <div className={styles.wrapper}>
+    <div className={styles.container}>
       <h2 className={styles.title}>{title}</h2>
       {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
+      
       <div className={styles.divider} />
+      
       <p className={styles.linkLabel}>{linkLabel}</p>
-      <Link href={linkHref} className={styles.linkBtn}>
-        {linkText}
-      </Link>
+
+      <Link href={link.href} className={styles.linkBtn}>{link.text}</Link>   
     </div>
   );
 }

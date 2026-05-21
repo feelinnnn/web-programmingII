@@ -16,8 +16,10 @@ export default function RegisterPage() {
         <PanelContent
           title={"Get\nStarted!"}
           linkLabel="Already have an account?"
-          linkHref="/auth-app/login"
-          linkText="Sign in"
+          link={{
+            href: '/auth-app/register',
+            text: 'Sign in',
+          }}
         />
       }
       formContent={<RegisterForm />}

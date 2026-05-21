@@ -2,32 +2,26 @@
 
 import styles from './AuthLayout.module.css';
 
-interface AuthLayoutProps {
+interface Props {
   panelSide: 'left' | 'right';
   panelContent: React.ReactNode;
   formContent: React.ReactNode;
 }
 
-export default function AuthLayout({ panelSide, panelContent, formContent }: AuthLayoutProps) {
+export default function AuthLayout({ panelSide, panelContent, formContent }: Props) {
   return (
-    <div className={styles.container}>
-      {panelSide === 'left' ? (
-        <>
-          <div className={`${styles.panel} ${styles.panelLeft}`}>
-            <div className={styles.circle} />
-            <div className={styles.panelInner}>{panelContent}</div>
-          </div>
-          <div className={styles.formSection}>{formContent}</div>
-        </>
-      ) : (
-        <>
-          <div className={styles.formSection}>{formContent}</div>
-          <div className={`${styles.panel} ${styles.panelRight}`}>
-            <div className={styles.circle} />
-            <div className={styles.panelInner}>{panelContent}</div>
-          </div>
-        </>
-      )}
+    <div className={`${styles.container} ${styles[panelSide]}`}>
+      
+      <div className={styles.panel}>
+        <div className={styles.circle} />
+        <div className={styles.panelInner}>
+          {panelContent}
+        </div>
+      </div>
+
+      <div className={styles.formSection}>
+        {formContent}
+      </div>
     </div>
   );
 }

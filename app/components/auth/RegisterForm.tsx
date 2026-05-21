@@ -5,70 +5,66 @@ import SocialButtons from './SocialButtons';
 import styles from './RegisterForm.module.css';
 
 export default function RegisterForm() {
-  const [form, setForm] = useState({
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const doRegister = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(form);
+    
+    if (password !== confirmPassword) {
+      alert("Passwords don't match!");
+      return;
+    }
+
+    console.log({ username, email, password });
   };
 
   return (
-    <form onSubmit={handleSubmit} className={styles.form}>
-      <h1 className={styles.title}>Register</h1>
+    <form onSubmit={doRegister} className={styles.form}>
+      <h1 className={styles.title}>Create Account</h1>
 
-      <div className={styles.fieldGroup}>
+      <div className={styles.field}>
         <label className={styles.label}>Username</label>
         <input
-          name="username"
           type="text"
           placeholder="Enter your username"
-          value={form.username}
-          onChange={handleChange}
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
           className={styles.input}
         />
       </div>
 
-      <div className={styles.fieldGroup}>
+      <div className={styles.field}>
         <label className={styles.label}>Email</label>
         <input
-          name="email"
           type="email"
           placeholder="Example@email.com"
-          value={form.email}
-          onChange={handleChange}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           className={styles.input}
         />
       </div>
 
-      <div className={styles.fieldGroup}>
+      <div className={styles.field}>
         <label className={styles.label}>Password</label>
         <input
-          name="password"
           type="password"
           placeholder="At least 8 characters"
-          value={form.password}
-          onChange={handleChange}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           className={styles.input}
         />
       </div>
 
-      <div className={styles.fieldGroup}>
+      <div className={styles.field}>
         <label className={styles.label}>Confirm Password</label>
         <input
-          name="confirmPassword"
           type="password"
           placeholder="At least 8 characters"
-          value={form.confirmPassword}
-          onChange={handleChange}
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
           className={styles.input}
         />
       </div>

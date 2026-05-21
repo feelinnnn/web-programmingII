@@ -14,7 +14,7 @@
   margin-bottom: 4px;
 }
 
-.fieldGroup {
+.field {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -48,7 +48,7 @@
   border-color: var(--brown-medium);
 }
 
-.forgotWrapper {
+.forgotBlock {
   display: flex;
   justify-content: flex-end;
 }

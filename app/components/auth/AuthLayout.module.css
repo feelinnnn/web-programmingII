@@ -5,6 +5,14 @@
   overflow: hidden;
 }
 
+.left {
+  flex-direction: row-reverse;
+}
+
+.right {
+  flex-direction: row;
+}
+
 .panel {
   position: relative;
   width: 50%;
@@ -15,26 +23,22 @@
   background-color: var(--cream);
 }
 
-.panelLeft .circle {
+.panel .circle {
   position: absolute;
   width: 900px;
   height: 900px;
   background-color: var(--brown-dark);
   border-radius: 50%;
-  left: -185px;
   top: 50%;
   transform: translateY(-50%);
 }
 
-.panelRight .circle {
-  position: absolute;
-  width: 900px;
-  height: 900px;
-  background-color: var(--brown-dark);
-  border-radius: 50%;
+.left .circle {
+  left: -185px;
+}
+
+.right .circle {
   right: -185px;
-  top: 50%;
-  transform: translateY(-50%);
 }
 
 .panelInner {
@@ -53,27 +57,4 @@
   align-items: center;
   justify-content: center;
   padding: 3rem 4rem;
-}
-
-@media (max-width: 768px) {
-  .container {
-    flex-direction: column;
-  }
-  .panel,
-  .formSection {
-    width: 100%;
-  }
-  .panel {
-    min-height: 200px;
-  }
-  .panelLeft .circle,
-  .panelRight .circle {
-    width: 400px;
-    height: 400px;
-    left: 50%;
-    right: auto;
-    transform: translateX(-50%);
-    top: auto;
-    bottom: -200px;
-  }
 }

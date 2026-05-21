@@ -17,8 +17,10 @@ export default function LoginPage() {
           title={"Welcome\nBack!"}
           subtitle="Please enter your details"
           linkLabel="Don't you have an account?"
-          linkHref="/auth-app/register"
-          linkText="Sign up"
+          link={{
+            href: '/auth-app/register',
+            text: 'Sign up',
+          }}
         />
       }
       formContent={<LoginForm />}
