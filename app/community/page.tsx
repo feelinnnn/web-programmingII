@@ -4,16 +4,16 @@ import { useState } from 'react';
 import Navbar from '../components/Navbar';
 import '../components/Navbar.css';
 
-import SearchBar from '../components/SearchBar/SearchBar';
-import CreatePost from '../components/CreatePost/CreatePost';
-import TodayFeed from '../components/TodayFeed/TodayFeed';
-import PopularHashtags from '../components/PopularHashtags/PopularHashtags';
-import PopularCreations from '../components/PopularCreations/PopularCreations';
+import SearchBar from '../components/community/SearchBar/SearchBar';
+import CreatePost from '../components/community/CreatePost/CreatePost';
+import TodayFeed from '../components/community/TodayFeed/TodayFeed';
+import PopularHashtags from '../components/community/PopularHashtags/PopularHashtags';
+import PopularCreations from '../components/community/PopularCreations/PopularCreations';
 
 // Import Types
-import type { Post } from '../components/TodayFeed/TodayFeed';
-import type { Hashtag } from '../components/PopularHashtags/PopularHashtags';
-import type { Creator } from '../components/PopularCreations/PopularCreations';
+import type { Post } from '../components/community/TodayFeed/TodayFeed';
+import type { Hashtag } from '../components/community/PopularHashtags/PopularHashtags';
+import type { Creator } from '../components/community/PopularCreations/PopularCreations';
 
 import styles from './page.module.css';
 

@@ -6,11 +6,11 @@
 }
 
 .left {
-  flex-direction: row-reverse;
+  flex-direction: row;
 }
 
 .right {
-  flex-direction: row;
+  flex-direction: row-reverse;
 }
 
 .panel {

@@ -10,11 +10,11 @@ export interface Creator {
   images: { url?: string; likes: number }[];
 }
 
-interface PopularCreationsProps {
+interface Props {
   creators: Creator[];
 }
 
-export default function PopularCreations({ creators }: PopularCreationsProps) {
+export default function PopularCreations({ creators }: Props) {
   return (
     <div className={styles.card}>
       <h3 className={styles.title}>🏆 Popular Creations</h3>

@@ -7,11 +7,11 @@ export interface Hashtag {
   hot?: boolean;
 }
 
-interface PopularHashtagsProps {
+interface Props {
   hashtags: Hashtag[];
 }
 
-export default function PopularHashtags({ hashtags }: PopularHashtagsProps) {
+export default function PopularHashtags({ hashtags }: Props) {
   return (
     <div className={styles.card}>
       <h3 className={styles.title}>
