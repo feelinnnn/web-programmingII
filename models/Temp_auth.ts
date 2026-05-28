@@ -29,5 +29,5 @@ const TempAuthSchema = new mongoose.Schema(
   }
 );
 
-const TempAuth = mongoose.models.TempAuth || mongoose.model("TempAuth", TempAuthSchema);
-export default TempAuth;
+const Temp_auth = mongoose.models.Temp_auth || mongoose.model("Temp_auth", TempAuthSchema);
+export default Temp_auth;

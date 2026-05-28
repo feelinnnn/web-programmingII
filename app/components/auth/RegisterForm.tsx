@@ -1,24 +1,51 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import SocialButtons from './SocialButtons';
 import styles from './RegisterForm.module.css';
 
 export default function RegisterForm() {
+  const router = useRouter();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const doRegister = (e: React.FormEvent<HTMLFormElement>) => {
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const doRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+    setError('');
+
     if (password !== confirmPassword) {
-      alert("Passwords don't match!");
+      setError("Passwords don't match!");
       return;
     }
 
-    console.log({ username, email, password });
+    setLoading(true);
+
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Something went wrong');
+      }
+
+      router.push(`/auth-app/verify-otp?email=${encodeURIComponent(email)}&username=${encodeURIComponent(username)}&purpose=register`);
+
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -33,6 +60,8 @@ export default function RegisterForm() {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           className={styles.input}
+          disabled={loading}
+          required
         />
       </div>
 
@@ -44,6 +73,8 @@ export default function RegisterForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className={styles.input}
+          disabled={loading}
+          required
         />
       </div>
 
@@ -55,6 +86,8 @@ export default function RegisterForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className={styles.input}
+          disabled={loading}
+          required
         />
       </div>
 
@@ -66,11 +99,13 @@ export default function RegisterForm() {
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           className={styles.input}
+          disabled={loading}
+          required
         />
       </div>
 
-      <button type="submit" className={styles.submitBtn}>
-        Sign up
+      <button type="submit" className={styles.submitBtn} disabled={loading}>
+        {loading ? 'Sending OTP...' : 'Sign up'}
       </button>
 
       <SocialButtons mode="signup" />

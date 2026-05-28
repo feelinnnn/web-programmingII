@@ -19,11 +19,6 @@ export default function SocialButtons({ mode }: Props) {
         <img src="https://www.gstatic.com/images/branding/product/2x/googleg_96dp.png" alt="Google" width="20" height="20" />
         Sign {isSignIn ? 'in' : 'up'} with Google
       </button>
-
-      <button type="button" className={styles.socialBtn}>
-        <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg" alt="Facebook" width="20" height="20" />
-        Sign {isSignIn ? 'in' : 'up'} with Facebook
-      </button>
     </div>
   );
 }
