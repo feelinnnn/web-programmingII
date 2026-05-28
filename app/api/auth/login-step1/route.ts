@@ -19,6 +19,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Invalid email or password." }, { status: 400 });
     }
 
+    if (user.authProvider === "google" && !user.password_hash) {
+      return NextResponse.json({ message: "This account uses Google Login. Please sign in with Google." }, { status: 400 });
+    }
+
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return NextResponse.json({ message: "Invalid email or password." }, { status: 400 });
@@ -33,10 +37,10 @@ export async function POST(request: Request) {
     await Temp_auth.deleteMany({ email, purpose: "login" });
     await Temp_auth.create({
       email,
-      password_hash: user.password, 
+      password_hash: user.password,
       otp_code: otpCode,
-      purpose: "login", 
-      createdAt: new Date() 
+      purpose: "login",
+      createdAt: new Date()
     });
 
     sendOtpEmail(email, otpCode).catch(err => console.error("Email send failed:", err));

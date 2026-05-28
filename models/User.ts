@@ -32,7 +32,7 @@ const UserSchema = new mongoose.Schema(
 // Auto-hash password
 UserSchema.pre("save", async function () {
   const user = this as any;
-  if (!user.isModified("password_hash")) return;
+  if (!user.isModified("password_hash") || !user.password_hash) return;
   user.password_hash = await bcrypt.hash(user.password_hash, 10);
 });
 

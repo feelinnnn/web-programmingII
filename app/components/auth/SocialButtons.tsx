@@ -1,9 +1,14 @@
 import styles from './SocialButtons.module.css';
+import { signIn } from 'next-auth/react';
 
 type Props = { mode: 'signin' | 'signup' };
 
 export default function SocialButtons({ mode }: Props) {
   const isSignIn = mode === 'signin';
+
+  const handleGoogle = async () => {
+    await signIn('google', { callbackUrl: '/' }); 
+  };
 
   return (
 
@@ -15,7 +20,7 @@ export default function SocialButtons({ mode }: Props) {
         <span className={styles.dividerLine} />
       </div>
 
-      <button type="button" className={styles.socialBtn}>
+      <button type="button" className={styles.socialBtn} onClick={handleGoogle}>
         <img src="https://www.gstatic.com/images/branding/product/2x/googleg_96dp.png" alt="Google" width="20" height="20" />
         Sign {isSignIn ? 'in' : 'up'} with Google
       </button>
