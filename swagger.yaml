@@ -1,0 +1,242 @@
+openapi: 3.0.0
+info:
+  title: CookCult Authentication API
+  description: API Documentation for CookCult 2-Step Authentication System (OTP & 2FA)
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+    description: Local Development Server
+
+paths:
+  /api/auth/register:
+    post:
+      summary: Register - Step 1 (Send Signup OTP)
+      description: Validates email uniqueness, hashes the password, and creates a temporary session in Temp_auth then sends a 6-digit OTP to the user's email.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - username
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: chef@cookcult.com
+                password:
+                  type: string
+                  format: password
+                  example: securepwd123
+                username:
+                  type: string
+                  example: cookcult_chef
+      responses:
+        '200':
+          description: OTP successfully generated and sent.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: OTP verification code has been sent to your email.
+        '400':
+          description: Invalid input or Email already registered.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: This email is already registered.
+        '500':
+          description: Internal Server Error.
+
+  /api/auth/verify-register:
+    post:
+      summary: Register - Step 2 (Verify OTP & Create Account)
+      description: Checks the submitted OTP code against Temp_auth for registration. If valid, moves data to permanent User model.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - otpCode
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: chef@cookcult.com
+                otpCode:
+                  type: string
+                  example: "123456"
+                username:
+                  type: string
+                  example: cookcult_chef
+      responses:
+        '201':
+          description: Permanent account created successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Account created successfully!
+        '400':
+          description: Missing fields or Invalid/Expired OTP.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid or expired OTP code.
+        '500':
+          description: Internal Server Error.
+
+  /api/auth/login-step1:
+    post:
+      summary: Login - Step 1 (Verify Password & Send 2FA OTP)
+      description: Checks user credentials in the database. If correct, generates a 2FA login OTP inside Temp_auth and emails it.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: chef@cookcult.com
+                password:
+                  type: string
+                  format: password
+                  example: securepwd123
+      responses:
+        '200':
+          description: Password match. 2FA OTP sent.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Please check your email for the OTP code.
+        '400':
+          description: Missing fields or Invalid credentials.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid email or password.
+        '500':
+          description: Internal Server Error.
+
+  /api/auth/login-step2:
+    post:
+      summary: Login - Step 2 (Verify OTP & Issue Token)
+      description: Validates login 2FA OTP from Temp_auth and issues a JWT token for front-end storage.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - otpCode
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: chef@cookcult.com
+                otpCode:
+                  type: string
+                  example: "654321"
+      responses:
+        '200':
+          description: 2FA successful. Returns JWT authorization token.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Login successful.
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '400':
+          description: Missing fields or Invalid/Expired OTP.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid or expired OTP code.
+        '500':
+          description: Internal Server Error.
+
+  /api/auth/resend-otp:
+    post:
+      summary: Resend OTP (Auto Detect Flow)
+      description: Detects the user's latest active flow in Temp_auth (Register or Login), generates a brand new code, overwrites the record, and resends it.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: chef@cookcult.com
+      responses:
+        '200':
+          description: Fresh OTP generated and sent successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: A new OTP code has been successfully sent to your email.
+        '400':
+          description: Email missing or Session/Record not found in database.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Session not found. Please restart the registration or login process.
+        '500':
+          description: Internal Server Error.

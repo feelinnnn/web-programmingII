@@ -1,0 +1,60 @@
+.container {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--cream);
+  overflow: hidden;
+}
+
+.left {
+  flex-direction: row;
+}
+
+.right {
+  flex-direction: row-reverse;
+}
+
+.panel {
+  position: relative;
+  width: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: var(--cream);
+}
+
+.panel .circle {
+  position: absolute;
+  width: 900px;
+  height: 900px;
+  background-color: var(--brown-dark);
+  border-radius: 50%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.left .circle {
+  left: -185px;
+}
+
+.right .circle {
+  right: -185px;
+}
+
+.panelInner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+}
+
+.formSection {
+  width: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 4rem;
+}
