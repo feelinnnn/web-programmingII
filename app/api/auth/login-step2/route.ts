@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Temp_auth from "@/models/Temp_auth";
+import User from "@/models/User";
 import jwt from "jsonwebtoken";
 
 export async function POST(request: Request) {
@@ -22,8 +23,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Invalid or expired OTP code." }, { status: 400 });
     }
 
+    const user = await User.findOne({ email: tempRecord.email });
+    if (!user) {
+      return NextResponse.json({ message: "User account not found in database." }, { status: 404 });
+    }
+
     const token = jwt.sign(
-      { email: tempRecord.email }, 
+      { 
+        id: user._id.toString(),
+        email: tempRecord.email 
+      }, 
       process.env.JWT_SECRET || "COOKCULT_SECRET_KEY", 
       { expiresIn: "1d" }
     );

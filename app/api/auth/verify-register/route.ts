@@ -17,15 +17,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Invalid or expired OTP code." }, { status: 400 });
     }
 
-    await User.insertMany([
-      {
-        email: tempRecord.email,
-        password_hash: tempRecord.password_hash,
-        authProvider: "local",
-        role: "user",
-        display_name: username || tempRecord.email.split("@")[0],
-      }
-    ]);
+    await User.create({
+      email: tempRecord.email,
+      password_hash: tempRecord.password_hash,
+      authProvider: "local",
+      role: "user",
+      display_name: username || tempRecord.email.split("@")[0],
+    });
 
     await Temp_auth.deleteOne({ _id: tempRecord._id });
     
