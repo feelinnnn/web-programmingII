@@ -1,27 +1,41 @@
-import mongoose from "mongoose";
- 
-const BadgeSchema = new mongoose.Schema(
+import mongoose, { Schema, Document } from 'mongoose'
+
+export interface IBadge {
+  _id : string
+  name: string
+  description: string
+  badge_type: "self-declared" | "evidence-backed" | "expert-certified" | "lesson"
+  icon_url: string
+}
+
+const BadgeSchema = new Schema<IBadge>(
   {
-    badges: {
-      badge_id:    String,
-      name:        String,
-      description: String,
- 
-      badge_type: {
-        type: String,
-        enum: ["self-declared", "evidence-backed", "expert-certified", "lesson"],
-        required: true,
-      },
- 
-      icon_url: String,
+
+    _id: {
+      type: String,
+      required: true,
+      trim: true,
     },
-  },
-  {
-    collection: "badges",
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    description: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    badge_type: {
+      type: String,
+      enum: ["self-declared", "evidence-backed", "expert-certified", "lesson"],
+      required: true,
+    },
+    icon_url: {
+      type: String,
+      required: true,
+    },
   }
-);
- 
-const Badge =
-  mongoose.models.Badge || mongoose.model("Badge", BadgeSchema);
- 
-export default Badge;
+)
+
+export default mongoose.models.Badge || mongoose.model<IBadge>('Badge', BadgeSchema)

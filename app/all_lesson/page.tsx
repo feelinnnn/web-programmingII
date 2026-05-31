@@ -3,6 +3,7 @@
 import "./all-lessons.css";
 import Navbar from "../components/Navbar";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 
 
 type Lesson = string;

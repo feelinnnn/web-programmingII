@@ -30,6 +30,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-  ],
+, "app/api/lessons/[lessonId]/route.ts", "app/api/lessons/route.ts"  ],
   "exclude": ["node_modules"]
 }
