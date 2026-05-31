@@ -4,6 +4,7 @@ import User from "@/models/User";
 import Temp_auth from "@/models/Temp_auth";
 import { sendOtpEmail } from "@/services/emailservice";
 import otpGenerator from "otp-generator";
+import bcrypt from "bcryptjs";
 
 export async function POST(request: Request) {
   try {
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "This account uses Google Login. Please sign in with Google." }, { status: 400 });
     }
 
-    const isMatch = await user.comparePassword(password);
+    const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
       return NextResponse.json({ message: "Invalid email or password." }, { status: 400 });
     }
@@ -37,17 +38,18 @@ export async function POST(request: Request) {
     await Temp_auth.deleteMany({ email, purpose: "login" });
     await Temp_auth.create({
       email,
-      password_hash: user.password,
+      password_hash: user.password_hash,
       otp_code: otpCode,
       purpose: "login",
-      createdAt: new Date()
+      createdAt: new Date() 
     });
 
     sendOtpEmail(email, otpCode).catch(err => console.error("Email send failed:", err));
 
     return NextResponse.json({ message: "Please check your email for the OTP code." }, { status: 200 });
 
-  } catch (error) {
-    return NextResponse.json({ message: "Login initiation failed.", error }, { status: 500 });
+  } catch (error: any) {
+    console.error("Login Step 1 Error:", error); 
+    return NextResponse.json({ message: "Login initiation failed.", error: error.message }, { status: 500 });
   }
 }

@@ -11,7 +11,7 @@ async function handleGoogle(user: any, account: any, profile: any) {
 
         const existingUser = await User.findOne({ email: user.email });
         if (!existingUser) {
-            await User.create({
+            const newUser = await User.create({
                 user_id: user.id,
                 email: user.email,
                 authProvider: "google",
@@ -20,6 +20,7 @@ async function handleGoogle(user: any, account: any, profile: any) {
                 role: "user",
                 password_hash: undefined,
             });
+            user.id = newUser._id.toString();
             return true;
         }
 
@@ -34,6 +35,7 @@ async function handleGoogle(user: any, account: any, profile: any) {
             await existingUser.save();
         }
 
+        user.id = existingUser._id.toString();
         return true;
     } catch (error) {
         console.error("Google Auth Database Error:", error);
@@ -56,11 +58,19 @@ const handler = NextAuth({
             return true;
         },
         async jwt({ token, user }) {
-            if (user) { token.email = user.email; token.name = user.name; }
+            if (user) { 
+                token.email = user.email; 
+                token.name = user.name; 
+                token.id = user.id;
+            }
             return token;
         },
         async session({ session, token }) {
-            if (session.user) { session.user.email = token.email; session.user.name = token.name; }
+            if (session.user) { 
+                session.user.email = token.email; 
+                session.user.name = token.name; 
+                (session.user as any).id = token.id; 
+            }
             return session;
         },
     },

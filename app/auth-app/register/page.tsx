@@ -17,7 +17,7 @@ export default function RegisterPage() {
           title={"Get\nStarted!"}
           linkLabel="Already have an account?"
           link={{
-            href: '/auth-app/register',
+            href: '/auth-app/login',
             text: 'Sign in',
           }}
         />
