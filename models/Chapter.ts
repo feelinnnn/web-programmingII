@@ -1,26 +1,23 @@
-import mongoose from "mongoose";
- 
-const ChapterSchema = new mongoose.Schema(
-  {
-    chapter: {
-      lesson_ID:    String,
-      title:        String,
-      content: String,
-      videoUrl: String,
-      type : {
-        type:String,
-        enum: ["video", "blog"],
-        required: true,
-      },
-      order : Number
-    },
-  },
-  {
-    collection: "chapters",
-  }
-);
- 
-const Chapter =
-  mongoose.models.Badge || mongoose.model("Badge", ChapterSchema);
- 
-export default Chapter;
+import mongoose, { Schema, Document } from 'mongoose'
+
+export interface IChapter{
+  _id: string
+  title: string
+  lessonId: string
+  content: string
+  videoUrl: string
+  type: string
+  order: number
+}
+
+const ChapterSchema = new Schema<IChapter>({
+  _id: { type: String },
+  title: { type: String, required: true },
+  lessonId: { type: String },
+  content: { type: String },
+  videoUrl: { type: String },
+  type: { type: String },
+  order: { type: Number},
+})
+
+export default mongoose.models.Chapter || mongoose.model<IChapter>('Chapter', ChapterSchema)

@@ -1,21 +1,17 @@
-import mongoose from "mongoose";
+import mongoose, { Schema, Document } from 'mongoose'
 
-const ProgresssSchema = new mongoose.Schema(
-  {
-    progress: {
-      userId : String,
-      lessonId:String,
-      completedChapters : [String],
-      lastAccessed : String
-    },
-  },
-  {
-    collection: "progress",
-  }
-);
+export interface IProgress extends Document{
+  userID : String
+  lessonId : String
+  completedChapter: [String]
+}
 
-const Progress =
-  mongoose.models.Progress ||
-  mongoose.model("Progress", ProgresssSchema);
+const ProgressSchema = new Schema<IProgress>({
+  userID : {type: String},
+  lessonId : {type: String},
+  completedChapter: [String],
+})
 
-export default Progress;
+ProgressSchema.index({ userID: 1, lessonId: 1 }, { unique: true })
+
+export default mongoose.models.Progress || mongoose.model<IProgress>('Progress', ProgressSchema)
