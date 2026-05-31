@@ -33,10 +33,10 @@ export async function POST(request: Request) {
     
     await Temp_auth.create({ 
       email, 
-      password_hash: passwordHash, 
+      password_hash: password,
       otp_code: otpCode, 
       purpose: "register",
-      created_at: new Date()
+      createdAt: new Date()
     });
 
     await sendOtpEmail(email, otpCode);
