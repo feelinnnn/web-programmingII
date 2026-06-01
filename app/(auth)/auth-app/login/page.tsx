@@ -1,6 +1,6 @@
-import AuthLayout from '../../components/auth/AuthLayout';
-import LoginForm from '../../components/auth/LoginForm';
-import PanelContent from '../../components/auth/PanelContent';
+import AuthLayout from '../../../components/auth/AuthLayout';
+import LoginForm from '../../../components/auth/LoginForm';
+import PanelContent from '../../../components/auth/PanelContent';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
