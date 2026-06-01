@@ -2,10 +2,24 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 import "./Navbar.css";
 
 export default function Navbar() {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const router = useRouter();
+  const [isExpanded, setIsExpanded] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("navbar-expanded") === "true";
+    }
+    return false;
+  });
+
+  const toggleNavbar = () => {
+    const next = !isExpanded;
+    setIsExpanded(next);
+    localStorage.setItem("navbar-expanded", String(next));
+  };
   const [profile, setProfile] = useState<{
     display_name: string;
     profile_image_url: string;
@@ -42,23 +56,35 @@ export default function Navbar() {
     fetchProfile();
   }, []);
 
+  const handleLogout = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("token");
+    }
+    setProfile(null);
+    router.push("/auth-app/register");
+  };
+
+  const fixImageUrl = (url: string) => url.replace(/=s\d+-c/, "=s400");
+
   const displayName = profile?.display_name || "Guest";
-  const avatarSrc = profile?.profile_image_url || "/avatar/Avatar.png";
+  const avatarSrc = fixImageUrl(profile?.profile_image_url || "/avatar/Avatar.png");
   const roleLabel = profile?.role === "admin" ? "Admin" : "Home Cook";
 
   return (
     <nav className={`navbar ${isExpanded ? "expanded" : "collapsed"}`}>
       <div className="logo-container">
         {isExpanded ? (
-          <img src="/logo/cookcult-logo.png" alt="Logo" className="logo-full" />
+          <Link href="/community"><img src="/logo/cookcult-logo.png" alt="Logo" className="logo-full" /></Link>
         ) : (
-          <p className="logo-c">C</p>
+          <Link href="/community"><p className="logo-c">C</p></Link>
         )}
         <img
           src="/picture-navbar/hidemenu.png"
           alt="Toggle Menu"
           className="hidemenu"
-          onClick={() => setIsExpanded(!isExpanded)}
+          onClick={toggleNavbar}
         />
       </div>
 
@@ -67,20 +93,28 @@ export default function Navbar() {
       <div className="menu-items">
         {isExpanded && <div className="menu-header">Main Menu</div>}
 
-        <Link href="/" className="menu-item">
-          <img src="/picture-navbar/home.png" alt="Home" className="pic" />
+        <Link href="/community" className="menu-item">
+          <svg className="pic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
           {isExpanded && <span className="menu-text">Home</span>}
         </Link>
-        <Link href="/lessons" className="menu-item">
-          <img src="/picture-navbar/lesson.png" alt="Lessons" className="pic" />
+        <Link href="/all_lesson" className="menu-item">
+          <svg className="pic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          </svg>
           {isExpanded && <span className="menu-text">Lessons</span>}
         </Link>
-        <Link href="/history" className="menu-item">
-          <img src="/picture-navbar/history.png" alt="History" className="pic" />
+        <Link href="/badge-status" className="menu-item">
+          <svg className="pic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
           {isExpanded && <span className="menu-text">History</span>}
         </Link>
         <Link href="/bookmark" className="menu-item">
-          <img src="/picture-navbar/bookmark.png" alt="Bookmark" className="pic" />
+          <svg className="pic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          </svg>
           {isExpanded && <span className="menu-text">Bookmark</span>}
         </Link>
       </div>
@@ -89,9 +123,11 @@ export default function Navbar() {
         href="/profile"
         className={`profile-bottom-card ${isExpanded ? "expanded" : "collapsed"}`}
       >
-        <img
+        <Image
           src={avatarSrc}
           alt="Profile"
+          width={40}
+          height={40}
           className="profile-pic-bottom"
         />
 
@@ -101,7 +137,7 @@ export default function Navbar() {
               <span className="profile-name">{displayName}</span>
               <span className="profile-role">{roleLabel}</span>
             </div>
-            <div className="logout-icon">
+            <div className="logout-icon" onClick={handleLogout} title="Logout">
               <svg
                 width="20"
                 height="20"

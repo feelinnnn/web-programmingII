@@ -50,7 +50,7 @@ function OtpFrom() {
             if (purpose === "login") {
                 setMessage("2FA Login successful!");
                 localStorage.setItem("token", data.token);
-                setTimeout(() => router.push("/"), 1500);
+                setTimeout(() => router.push("/community"), 1000);
             } else {
                 setMessage("Account verified! Redirecting to login page...");
                 setTimeout(() => router.push("/auth-app/login"), 2000);

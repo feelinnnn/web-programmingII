@@ -1,0 +1,128 @@
+/* ── overlay (same as edit modal) ── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* ── modal box ── */
+.viewModal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px 28px 24px;
+  width: 380px;
+  max-height: 85vh;
+  overflow-y: auto;
+  text-align: center;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
+}
+
+/* ── avatar ── */
+.viewAvatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #c49a6c;
+  background: #f0f0f0;
+  margin-bottom: 12px;
+  margin:auto;
+}
+
+/* ── name ── */
+.viewName {
+  margin: 0;
+  font-size: 22px;
+  color: #4a342e;
+}
+
+/* ── role ── */
+.viewRole {
+  margin: 4px 0 0 0;
+  font-size: 14px;
+  color: #8f796a;
+}
+
+/* ── bio ── */
+.viewBio {
+  margin: 14px 0 0 0;
+  font-size: 14px;
+  color: #555;
+  line-height: 1.5;
+}
+
+/* ── divider ── */
+.viewDivider {
+  border: none;
+  border-top: 1px solid #eee;
+  margin: 16px 0;
+}
+
+/* ── email row ── */
+.viewRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+}
+
+.viewIconCircle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #c49a6c;
+  color: #4a342e;
+  flex-shrink: 0;
+}
+
+.viewEmail {
+  font-size: 14px;
+  color: #4a342e;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ── social circles row ── */
+.socialCircles {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.socialCircleLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #c49a6c;
+  color: #4a342e;
+  text-decoration: none;
+  transition: transform 0.15s ease;
+}
+
+.socialCircleLink:hover {
+  transform: scale(1.1);
+}
+
+/* ── close button ── */
+.closeOnlyBtn {
+  margin-top: 20px;
+  padding: 8px 36px;
+  background: #eee;
+  color: #333;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}

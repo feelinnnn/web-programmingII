@@ -49,7 +49,7 @@
 }
 
 .user-details .subtitle {
-  margin: 10px 0 0 0;
+  margin: 4px 0 0 0;
   color: #D8AE7E;
   font-size: 16px;
   display: flex;
@@ -63,22 +63,25 @@
   align-items: center;
 }
 
-.social-icons span {
+.social-icons span,
+.social-icons a {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 32px;
   height: 32px;
-  background-color: #D8AE7E;
+  background-color: #c49a6c;
   border-radius: 50%;
   cursor: pointer;
   transition: all 0.2s ease;
   flex-shrink: 0;
+  color: #4a342e;
+  text-decoration: none;
 }
 
-.social-icons span:hover {
+.social-icons span:hover,
+.social-icons a:hover {
   transform: scale(1.05);
-  background-color: #c49a6c;
 }
 
 .social-icons img {
