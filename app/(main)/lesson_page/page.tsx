@@ -1,6 +1,5 @@
 "use client"
 import "./lesson-page.css";
-import Navbar from "../components/Navbar";
 
 type EpisodeType = "video" | "document";
 
@@ -26,8 +25,6 @@ export default function VideoPage() {
     
     <div className="page">
       {/* Sidebar */}
-      <Navbar />
-
       {/* Main Content */}
       <div className="main">
         <div className="content-card">

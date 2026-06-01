@@ -1,6 +1,5 @@
 "use client";
 
-import Navbar from "../components/Navbar";
 import './badge.css';
 
 export default function BadgesPage() {
@@ -30,7 +29,6 @@ export default function BadgesPage() {
 
   return (
     <div className="layout-container">
-      <Navbar />
 
       <main className="main-content">
         <div className="badges-page">
