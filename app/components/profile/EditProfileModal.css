@@ -1,14 +1,14 @@
-.overlay {
+.em-overlay {
   position: fixed;
   inset: 0;
   background-color: rgba(0, 0, 0, 0.45);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 9999;
 }
 
-.modal {
+.em-modal {
   background: #fff;
   border-radius: 16px;
   padding: 28px 24px;
@@ -18,18 +18,18 @@
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
 }
 
-.modalTitle {
+.em-modalTitle {
   margin: 0 0 16px 0;
   font-size: 20px;
 }
 
-.modalAvatar {
+.em-modalAvatar {
   display: flex;
   justify-content: center;
   margin-bottom: 16px;
 }
 
-.modalAvatar img {
+.em-modalAvatar img {
   width: 80px;
   height: 80px;
   border-radius: 50%;
@@ -38,7 +38,7 @@
   background: #f0f0f0;
 }
 
-.errorMessage {
+.em-errorMessage {
   color: #d00;
   background: #fff0f0;
   padding: 8px 12px;
@@ -47,7 +47,7 @@
   font-size: 14px;
 }
 
-.fieldLabel {
+.em-fieldLabel {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -56,14 +56,14 @@
   font-weight: 500;
 }
 
-.fieldInput {
+.em-fieldInput {
   padding: 8px 12px;
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 14px;
 }
 
-.fieldTextarea {
+.em-fieldTextarea {
   padding: 8px 12px;
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -72,18 +72,18 @@
   resize: vertical;
 }
 
-.sectionTitle {
+.em-sectionTitle {
   margin-top: 16px;
   margin-bottom: 8px;
 }
 
-.buttons {
+.em-buttons {
   display: flex;
   gap: 10px;
   margin-top: 20px;
 }
 
-.saveBtn {
+.em-saveBtn {
   flex: 1;
   padding: 10px 0;
   background: #4a342e;
@@ -94,7 +94,7 @@
   font-size: 14px;
 }
 
-.cancelBtn {
+.em-cancelBtn {
   flex: 1;
   padding: 10px 0;
   background: #eee;
@@ -104,4 +104,3 @@
   cursor: pointer;
   font-size: 14px;
 }
-
