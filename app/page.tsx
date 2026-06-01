@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { SessionProvider } from "next-auth/react";
+import { GetUserid } from "@/lib/useauth";
 
 
 export default function Home() {
@@ -47,30 +49,29 @@ export default function Home() {
 
 //         createProgress()
 // }, [])
-useEffect(() => {
-  const test = async () => {
-    const response = await fetch("/api/user-badges", {
-      method: "POST",
-      headers: { "Content-Type": "application/vnd.api+json" },
-      body: JSON.stringify({
-        data: {
-          type: "user-badge",
-          attributes: {
-            userId: "testUser123",
-            badgeId: "badge003",        // lesson type badge to test auto-verify
-            badgeTypeSnapshot: "evidence-backed",
-            userNote: "test note",
-            evidenceUrls: []
-          }
-        }
-      })
-    })
-    const data = await response.json()
-    console.log(data)
-  }
+// useEffect(() => {
+//   const test = async () => {
+//     const response = await fetch("/api/user-badges", {
+//       method: "POST",
+//       headers: { "Content-Type": "application/vnd.api+json" },
+//       body: JSON.stringify({
+//         data: {
+//           type: "user-badge",
+//           attributes: {
+//             userId: "testUser123",
+//             badgeId: "badge003",        // lesson type badge to test auto-verify
+//             badgeTypeSnapshot: "evidence-backed",
+//             userNote: "test note",
+//             evidenceUrls: []
+//           }
+//         }
+//       })
+//     })
+//     const data = await response.json()
+//     console.log(data)
+//   }
 
-  test()
-}, [])
-
+//   test()
+// }, []
   return <h1>Hello World 🔥</h1>
 }
