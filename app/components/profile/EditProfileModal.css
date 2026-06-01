@@ -1,0 +1,107 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px 24px;
+  width: 420px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
+}
+
+.modalTitle {
+  margin: 0 0 16px 0;
+  font-size: 20px;
+}
+
+.modalAvatar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.modalAvatar img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #c49a6c;
+  background: #f0f0f0;
+}
+
+.errorMessage {
+  color: #d00;
+  background: #fff0f0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.fieldLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.fieldInput {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.fieldTextarea {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  height: 80px;
+  resize: vertical;
+}
+
+.sectionTitle {
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
+.buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.saveBtn {
+  flex: 1;
+  padding: 10px 0;
+  background: #4a342e;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.cancelBtn {
+  flex: 1;
+  padding: 10px 0;
+  background: #eee;
+  color: #333;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+

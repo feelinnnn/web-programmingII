@@ -48,10 +48,10 @@
   width: 24px;
   height: auto;
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: transform 0.3s ease;
 }
 
-.hidemenu:hover { transform: scale(1.1); } 
+.hidemenu:hover { transform: scale(1.15); }
 
 .line {
   background-color: rgba(255, 255, 255, 0.1);
@@ -75,6 +75,8 @@
   padding: 0 12px;
   margin-bottom: 5px;
   margin-top: 10px;
+  opacity: 0;
+  animation: fadeIn 0.3s ease 0.1s forwards;
 }
 
 .menu-item {
@@ -86,7 +88,7 @@
   font-size: 16px;
   padding: 12px;
   border-radius: 8px;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s ease;
   white-space: nowrap;
   text-decoration: none;
 }
@@ -100,19 +102,26 @@
   background-color: rgba(255, 255, 255, 0.05);
 }
 
+.menu-text {
+  opacity: 0;
+  animation: fadeIn 0.3s ease 0.15s forwards;
+}
+
 .pic {
   width: 24px;
   height: 24px;
-  object-fit: contain;
+  flex-shrink: 0;
 }
 
+/* ── Profile card ── */
 .profile-bottom-card {
   display: flex;
   align-items: center;
   margin-top: auto;
   border-radius: 12px;
-  transition: background-color 0.2s;
+  transition: all 0.3s ease;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .profile-bottom-card.expanded {
@@ -138,9 +147,13 @@
 .profile-pic-bottom {
   width: 40px;
   height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  aspect-ratio: 1 / 1;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid #aebfd1;
+  flex-shrink: 0;
 }
 
 .profile-info {
@@ -148,6 +161,8 @@
   flex-direction: column;
   flex-grow: 1;
   margin-left: 12px;
+  opacity: 0;
+  animation: fadeIn 0.3s ease 0.1s forwards;
 }
 
 .profile-name {
@@ -167,35 +182,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.2s;
+  transition: color 0.2s ease;
+  opacity: 0;
+  animation: fadeIn 0.3s ease 0.15s forwards;
 }
 
 .logout-icon:hover {
   color: white;
 }
 
-.profile-bottom-card {
-  display: flex;
-  align-items: center;
-  margin-top: auto;
-  border-radius: 12px;
-  transition: background-color 0.2s;
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.profile-bottom-card.expanded {
-  padding: 12px 15px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background-color: rgba(255, 255, 255, 0.05);
-  justify-content: space-between;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.profile-bottom-card.collapsed {
-  padding: 10px;
-  border: none;
-  background-color: transparent;
-  justify-content: center;
+/* ── Animation ── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateX(8px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
