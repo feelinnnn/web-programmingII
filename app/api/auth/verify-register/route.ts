@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     });
 
     await Temp_auth.deleteOne({ _id: tempRecord._id });
-    
+
     return NextResponse.json({ message: "Account created successfully!" }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ message: "Verification failed.", error }, { status: 500 });
