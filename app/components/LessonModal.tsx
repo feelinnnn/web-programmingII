@@ -1,4 +1,8 @@
 import "./LessonModal.css";
+import { useRouter } from "next/navigation";
+import { SessionProvider } from "next-auth/react";
+import { GetUserid } from "@/lib/useauth";
+
 
 type Chapter = { id: string; type: string };
 
@@ -23,6 +27,11 @@ type Props = {
 };
 
 export default function LessonModal({ lesson, onClose }: Props) {
+  const router = useRouter();
+
+const gotoLesson = (id: string) => {
+  router.push(`/lesson_page/?lesson_id=${id}`);
+};
   if (!lesson) return null;
 
   const { title, description, thumbnail_url, badge } = lesson.attributes;
@@ -45,7 +54,7 @@ export default function LessonModal({ lesson, onClose }: Props) {
               backgroundImage: thumbnail_url ? `url(${thumbnail_url})` : undefined,
             }}
           />
-          <button className="modal-cta">Sign up</button>
+          <button className="modal-cta" onClick={() => gotoLesson(lesson.id)}>Sign up</button>
         </div>
       </div>
     </div>

@@ -72,6 +72,6 @@ export default function Home() {
 //   }
 
 //   test()
-// }, []
+// }, [])
   return <h1>Hello World 🔥</h1>
 }

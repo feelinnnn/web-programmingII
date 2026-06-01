@@ -20,6 +20,13 @@ body {
   overflow-y: auto;
 }
 
+.video-player {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: none;
+  border-radius: 12px;
+}
+
 .content-card {
   background-color: #fde8c8;
   border-radius: 18px;
