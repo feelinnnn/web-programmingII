@@ -3,7 +3,7 @@ import { getToken } from "next-auth/jwt";
 import connect from "@/lib/mongodb";
 import User from "@/models/User";
 import UserStats from "@/models/User_stat";
-import UserBadge from "@/models/User_badges";
+import UserBadge from "@/models/UserBadge"; 
 import Badge from "@/models/Badge";
 import Progress from "@/models/Progress";
 import jwt from "jsonwebtoken";
@@ -12,17 +12,15 @@ const JWT_SECRET = process.env.JWT_SECRET || "COOKCULT_SECRET_KEY";
 const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET || "COOKCULT_SECRET_KEY";
 
 async function getUserId(req: NextRequest): Promise<string | null> {
-  // Try next-auth session (Google OAuth) — uses getToken which properly
-  // decrypts the next-auth session cookie server-side
+
   try {
     const session = await getToken({ req, secret: NEXTAUTH_SECRET });
     if (session?.id) return session.id as string;
     if (session?.sub) return session.sub;
   } catch {
-    // next-auth not configured or token invalid
+
   }
 
-  // Try Authorization: Bearer <token> (OTP email login)
   const authHeader = req.headers.get("authorization");
   if (authHeader?.startsWith("Bearer ")) {
     try {
@@ -37,7 +35,7 @@ async function getUserId(req: NextRequest): Promise<string | null> {
   return null;
 }
 
-// GET /api/profile — return the authenticated user's full profile
+// GET /api/profile 
 export async function GET(req: NextRequest) {
   try {
     await connect();
@@ -50,7 +48,11 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const user = await User.findById(userId).lean();
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(userId);
+    const user = isObjectId 
+      ? await User.findById(userId).lean()
+      : await User.findOne({ user_id: userId }).lean();
+
     if (!user) {
       return NextResponse.json(
         { errors: [{ status: "404", title: "Not Found", detail: "User not found" }] },
@@ -58,11 +60,12 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Fetch stats, badges, and progress in parallel
+    const dbUserId = user._id.toString();
+
     const [stats, userBadges, progressDocs] = await Promise.all([
-      UserStats.findOne({ "user_stats.user_id": userId }).lean(),
-      UserBadge.find({ "user_badges.user_id": userId }).lean(),
-      Progress.find({ userID: userId }).lean(),
+      UserStats.findOne({ "user_stats.user_id": dbUserId }).lean(),
+      UserBadge.find({ "user_badges.user_id": dbUserId }).lean(),
+      Progress.find({ userID: dbUserId }).lean(),
     ]);
 
     // Resolve badge details for each user_badge
@@ -187,11 +190,10 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { $set: updates },
-      { new: true, runValidators: true }
-    ).lean();
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(userId);
+    const updatedUser = isObjectId
+      ? await User.findByIdAndUpdate(userId, { $set: updates }, { new: true, runValidators: true }).lean()
+      : await User.findOneAndUpdate({ user_id: userId }, { $set: updates }, { new: true, runValidators: true }).lean();
 
     if (!updatedUser) {
       return NextResponse.json(
