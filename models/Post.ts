@@ -9,7 +9,7 @@ const PostSchema = new mongoose.Schema(
 
       hashtags: [String],
 
-      image_url: String,
+      image_url: [String],
       recipe_url: String,
 
       likes_count: Number,

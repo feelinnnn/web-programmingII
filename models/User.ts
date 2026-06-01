@@ -15,6 +15,7 @@ const UserSchema = new mongoose.Schema(
     },
     profile_image_url: String,
     bio:               String,
+    sub_namebio:        { type: String, default: "" }, // ex. "Home Cook", "Pastry Chef"
     social_links: {
       instagram:       String,
       facebook:        String,

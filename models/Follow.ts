@@ -10,7 +10,7 @@ const FollowSchema = new mongoose.Schema(
     },
   },
   {
-    collection: "comments",
+    collection: "follows",
   }
 );
  
