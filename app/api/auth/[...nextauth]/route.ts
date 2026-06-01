@@ -20,7 +20,7 @@ async function handleGoogle(user: any, account: any, profile: any) {
                 role: "user",
                 password_hash: undefined,
             });
-            user.id = newUser._id.toString();
+            user.id = newUser.user_id.toString();
             return true;
         }
 
@@ -35,7 +35,7 @@ async function handleGoogle(user: any, account: any, profile: any) {
             await existingUser.save();
         }
 
-        user.id = existingUser._id.toString();
+        user.id = existingUser.user_id.toString();
         return true;
     } catch (error) {
         console.error("Google Auth Database Error:", error);
