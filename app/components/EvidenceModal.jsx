@@ -1,11 +1,19 @@
+"use client";
+
 import Image from "next/image"
 import './EvidenceModal.css'; 
+import { GetUserid } from "@/lib/useauth";
+import { useEffect } from "react";
 
 
 
 
 export default function EvidenceModal({ isOpen, onClose }) {
   if (!isOpen) return null;
+  const userId = GetUserid();
+      useEffect(() => {
+        console.log(userId)
+        }, []);
 
   return (
     <div className="modal-overlay">

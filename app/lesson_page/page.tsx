@@ -1,80 +1,152 @@
 "use client"
 import "./lesson-page.css";
 import Navbar from "../components/Navbar";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+
+
 
 type EpisodeType = "video" | "document";
 
-type Episode = {
-  id: number;
-  title: string;
-  type: EpisodeType;
+type Chapter = {
+  id: string;
+  type: string;
+  attributes: {
+    title: string;
+    content: string;
+    videoUrl: string;
+    type: EpisodeType;
+    order: number;
+  };
 };
 
-const episodes: Episode[] = [
-  { id: 1, title: "Episode 1 : Lorem ipsum dolor sit amet", type: "video" },
-  { id: 2, title: "Episode 2 : Lorem ipsum dolor sit amet", type: "video" },
-  { id: 3, title: "Episode 3 : Lorem ipsum dolor sit amet", type: "video" },
-  { id: 4, title: "Episode 4 : Lorem ipsum dolor sit amet", type: "document" },
-  { id: 5, title: "Episode 5 : Lorem ipsum dolor sit amet", type: "document" },
-  { id: 6, title: "Episode 6 : Lorem ipsum dolor sit amet", type: "document" },
-  { id: 7, title: "Episode 7 : Lorem ipsum dolor sit amet", type: "document" },
-  
-];
+type Lesson = {
+  id: string;
+  attributes: {
+    title: string;
+    description: string;
+    thumbnail_url: string;
+  };
+};
 
-export default function VideoPage() {
+export default function LessonPage() {
+  const router = useRouter();
+  
+  const searchParams = useSearchParams();
+  const lessonId = searchParams.get("lesson_id");
+  const gotoEvidence = () => {
+  router.push(`/evidence/?lesson_id=${lessonId}`);
+  };
+
+  const [lesson, setLesson] = useState<Lesson | null>(null);
+  const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!lessonId) return;
+
+    async function fetchData() {
+      try {
+        const [lessonRes, chaptersRes] = await Promise.all([
+          fetch(`/api/lessons/${lessonId}`),
+          fetch(`/api/lessons/${lessonId}/chapters`),
+        ]);
+
+        if (!lessonRes.ok) throw new Error("Failed to fetch lesson");
+        if (!chaptersRes.ok) throw new Error("Failed to fetch chapters");
+
+        const lessonJson = await lessonRes.json();
+        const chaptersJson = await chaptersRes.json();
+
+        const sortedChapters: Chapter[] = chaptersJson.data.sort(
+          (a: Chapter, b: Chapter) => a.attributes.order - b.attributes.order
+        );
+
+        setLesson(lessonJson.data);
+        setChapters(sortedChapters);
+        setSelectedChapter(sortedChapters[0] ?? null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Unknown error");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, [lessonId]);
+
+  if (loading) return <div className="page"><Navbar /><p>Loading...</p></div>;
+  if (error) return <div className="page"><Navbar /><p>Error: {error}</p></div>;
+
   return (
-    
     <div className="page">
-      {/* Sidebar */}
       <Navbar />
 
       {/* Main Content */}
       <div className="main">
         <div className="content-card">
           {/* Video Player */}
-          <div className="video-player">
-            <div className="play-button">
-              <img src="/icon/play-icon.png" alt="Play" />
+          {selectedChapter?.attributes.type === "video" ? (
+             <iframe
+              className="video-player"
+              src={selectedChapter.attributes.videoUrl}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          ) : (
+            <div className="video-player">
+              <div className="play-button">
+                <img src="/icon/play-icon.png" alt="Play" />
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Video Info */}
-          <h2 className="video-title">Video Title # 1</h2>
+          {/* Info */}
+          <h2 className="video-title">
+            {selectedChapter?.attributes.title ?? lesson?.attributes.title}
+          </h2>
           <p className="video-description">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum cursus viverra
-            tempus. Curabitur a risus ac metus lacinia viverra. Phasellus pretium massa volutpat
-            arcu ultrices ullamcorper. Phasellus tempus feugiat diam in interdum. Fusce posuere
-            tempus leo, sed lobortis velit accumsan eget. Sed convallis a metus eget efficitur.
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum cursus viverra
-            tempus. Curabitur a risus ac metus lacinia viverra.empus feugiat diam in interdum. Fusce posuere
-            tempus leo, sed lobortis velit accumsan eget. Sed convallis a metus eget efficitur.
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum cursus viverra
-            tempus. Curabitur a risus ac metus lacinia viverra.
+            {selectedChapter?.attributes.content ?? lesson?.attributes.description}
           </p>
 
           <div className="submit-row">
-            <button className="submit-btn">submit</button>
+            <button className="submit-btn">Submit</button>
           </div>
         </div>
       </div>
 
       {/* Episode Sidebar */}
       <div className="episode-sidebar">
-        {episodes.map((episode: Episode, i: number) => (
-          <div key={episode.id}>
-            <div className="episode-item">
+        {chapters.map((chapter, i) => (
+          <div key={chapter.id} onClick={() => setSelectedChapter(chapter)}>
+            <div className={`episode-item ${selectedChapter?.id === chapter.id ? "active" : ""}`}>
               <div className="episode-icon">
                 <img
-                  src={episode.type === "video" ? "/icon/video-icon.png" : "/icon/doc-icon.png"}
-                  alt={episode.type}
+                  src={chapter.attributes.type === "video" ? "/icon/video-icon.png" : "/icon/doc-icon.png"}
+                  alt={chapter.attributes.type}
                 />
               </div>
-              <span className="episode-title">{episode.title}</span>
+              <span className="episode-title">{chapter.attributes.title}</span>
             </div>
-
-            {i < episodes.length - 1 && <div className="connector" />}
+            {i < chapters.length - 1 && <div className="connector" />}
           </div>
         ))}
+        <div className="connector" />
+        
+         <div onClick={() => gotoEvidence()}>
+            <div className={`episode-item ${selectedChapter ? "active" : ""}`}>
+              <div className="episode-icon">
+                <img
+                  src={"/icon/doc-icon.png"}
+                  alt={"submission"}
+                />
+              </div>
+              <span className="episode-title">{"Submission"}</span>
+            </div>
+          </div>
       </div>
     </div>
   );

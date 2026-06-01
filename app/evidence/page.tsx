@@ -4,11 +4,29 @@ import { useState } from "react";
 import Navbar from "../components/Navbar";
 import EvidenceModal from "../components/EvidenceModal";
 import "./evidence.css";
+import { GetUserid } from "@/lib/useauth";
+import { SessionProvider } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { useEffect } from "react";
+
+
 
 export default function Home() {
   const [open, setOpen] = useState(false);
+  const userId = GetUserid();
+    useEffect(() => {
+      console.log(userId)
+      }, []);
+    if (userId === null) {
+      return <div>Please login</div>
+    }
+
+  
+  
 
   return (
+  
+    
     <div className="container">
       <Navbar />
 

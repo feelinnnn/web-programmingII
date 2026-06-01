@@ -3,7 +3,7 @@ import { getToken } from "next-auth/jwt";
 import connect from "@/lib/mongodb";
 import User from "@/models/User";
 import UserStats from "@/models/User_stat";
-import UserBadge from "@/models/User_badges";
+import UserBadge from "@/models/UserBadge";
 import Badge from "@/models/Badge";
 import Progress from "@/models/Progress";
 import jwt from "jsonwebtoken";
