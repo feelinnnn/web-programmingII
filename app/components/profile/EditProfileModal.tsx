@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import "./EditProfileModal.css";
 
@@ -34,8 +35,11 @@ export default function EditProfileModal({ initialData, onClose, onSaved }: Prop
     youtube: initialData.social_links?.youtube || "",
   });
 
+  const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => { setMounted(true); }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -89,14 +93,14 @@ export default function EditProfileModal({ initialData, onClose, onSaved }: Prop
     }
   };
 
-  return (
-    <div className="overlay">
-      <div className="modal">
-        <h2 className="modalTitle">Edit Profile</h2>
+  const modal = (
+    <div className="em-overlay" onClick={onClose}>
+      <div className="em-modal" onClick={(e) => e.stopPropagation()}>
+        <h2 className="em-modalTitle">Edit Profile</h2>
 
-        {error && <p className="errorMessage">{error}</p>}
+        {error && <p className="em-errorMessage">{error}</p>}
 
-        <div className="modalAvatar">
+        <div className="em-modalAvatar">
           <Image
             src={(form.profile_image_url || "/avatar/Avatar.png").replace(/=s\d+-c/, "=s400")}
             alt="Preview"
@@ -105,20 +109,20 @@ export default function EditProfileModal({ initialData, onClose, onSaved }: Prop
           />
         </div>
 
-        <label className="fieldLabel">
+        <label className="em-fieldLabel">
           Display Name
           <input
-            className="fieldInput"
+            className="em-fieldInput"
             name="display_name"
             value={form.display_name}
             onChange={handleChange}
           />
         </label>
 
-        <label className="fieldLabel">
+        <label className="em-fieldLabel">
           Bio
           <textarea
-            className="fieldTextarea"
+            className="em-fieldTextarea"
             name="bio"
             value={form.bio}
             onChange={handleChange}
@@ -126,43 +130,46 @@ export default function EditProfileModal({ initialData, onClose, onSaved }: Prop
           />
         </label>
 
-        <label className="fieldLabel">
+        <label className="em-fieldLabel">
           Profile Image URL
           <input
-            className="fieldInput"
+            className="em-fieldInput"
             name="profile_image_url"
             value={form.profile_image_url}
             onChange={handleChange}
           />
         </label>
 
-        <h3 className="sectionTitle">Social Links</h3>
+        <h3 className="em-sectionTitle">Social Links</h3>
 
-        <label className="fieldLabel">Instagram
-          <input className="fieldInput" name="instagram" value={form.instagram} onChange={handleChange} placeholder="Instagram URL" />
+        <label className="em-fieldLabel">Instagram
+          <input className="em-fieldInput" name="instagram" value={form.instagram} onChange={handleChange} placeholder="Instagram URL" />
         </label>
-        <label className="fieldLabel">Facebook
-          <input className="fieldInput" name="facebook" value={form.facebook} onChange={handleChange} placeholder="Facebook URL" />
+        <label className="em-fieldLabel">Facebook
+          <input className="em-fieldInput" name="facebook" value={form.facebook} onChange={handleChange} placeholder="Facebook URL" />
         </label>
-        <label className="fieldLabel">Twitter
-          <input className="fieldInput" name="twitter" value={form.twitter} onChange={handleChange} placeholder="X (Twitter) URL" />
+        <label className="em-fieldLabel">Twitter
+          <input className="em-fieldInput" name="twitter" value={form.twitter} onChange={handleChange} placeholder="X (Twitter) URL" />
         </label>
-        <label className="fieldLabel">TikTok
-          <input className="fieldInput" name="tiktok" value={form.tiktok} onChange={handleChange} placeholder="TikTok URL" />
+        <label className="em-fieldLabel">TikTok
+          <input className="em-fieldInput" name="tiktok" value={form.tiktok} onChange={handleChange} placeholder="TikTok URL" />
         </label>
-        <label className="fieldLabel">YouTube
-          <input className="fieldInput" name="youtube" value={form.youtube} onChange={handleChange} placeholder="YouTube URL" />
+        <label className="em-fieldLabel">YouTube
+          <input className="em-fieldInput" name="youtube" value={form.youtube} onChange={handleChange} placeholder="YouTube URL" />
         </label>
 
-        <div className="buttons">
-          <button className="saveBtn" onClick={handleSave} disabled={loading}>
+        <div className="em-buttons">
+          <button className="em-saveBtn" onClick={handleSave} disabled={loading}>
             {loading ? "Saving..." : "Save"}
           </button>
-          <button className="cancelBtn" onClick={onClose} disabled={loading}>
+          <button className="em-cancelBtn" onClick={onClose} disabled={loading}>
             Cancel
           </button>
         </div>
       </div>
     </div>
   );
+
+  if (!mounted) return null;
+  return createPortal(modal, document.body);
 }

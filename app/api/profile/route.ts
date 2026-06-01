@@ -48,10 +48,8 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const isObjectId = /^[0-9a-fA-F]{24}$/.test(userId);
-    const user = isObjectId 
-      ? await User.findById(userId).lean()
-      : await User.findOne({ user_id: userId }).lean();
+    const user = await User.findOne({ user_id: userId }).lean()
+      || await User.findById(userId).lean();
 
     if (!user) {
       return NextResponse.json(
@@ -190,10 +188,10 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    const isObjectId = /^[0-9a-fA-F]{24}$/.test(userId);
-    const updatedUser = isObjectId
-      ? await User.findByIdAndUpdate(userId, { $set: updates }, { new: true, runValidators: true }).lean()
-      : await User.findOneAndUpdate({ user_id: userId }, { $set: updates }, { new: true, runValidators: true }).lean();
+    let updatedUser = await User.findOneAndUpdate({ user_id: userId }, { $set: updates }, { new: true, runValidators: true }).lean();
+    if (!updatedUser) {
+      updatedUser = await User.findByIdAndUpdate(userId, { $set: updates }, { new: true, runValidators: true }).lean();
+    }
 
     if (!updatedUser) {
       return NextResponse.json(

@@ -1,16 +1,14 @@
-/* ── overlay (same as edit modal) ── */
-.overlay {
+.vm-overlay {
   position: fixed;
   inset: 0;
   background-color: rgba(0, 0, 0, 0.45);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 9999;
 }
 
-/* ── modal box ── */
-.viewModal {
+.vm-viewModal {
   background: #fff;
   border-radius: 16px;
   padding: 32px 28px 24px;
@@ -21,8 +19,7 @@
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
 }
 
-/* ── avatar ── */
-.viewAvatar {
+.vm-viewAvatar {
   width: 96px;
   height: 96px;
   border-radius: 50%;
@@ -30,47 +27,41 @@
   border: 4px solid #c49a6c;
   background: #f0f0f0;
   margin-bottom: 12px;
-  margin:auto;
 }
 
-/* ── name ── */
-.viewName {
+.vm-viewName {
   margin: 0;
   font-size: 22px;
   color: #4a342e;
 }
 
-/* ── role ── */
-.viewRole {
+.vm-viewRole {
   margin: 4px 0 0 0;
   font-size: 14px;
   color: #8f796a;
 }
 
-/* ── bio ── */
-.viewBio {
+.vm-viewBio {
   margin: 14px 0 0 0;
   font-size: 14px;
   color: #555;
   line-height: 1.5;
 }
 
-/* ── divider ── */
-.viewDivider {
+.vm-viewDivider {
   border: none;
   border-top: 1px solid #eee;
   margin: 16px 0;
 }
 
-/* ── email row ── */
-.viewRow {
+.vm-viewRow {
   display: flex;
   align-items: center;
   gap: 10px;
   justify-content: center;
 }
 
-.viewIconCircle {
+.vm-viewIconCircle {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -82,7 +73,7 @@
   flex-shrink: 0;
 }
 
-.viewEmail {
+.vm-viewEmail {
   font-size: 14px;
   color: #4a342e;
   cursor: pointer;
@@ -90,15 +81,14 @@
   text-underline-offset: 3px;
 }
 
-/* ── social circles row ── */
-.socialCircles {
+.vm-socialCircles {
   display: flex;
   justify-content: center;
   gap: 12px;
   flex-wrap: wrap;
 }
 
-.socialCircleLink {
+.vm-socialCircleLink {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -111,12 +101,11 @@
   transition: transform 0.15s ease;
 }
 
-.socialCircleLink:hover {
+.vm-socialCircleLink:hover {
   transform: scale(1.1);
 }
 
-/* ── close button ── */
-.closeOnlyBtn {
+.vm-closeOnlyBtn {
   margin-top: 20px;
   padding: 8px 36px;
   background: #eee;
