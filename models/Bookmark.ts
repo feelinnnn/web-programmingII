@@ -18,6 +18,8 @@ const BookmarkSchema = new mongoose.Schema(
     collection: "bookmarks",
   }
 );
+
+BookmarkSchema.index({ user_id: 1, post_id: 1 },{ unique: true });
  
 const Bookmark =
   mongoose.models.Bookmark || mongoose.model("Bookmark", BookmarkSchema);
