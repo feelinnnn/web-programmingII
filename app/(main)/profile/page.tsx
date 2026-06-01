@@ -2,9 +2,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
-import Navbar from "../components/Navbar";
-import EditProfileModal from "../components/profile/EditProfileModal";
-import ViewProfileModal from "../components/profile/ViewProfileModal";
+import EditProfileModal from "../../components/profile/EditProfileModal";
+import ViewProfileModal from "../../components/profile/ViewProfileModal";
 import "./profile.css";
 
 interface UserProfile {
@@ -77,7 +76,6 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="layout-container">
-        <Navbar />
         <main className="main-content" style={{ padding: "2rem" }}>
           <p>Loading profile...</p>
         </main>
@@ -88,7 +86,6 @@ export default function ProfilePage() {
   if (error || !profile) {
     return (
       <div className="layout-container">
-        <Navbar />
         <main className="main-content" style={{ padding: "2rem" }}>
           <p>{error || "Profile not found"}</p>
         </main>
@@ -107,7 +104,6 @@ export default function ProfilePage() {
 
   return (
     <div className="layout-container">
-      <Navbar />
 
       <main className="main-content">
         <header className="profile-header">

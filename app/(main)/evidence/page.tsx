@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Navbar from "../components/Navbar";
-import EvidenceModal from "../components/EvidenceModal";
+import EvidenceModal from "../../components/EvidenceModal";
 import "./evidence.css";
 
 export default function Home() {
@@ -10,7 +9,6 @@ export default function Home() {
 
   return (
     <div className="container">
-      <Navbar />
 
       <div className="content">
         <h2 className="text-3xl font-bold mb-6">

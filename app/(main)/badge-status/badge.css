@@ -142,18 +142,31 @@
 }
 
 @media (max-width: 1200px) {
-  .badges-grid { grid-template-columns: repeat(5, 1fr); }
-}
-
-@media (max-width: 1000px) {
   .badges-grid { grid-template-columns: repeat(4, 1fr); }
 }
 
+@media (max-width: 900px) {
+  .badges-grid { grid-template-columns: repeat(3, 1fr); }
+  .badges-page { padding: 25px 30px; }
+}
+
 @media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+  }
   .badges-grid { grid-template-columns: repeat(3, 1fr); }
   .badges-page { padding: 20px; }
+  .page-title { font-size: 36px; }
+  .badge-card { height: 160px; }
 }
 
 @media (max-width: 480px) {
   .badges-grid { grid-template-columns: repeat(2, 1fr); }
+  .badges-page { padding: 15px; }
+  .page-title { font-size: 30px; margin-bottom: 20px; }
+  .badge-card { height: 140px; }
+  .badges-section { padding: 15px; }
+  .section-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .section-title { font-size: 18px; }
 }

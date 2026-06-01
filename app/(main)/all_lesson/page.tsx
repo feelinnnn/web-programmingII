@@ -1,9 +1,8 @@
 "use client"
 
 import "./all-lessons.css";
-import Navbar from "../components/Navbar";
 import { useEffect, useState } from "react";
-import LessonModal from "../components/LessonModal";
+import LessonModal from "../../components/LessonModal";
 
 
 
@@ -52,8 +51,6 @@ export default function AllLessons() {
   return (
     <div className="page">
       {/* Sidebar */}
-      <Navbar />
-
       {/* Main Content */}
       <div className="main">
         {/* Top Bar */}
