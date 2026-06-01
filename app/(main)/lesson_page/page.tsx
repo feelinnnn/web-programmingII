@@ -1,6 +1,5 @@
 "use client"
 import "./lesson-page.css";
-import Navbar from "../components/Navbar";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
@@ -78,12 +77,11 @@ export default function LessonPage() {
     fetchData();
   }, [lessonId]);
 
-  if (loading) return <div className="page"><Navbar /><p>Loading...</p></div>;
-  if (error) return <div className="page"><Navbar /><p>Error: {error}</p></div>;
+  if (loading) return <div className="page"><p>Loading...</p></div>;
+  if (error) return <div className="page"><p>Error: {error}</p></div>;
 
   return (
     <div className="page">
-      <Navbar />
 
       {/* Main Content */}
       <div className="main">

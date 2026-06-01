@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import Navbar from "../components/Navbar";
-import EvidenceModal from "../components/EvidenceModal";
+import EvidenceModal from "../../components/EvidenceModal";
 import "./evidence.css";
 import { GetUserid } from "@/lib/useauth";
 
@@ -40,7 +39,6 @@ export default function Home() {
 
   return (
     <div className="container">
-      <Navbar />
 
       <div className="content">
         <h2 className="text-3xl font-bold mb-6">Detail</h2>

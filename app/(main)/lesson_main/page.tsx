@@ -2,7 +2,6 @@
 "use client";
 
 import "./lesson_main.css";
-import Navbar from "../components/Navbar";
 
 const lessons = Array.from({ length: 12 });
 
@@ -31,7 +30,6 @@ export default function Home() {
   return (
     <div className="page">
       {/* Sidebar */}
-      <Navbar></Navbar>
 
       {/* Main */}
       <main className="main-content">

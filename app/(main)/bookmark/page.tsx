@@ -1,6 +1,5 @@
 "use client";
 
-import Navbar from "../components/Navbar";
 import './bookmark.css';
 
 export default function BookmarkPage() {
@@ -36,7 +35,6 @@ export default function BookmarkPage() {
 
   return (
     <div className="layout-container">
-      <Navbar />
 
       <main className="main-content">
         <div className="bookmark-page">
