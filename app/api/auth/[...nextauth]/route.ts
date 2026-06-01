@@ -57,6 +57,9 @@ const handler = NextAuth({
             }
             return true;
         },
+        async redirect({ url, baseUrl }) {
+            return baseUrl + "/community";
+        },
         async jwt({ token, user }) {
             if (user) { 
                 token.email = user.email; 
