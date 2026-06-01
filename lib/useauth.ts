@@ -17,7 +17,7 @@ export function GetUserid() {
         if (token) {
             try {
                 const decoded: any = jwtDecode(token);
-                return decoded.id;
+                return decoded.user_id || decoded.id; 
             } catch (err) {
                 console.error("Invalid token format");
             }

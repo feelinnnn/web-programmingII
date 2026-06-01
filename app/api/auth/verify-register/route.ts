@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
 import Temp_auth from "@/models/Temp_auth";
+import mongoose from "mongoose"; 
 
 export async function POST(request: Request) {
   try {
@@ -17,7 +18,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Invalid or expired OTP code." }, { status: 400 });
     }
 
+    const generatedId = new mongoose.Types.ObjectId();
+
     await User.create({
+      _id: generatedId,
+      user_id: generatedId.toString(),
       email: tempRecord.email,
       password_hash: tempRecord.password_hash,
       authProvider: "local",
