@@ -58,33 +58,33 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const dbUserId = user._id.toString();
+    const authUserId = user.user_id || user._id.toString();
 
     const [stats, userBadges, progressDocs] = await Promise.all([
-      UserStats.findOne({ "user_stats.user_id": dbUserId }).lean(),
-      UserBadge.find({ "user_badges.user_id": dbUserId }).lean(),
-      Progress.find({ userID: dbUserId }).lean(),
+      UserStats.findOne({ "user_stats.user_id": authUserId }).lean(),
+      UserBadge.find({ userId: authUserId }).lean(),
+      Progress.find({ userID: authUserId }).lean(),
     ]);
 
     // Resolve badge details for each user_badge
-    const badgeIds = userBadges.map((ub: any) => ub.user_badges.badge_id);
+    const badgeIds = userBadges.map((ub: any) => ub.badgeId);
     const badges = badgeIds.length
       ? await Badge.find({ _id: { $in: badgeIds } }).lean()
       : [];
     const badgeMap = new Map(badges.map((b: any) => [b._id.toString(), b]));
 
     const badgesData = userBadges.map((ub: any) => {
-      const badge = badgeMap.get(ub.user_badges.badge_id?.toString()) as any;
+      const badge = badgeMap.get(ub.badgeId?.toString()) as any;
       return {
         id: ub._id,
         type: "user_badge",
         attributes: {
-          status: ub.user_badges.status,
-          evidence_url: ub.user_badges.evidence_url,
-          user_note: ub.user_badges.user_note,
-          badge_type_snapshot: ub.user_badges.badge_type_snapshot,
-          submitted_at: ub.user_badges.submitted_at,
-          verified_at: ub.user_badges.verified_at,
+          status: ub.status,
+          evidence_urls: ub.evidenceUrls,
+          user_note: ub.userNote,
+          badge_type_snapshot: ub.badgeTypeSnapshot,
+          submitted_at: ub.submittedAt,
+          verified_at: ub.verifiedAt,
         },
         relationships: {
           badge: badge

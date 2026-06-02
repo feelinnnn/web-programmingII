@@ -391,6 +391,17 @@
   display: inline-block;
 }
 
+.card-badge-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.card-badge.hidden {
+  display: none;
+}
+
 .card-footer {
   background-color: #655452;
   color: #e5dedb;
