@@ -4,16 +4,16 @@ import './EvidenceModal.css';
 import { GetUserid } from "@/lib/useauth";
 import { useState } from "react";
 
-export default function EvidenceModal({ 
-  isOpen, 
-  onClose, 
-  badgeId, 
-  badgeTypeSnapshot 
-}: { 
-  isOpen: boolean; 
-  onClose: () => void; 
-  badgeId: string | null; 
-  badgeTypeSnapshot: string | null; 
+export default function EvidenceModal({
+  isOpen,
+  onClose,
+  badgeId,
+  badgeTypeSnapshot
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  badgeId: string | null;
+  badgeTypeSnapshot: string | null;
 }) {
   const userId = GetUserid();
   const [files, setFiles] = useState<File[]>([]);
@@ -68,11 +68,11 @@ export default function EvidenceModal({
       <div className="modal">
         <div className="left">
           <label className="upload-box">
-            <input 
-              type="file" 
-              hidden 
+            <input
+              type="file"
+              hidden
               multiple
-              onChange={(e) => setFiles(Array.from(e.target.files ?? []))} 
+              onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
             />
             <div className="upload-content">
               <span>{files.length > 0 ? `${files.length} file(s) selected` : "Upload file"}</span>

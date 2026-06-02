@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import EvidenceModal from "../../components/EvidenceModal";
+import EvidenceModal from "../../components/evidence/EvidenceModal";
 import "./evidence.css";
 import { GetUserid } from "@/lib/useauth";
 

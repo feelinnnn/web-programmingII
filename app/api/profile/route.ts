@@ -135,6 +135,7 @@ export async function GET(req: NextRequest) {
           authProvider: user.authProvider,
           display_name: user.display_name,
           role: user.role,
+          sub_namebio: user.sub_namebio || "",
           profile_image_url: user.profile_image_url,
           bio: user.bio,
           social_links: user.social_links,
@@ -172,7 +173,7 @@ export async function PATCH(req: NextRequest) {
     const body = await req.json();
 
     // Only allow updating these safe fields
-    const allowedFields = ["display_name", "bio", "profile_image_url", "social_links"];
+    const allowedFields = ["display_name", "sub_namebio", "bio", "profile_image_url", "social_links"];
     const updates: Record<string, any> = {};
 
     for (const field of allowedFields) {
@@ -212,6 +213,7 @@ export async function PATCH(req: NextRequest) {
           authProvider: updatedUser.authProvider,
           display_name: updatedUser.display_name,
           role: updatedUser.role,
+          sub_namebio: updatedUser.sub_namebio || "",
           profile_image_url: updatedUser.profile_image_url,
           bio: updatedUser.bio,
           social_links: updatedUser.social_links,
