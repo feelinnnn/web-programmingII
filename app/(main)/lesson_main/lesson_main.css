@@ -1,11 +1,5 @@
-/* app/page.css */
-
-body {
-  margin: 0;
-  background: #efe4c9;
-}
-
-.page {
+/* Scoped to lesson-main page only — .main-content is unique to this page */
+.page:has(> .main-content) {
   display: flex;
   min-height: 100vh;
 }
@@ -13,27 +7,27 @@ body {
 
 /* MAIN */
 
-.main-content {
+.page:has(> .main-content) .main-content {
   margin-left: 80px;
   width: calc(100% - 80px);
   padding: 30px;
 }
 
-.section {
+.page:has(> .main-content) .section {
   margin-bottom: 50px;
 }
 
-.script-title {
+.page:has(> .main-content) .script-title {
   font-size: 2.2rem;
   margin: 0;
 }
 
-.normal-title {
+.page:has(> .main-content) .normal-title {
   font-size: 2rem;
   margin-bottom: 20px;
 }
 
-.subtitle {
+.page:has(> .main-content) .subtitle {
   margin-top: 5px;
   margin-bottom: 25px;
   font-size: 1.1rem;
@@ -41,7 +35,7 @@ body {
 
 /* HORIZONTAL */
 
-.horizontal-scroll {
+.page:has(> .main-content) .horizontal-scroll {
   display: flex;
   gap: 30px;
   max-width: 100%;
@@ -49,13 +43,13 @@ body {
   padding-bottom: 10px;
 }
 
-.horizontal-scroll::-webkit-scrollbar {
+.page:has(> .main-content) .horizontal-scroll::-webkit-scrollbar {
   display: none;
 }
 
 /* CARDS */
 
-.lesson-card {
+.page:has(> .main-content) .lesson-card {
   min-width: 220px;
   background: #f4f4f4;
   border-radius: 18px;
@@ -63,11 +57,11 @@ body {
   flex-shrink: 0;
 }
 
-.lesson-card.large {
+.page:has(> .main-content) .lesson-card.large {
   min-width: 500px;
 }
 
-.card-image {
+.page:has(> .main-content) .card-image {
   height: 140px;
   background: linear-gradient(
     to bottom,
@@ -77,33 +71,33 @@ body {
   );
 }
 
-.large .card-image {
+.page:has(> .main-content) .large .card-image {
   height: 190px;
 }
 
-.card-content {
+.page:has(> .main-content) .card-content {
   padding: 14px;
   position: relative;
   min-height: 110px;
 }
 
-.card-content h3 {
+.page:has(> .main-content) .card-content h3 {
   margin: 0;
   font-size: 1.8rem;
 }
 
-.lesson-card:not(.large) .card-content h3 {
+.page:has(> .main-content) .lesson-card:not(.large) .card-content h3 {
   font-size: 1rem;
 }
 
-.card-content p {
+.page:has(> .main-content) .card-content p {
   margin-top: 10px;
   color: #777;
   line-height: 1.5;
   font-size: 0.95rem;
 }
 
-.arrow {
+.page:has(> .main-content) .arrow {
   position: absolute;
   right: 14px;
   bottom: 12px;
@@ -112,7 +106,7 @@ body {
 
 /* GRID */
 
-.lesson-grid {
+.page:has(> .main-content) .lesson-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 30px;
@@ -120,12 +114,12 @@ body {
 
 /* FOOTER */
 
-.footer {
+.page:has(> .main-content) .footer {
   margin-top: 80px;
   padding-bottom: 30px;
 }
 
-.lang-btn {
+.page:has(> .main-content) .lang-btn {
   background: transparent;
   border: 1px solid #5e3a3a;
   color: #5e3a3a;
@@ -135,9 +129,8 @@ body {
   float: right;
 }
 
-.footer-line {
+.page:has(> .main-content) .footer-line {
   clear: both;
   margin-top: 80px;
   height: 40px;
-
 }

@@ -1,77 +1,25 @@
 "use client"
 
-import Image from "next/image";
-import { useEffect, useState } from "react";
-import { SessionProvider } from "next-auth/react";
-import { GetUserid } from "@/lib/useauth";
-
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 export default function Home() {
-//       useEffect(() => {
-//         const createProgress = async () => {
-//           const response = await fetch("/api/lessons/lesson001/progress/105256076861365261411", {
-//             method: "POST",
-//             headers: {
-//               "Content-Type": "application/vnd.api+json"
-//             },
-//           })
-//           const data = await response.json()
-//           console.log(data)
-//         }
+  const router = useRouter();
+  const { status, data: session } = useSession();
 
-//         createProgress()
-// }, [])
-// useEffect(() => {
-//         const createProgress = async () => {
-//           const response = await fetch("/api/lessons/lesson001/progress/105256076861365261411", {
-//             method: "PATCH",
-//             headers: {
-//               "Content-Type": "application/vnd.api+json"
-//             },
-//           })
-//           const data = await response.json()
-//           console.log(data)
-//         }
+  useEffect(() => {
+    if (status === "loading") return;
 
-//         createProgress()
-// }, [])
-// useEffect(() => {
-//         const createProgress = async () => {
-//           const response = await fetch("/api/lessons/continue/105256076861365261411", {
-//             method: "GET",
-//             headers: {
-//               "Content-Type": "application/vnd.api+json"
-//             },
-//           })
-//           const data = await response.json()
-//           console.log(data)
-//         }
+    const hasGoogleSession = (session?.user as any)?.id;
+    const hasToken = typeof window !== "undefined" && localStorage.getItem("token");
 
-//         createProgress()
-// }, [])
-// useEffect(() => {
-//   const test = async () => {
-//     const response = await fetch("/api/user-badges", {
-//       method: "POST",
-//       headers: { "Content-Type": "application/vnd.api+json" },
-//       body: JSON.stringify({
-//         data: {
-//           type: "user-badge",
-//           attributes: {
-//             userId: "testUser123",
-//             badgeId: "badge003",        // lesson type badge to test auto-verify
-//             badgeTypeSnapshot: "evidence-backed",
-//             userNote: "test note",
-//             evidenceUrls: []
-//           }
-//         }
-//       })
-//     })
-//     const data = await response.json()
-//     console.log(data)
-//   }
+    if (hasGoogleSession || hasToken) {
+      router.replace("/community");
+    } else {
+      router.replace("/auth-app/register");
+    }
+  }, [status, session, router]);
 
-//   test()
-// }, []
-  return <h1>Hello World 🔥</h1>
+  return null;
 }

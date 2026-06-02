@@ -1,17 +1,12 @@
-body {
-  margin: 0;
-  font-family: sans-serif;
-  background: #e8dcc7;
-}
-.page {
+/* Scoped to lesson page only — .episode-sidebar is unique to this page */
+.page:has(> .episode-sidebar) {
   display: flex;
-  height: 100vh;
-
+  min-height: 100vh;
   background-color: #fdf3e3;
 }
 
 /* ── Main content ── */
-.main {
+.page:has(> .episode-sidebar) > .main {
   flex: 1;
   display: flex;
   align-items: flex-start;
@@ -20,7 +15,20 @@ body {
   overflow-y: auto;
 }
 
-.content-card {
+.page:has(> .episode-sidebar) .video-player {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: none;
+  border-radius: 10px;
+  background-color: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+  cursor: pointer;
+}
+
+.page:has(> .episode-sidebar) .content-card {
   background-color: #fde8c8;
   border-radius: 18px;
   padding: 20px 22px 22px;
@@ -29,20 +37,7 @@ body {
   box-shadow: 0 4px 24px rgba(46, 26, 14, 0.1);
 }
 
-/* ── Video player ── */
-.video-player {
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  background-color: #111;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 18px;
-  cursor: pointer;
-}
-
-.play-button {
+.page:has(> .episode-sidebar) .play-button {
   width: 80px;
   height: 80px;
   border-radius: 50%;
@@ -53,21 +48,21 @@ body {
   justify-content: center;
 }
 
-.play-button img {
+.page:has(> .episode-sidebar) .play-button img {
   width: 32px;
   height: 32px;
   opacity: 0.8;
 }
 
 /* ── Video info ── */
-.video-title {
+.page:has(> .episode-sidebar) .video-title {
   font-size: 1.45rem;
   font-weight: 600;
   color: #2e1a0e;
   margin: 0 0 12px;
 }
 
-.video-description {
+.page:has(> .episode-sidebar) .video-description {
   font-size: 0.88rem;
   line-height: 1.65;
   color: #2e1a0e;
@@ -75,13 +70,15 @@ body {
   margin: 0 0 20px;
 }
 
-.submit-row {
+.page:has(> .episode-sidebar) .submit-row {
   display: flex;
   justify-content: flex-end;
 }
 
 .submit-btn {
-  background-color: #2e1a0e;
+  appearance: none;
+  -webkit-appearance: none;
+  background: #2e1a0e;
   color: #f5e6d0;
   border: none;
   border-radius: 8px;
@@ -89,20 +86,31 @@ body {
   font-size: 0.95rem;
   cursor: pointer;
   letter-spacing: 0.03em;
-  transition: background-color 0.2s ease;
+  transition: background 0.2s ease;
+  outline: none;
 }
 
 .submit-btn:hover {
-  background-color: #4a2710;
+  background: #4a2710;
+}
+
+.submit-btn:focus,
+.submit-btn:focus-visible {
+  background: #2e1a0e;
+  outline: none;
+}
+
+.submit-btn:active {
+  background: #1f0f07;
 }
 
 /* ── Episode sidebar ── */
-.episode-sidebar {
+.page:has(> .episode-sidebar) .episode-sidebar {
   width: 280px;
   min-width: 260px;
-  max-width: 100vh;
+  max-width: 280px;
   background-color: #2e1a0e;
- 
+
   padding: 28px 20px;
   overflow-y: auto;
   display: flex;
@@ -112,16 +120,16 @@ body {
   scrollbar-color: #5c3317 transparent;
 }
 
-.episode-sidebar::-webkit-scrollbar {
+.page:has(> .episode-sidebar) .episode-sidebar::-webkit-scrollbar {
   width: 4px;
 }
 
-.episode-sidebar::-webkit-scrollbar-thumb {
+.page:has(> .episode-sidebar) .episode-sidebar::-webkit-scrollbar-thumb {
   background-color: #5c3317;
   border-radius: 4px;
 }
 
-.episode-item {
+.page:has(> .episode-sidebar) .episode-item {
   display: flex;
   align-items: center;
   gap: 14px;
@@ -131,11 +139,15 @@ body {
   transition: background-color 0.18s ease;
 }
 
-.episode-item:hover {
+.page:has(> .episode-sidebar) .episode-item:hover {
   background-color: rgba(255, 255, 255, 0.05);
 }
 
-.episode-icon {
+.page:has(> .episode-sidebar) .episode-item.active {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.page:has(> .episode-sidebar) .episode-icon {
   flex-shrink: 0;
   width: 52px;
   height: 52px;
@@ -147,22 +159,22 @@ body {
   justify-content: center;
 }
 
-.episode-icon img {
+.page:has(> .episode-sidebar) .episode-icon img {
   width: 22px;
   height: 22px;
   opacity: 0.85;
 }
 
-.episode-title {
+.page:has(> .episode-sidebar) .episode-title {
   font-size: 0.82rem;
   color: #c4a080;
   line-height: 1.4;
 }
 
-.connector {
+.page:has(> .episode-sidebar) .connector {
   width: 1.5px;
   height: 16px;
   background-color: #5c3317;
-  margin-left: 30px; /* center under icon (52px / 2 + 4px padding - 0.75px) */
+  margin-left: 30px;
   opacity: 0.6;
 }

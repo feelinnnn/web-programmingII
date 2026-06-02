@@ -12,7 +12,8 @@
   background: #fff;
   border-radius: 16px;
   padding: 32px 28px 24px;
-  width: 380px;
+  width: 440px;
+  max-width: 95vw;
   max-height: 85vh;
   overflow-y: auto;
   text-align: center;
@@ -34,12 +35,14 @@
   margin: 0;
   font-size: 22px;
   color: #4a342e;
+  word-break: break-word;
 }
 
 .vm-viewRole {
   margin: 4px 0 0 0;
   font-size: 14px;
   color: #8f796a;
+  word-break: break-word;
 }
 
 .vm-viewBio {
@@ -47,6 +50,8 @@
   font-size: 14px;
   color: #555;
   line-height: 1.5;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .vm-viewDivider {

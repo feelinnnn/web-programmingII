@@ -2,7 +2,7 @@
 
 import "./all-lessons.css";
 import { useEffect, useState } from "react";
-import LessonModal from "../../components/LessonModal";
+import LessonModal from "../../components/lesson/LessonModal";
 
 
 
@@ -34,10 +34,10 @@ export default function AllLessons() {
     async function fetchLessons() {
       try {
         const res = await fetch("/api/lessons");
-        console.log(lessons);
         if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
         const json = await res.json();
         setLessons(json.data);
+        console.log(json.data)
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unknown error");
       } finally {
@@ -51,6 +51,7 @@ export default function AllLessons() {
   return (
     <div className="page">
       {/* Sidebar */}
+
       {/* Main Content */}
       <div className="main">
         {/* Top Bar */}

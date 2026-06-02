@@ -30,6 +30,7 @@ export default function Home() {
   return (
     <div className="page">
       {/* Sidebar */}
+
       {/* Main */}
       <main className="main-content">
         {/* Latest */}
