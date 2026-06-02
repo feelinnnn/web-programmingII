@@ -1,11 +1,11 @@
 .page {
   display: flex;
   gap: 24px;
-  padding: 28px 28px 28px 0;
+  padding: 28px 28px 28px 28px;
   min-height: 100vh;
 }
 
-/* Center column */
+/* ── Center column ── */
 .main {
   flex: 1;
   min-width: 0;
@@ -38,22 +38,7 @@
   color: var(--orange);
 }
 
-/* PostCard placeholder — remove when you have the real component */
-.postPlaceholder {
-  background: var(--white);
-  border: 2px dashed var(--border);
-  border-radius: 12px;
-  padding: 20px;
-  text-align: center;
-}
-
-.placeholderNote {
-  font-family: var(--font-body);
-  font-size: 13px;
-  color: var(--text-muted);
-}
-
-/* Right sidebar */
+/* ── Right sidebar ── */
 .sidebar {
   width: 280px;
   flex-shrink: 0;
@@ -62,4 +47,3 @@
   gap: 20px;
   padding-top: 4px;
 }
-

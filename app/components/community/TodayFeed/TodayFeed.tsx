@@ -1,22 +1,9 @@
 import styles from './TodayFeed.module.css';
-
-// PostCard type — replace 
-export interface Post {
-  id: string;
-  author: string;
-  role: string;
-  timeAgo: string;
-  content: string;
-  imageUrl?: string;
-  likes: number;
-  comments: number;
-  isFollowing?: boolean;
-}
+import type { PostApiStructure } from '@/app/(main)/community/page'; 
 
 interface TodayFeedProps {
-  posts: Post[];
-  // Replace own PostCard component
-  renderPost: (post: Post) => React.ReactNode;
+  posts: PostApiStructure[];
+  renderPost: (post: PostApiStructure) => React.ReactNode;
 }
 
 export default function TodayFeed({ posts, renderPost }: TodayFeedProps) {
@@ -31,7 +18,11 @@ export default function TodayFeed({ posts, renderPost }: TodayFeedProps) {
       </div>
 
       <div className={styles.list}>
-        {posts.map((post) => renderPost(post))}
+        {posts.length === 0 ? (
+          <p style={{ textAlign: "center", color: "gray", padding: "20px" }}>no posts available</p>
+        ) : (
+          posts.map((post) => renderPost(post))
+        )}
       </div>
     </section>
   );

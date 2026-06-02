@@ -1,107 +1,292 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { useUserId } from "@/lib/useauth"; 
+
 import SearchBar from '../../components/community/SearchBar/SearchBar';
 import CreatePost from '../../components/community/CreatePost/CreatePost';
 import TodayFeed from '../../components/community/TodayFeed/TodayFeed';
 import PopularHashtags from '../../components/community/PopularHashtags/PopularHashtags';
 import PopularCreations from '../../components/community/PopularCreations/PopularCreations';
+import PostCard from '../../components/community/Postcard/Postcard';
 
-import type { Post } from '../../components/community/TodayFeed/TodayFeed';
 import type { Hashtag } from '../../components/community/PopularHashtags/PopularHashtags';
 import type { Creator } from '../../components/community/PopularCreations/PopularCreations';
 
 import styles from './page.module.css';
 
-const MOCK_POSTS: Post[] = [
-  {
-    id: '1',
-    author: 'Wanilla Pie',
-    role: 'Home Cook',
-    timeAgo: '35m ago',
-    content: '🍖 ผัดซี่โครงหมูทรอม หอม ๆ ทำจ่ายมาก!\nเคล็ดลับของจานนี้คือใช้น้ำมันจากหมูกรอบมาผัด จะช่วยเพิ่มความหอมแบบไม่ต้องปรุงเลยะ เพียงใช้...',
-    likes: 123,
-    comments: 17,
-  },
-  {
-    id: '2',
-    author: 'Pawarit',
-    role: 'Pastry Chef',
-    timeAgo: '1hrs ago',
-    content: 'ทาร์ตสตรอว์เบอร์รีครีมสด\nแป้งทาร์ตกรอบหอมเนย ตัดกับครีมสดเนียนนุ่ม และสตรอว์เบอร์รีสดหวานอมเปรี้ยว เคล็ดลับอยู่ที่...',
-    likes: 98,
-    comments: 12,
-  },
-];
+export interface PostApiStructure {
+  id: string;
+  type: string;
+  attributes: {
+    postId: string;
+    userId: string;
+    content: string;
+    hashtags: string[];
+    imageUrls: string[];
+    recipeUrl?: string;
+    likesCount: number;
+    commentsCount: number;
+    createdAt: string;
+    isLiked: boolean;
+    creator: {
+      displayName: string;
+      profileImageUrl: string;
+      sub_namebio: string;
+    };
+  };
+}
 
 const MOCK_HASHTAGS: Hashtag[] = [
   { rank: 1, tag: '#ผัดไทย', posts: 1203, hot: true },
   { rank: 2, tag: '#เบเกอรี่', posts: 806 },
   { rank: 3, tag: '#คุกกี้', posts: 789 },
-  { rank: 4, tag: '#อาหารคลีน', posts: 675 },
-  { rank: 5, tag: '#สูตรลับ', posts: 517 },
 ];
 
 const MOCK_CREATORS: Creator[] = [
-  {
-    id: '1',
-    name: 'Wanilla Pie',
-    role: 'Home Cook',
-    followers: '2.1K',
-    images: [{ likes: 507 }, { likes: 345 }],
-  },
-  {
-    id: '2',
-    name: 'Nana Seed',
-    role: 'Street Food',
-    followers: '4.7K',
-    images: [{ likes: 509 }, { likes: 187 }],
-  },
-  {
-    id: '3',
-    name: 'Mali Bakery',
-    role: 'Pastry Chef',
-    followers: '3.2K',
-    images: [{ likes: 396 }, { likes: 582 }],
-  },
+  { id: '1', name: 'Wanilla Pie', sub_namebio: 'Home Cook', followers: '2.1K', images: [{ likes: 507 }, { likes: 345 }] },
 ];
 
 export default function CommunityFeedPage() {
+  const [posts, setPosts] = useState<PostApiStructure[]>([]);
+  const [bookmarked, setBookmarked] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
+  const [currentUserAvatar, setCurrentUserAvatar] = useState<string>("/avatar/Avatar.png");
+  const [hashtags, setHashtags] = useState<Hashtag[]>([]);
+
+  const currentUserId = useUserId() || ""; 
+
+  const fetchHashtags = async () => {
+    try {
+      const res = await fetch('/api/hashtags');
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success) setHashtags(json.hashtags);
+      }
+    } catch (error) {
+      console.error("Failed to load hashtags:", error);
+    }
+  };
+
+  const fetchFeed = async () => {
+    try {
+      setLoading(true);
+      const url = currentUserId ? `/api/posts?currentUserId=${currentUserId}` : '/api/posts';
+      const res = await fetch(url);
+      if (res.ok) {
+        const json = await res.json();
+        setPosts(json.data || []);
+      }
+    } catch (error) {
+      console.error("Failed to load community feed:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUserProfile = async () => {
+    if (!currentUserId) return;
+    try {
+      const res = await fetch('/api/profile');
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.data?.attributes?.profile_image_url) {
+          setCurrentUserAvatar(json.data.attributes.profile_image_url);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load user profile avatar:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchFeed();
+    fetchUserProfile();
+    fetchHashtags();
+  }, [currentUserId]);
+
+  const handleLike = async (postId: string) => {
+    if (!currentUserId) {
+      alert("กรุณาล็อกอินก่อนกดไลค์นะคั้บ!");
+      return;
+    }
+
+    setPosts((prevPosts) =>
+      prevPosts.map((p) => {
+        if (p.id === postId) {
+          const currentlyLiked = p.attributes.isLiked;
+          return {
+            ...p,
+            attributes: {
+              ...p.attributes,
+              isLiked: !currentlyLiked,
+              likesCount: currentlyLiked ? Math.max(0, p.attributes.likesCount - 1) : p.attributes.likesCount + 1
+            }
+          };
+        }
+        return p;
+      })
+    );
+
+    try {
+      const res = await fetch("/api/likes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: currentUserId, post_id: postId })
+      });
+
+      if (!res.ok) {
+        fetchFeed(); 
+      } else {
+        const result = await res.json();
+        setPosts((prevPosts) =>
+          prevPosts.map((p) => {
+            if (p.id === postId) {
+              return {
+                ...p,
+                attributes: {
+                  ...p.attributes,
+                  likesCount: typeof result.likesCount !== 'undefined' ? result.likesCount : (result.likes_count ?? p.attributes.likesCount),
+                  isLiked: typeof result.isLiked !== 'undefined' ? result.isLiked : (result.is_liked ?? p.attributes.isLiked)
+                }
+              };
+            }
+            return p;
+          })
+        );
+      }
+    } catch (error) {
+      console.error("Error toggling like:", error);
+      fetchFeed();
+    }
+  };
+
+  const handleDelete = async (postId: string) => {
+    if (!currentUserId) return;
+    
+    const confirmDelete = window.confirm("Are you sure you want to delete this post?");
+    if (!confirmDelete) return;
+
+    setPosts((prevPosts) => prevPosts.filter((p) => p.id !== postId));
+
+    try {
+      const res = await fetch(`/api/posts?id=${postId}&currentUserId=${currentUserId}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json();
+        alert(errJson.errors?.[0]?.detail || "Failed to delete post.");
+        fetchFeed(); 
+      }
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      fetchFeed();
+    }
+  };
+
+  const handleEdit = async (postId: string, newContent: string, newImages: string[]) => {
+    const postToEdit = posts.find((p) => p.id === postId);
+    if (!postToEdit) return;
+
+    setPosts((prevPosts) =>
+      prevPosts.map((p) =>
+        p.id === postId 
+          ? { 
+              ...p, 
+              attributes: { 
+                ...p.attributes, 
+                content: newContent, 
+                imageUrls: newImages 
+              } 
+            } 
+          : p
+      )
+    );
+
+    try {
+      const res = await fetch("/api/posts", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: postId,
+          content: newContent,
+          userId: currentUserId,
+          imageUrls: newImages 
+        })
+      });
+
+      if (!res.ok) {
+        alert("แก้ไขโพสต์และรูปภาพไม่สำเร็จ");
+        fetchFeed(); 
+      }
+    } catch (error) {
+      console.error("Error editing post content and images:", error);
+      fetchFeed();
+    }
+  };
+
+  const toggleBookmark = (id: string) => {
+    setBookmarked((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
   return (
     <div className={styles.page}>
-      
       <div className={styles.main}>
-        {/* Top Bar */}
         <div className={styles.topBar}>
-          <h1 className={styles.pageTitle}>
-            <span className={styles.titleBold}>Community</span>{' '}
-            <span className={styles.titleScript}>Feed</span>
-          </h1>
-          <SearchBar />
+          <h1 className={styles.pageTitle}>Community Feed</h1>
+          <SearchBar/>
         </div>
 
-        <CreatePost />
-
-        <TodayFeed
-          posts={MOCK_POSTS}
-          renderPost={(post) => (
-            <div key={post.id} className={styles.postCardCustom}>
-               <div style={{ marginBottom: '10px' }}>
-                 <strong>{post.author}</strong> • <small>{post.role}</small>
-               </div>
-               <p style={{ whiteSpace: 'pre-line' }}>{post.content}</p>
-               <div style={{ marginTop: '10px', color: '#666' }}>
-                 ❤️ {post.likes}  💬 {post.comments}
-               </div>
-            </div>
-          )}
+        <CreatePost 
+          currentUserId={currentUserId} 
+          userAvatar={currentUserAvatar} 
+          onPostCreated={fetchFeed} 
         />
+
+        {loading ? (
+          <div className={styles.loading}>กำลังโหลดข้อมูลคอมมูนิตี้...</div>
+        ) : (
+          <TodayFeed
+            posts={posts}
+            renderPost={(post) => {
+              const isOwner = currentUserId && post.attributes.userId === currentUserId;
+
+              return (
+                <PostCard
+                  key={post.id}
+                  id={post.id}
+                  author={post.attributes.creator.displayName}
+                  sub_namebio={post.attributes.creator.sub_namebio} 
+                  time={post.attributes.createdAt}
+                  content={post.attributes.content}
+                  imageUrls={post.attributes.imageUrls}
+                  imageUrl={post.attributes.imageUrls} 
+                  avatarUrl={post.attributes.creator.profileImageUrl}
+                  likes={post.attributes.likesCount}
+                  comments={post.attributes.commentsCount}
+                  isLiked={post.attributes.isLiked}   
+                  hashtags={post.attributes.hashtags}
+                  isBookmarked={bookmarked.has(post.id)}
+                  onLike={handleLike}                 
+                  onBookmark={toggleBookmark}
+                  onEdit={isOwner ? (id, content, images) => handleEdit(id, content, images) : undefined}
+                  onDelete={isOwner ? handleDelete : undefined}
+                />
+              );
+            }}
+          />
+        )}
       </div>
 
       <aside className={styles.sidebar}>
-        <PopularHashtags hashtags={MOCK_HASHTAGS} />
+        <PopularHashtags hashtags={hashtags} />
         <PopularCreations creators={MOCK_CREATORS} />
       </aside>
-
     </div>
   );
 }
