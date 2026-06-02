@@ -1,7 +1,7 @@
 "use client";
 
 import './EvidenceModal.css';
-import { GetUserid } from "@/lib/useauth";
+import { useUserId } from "@/lib/useauth";
 import { useState } from "react";
 
 export default function EvidenceModal({
@@ -19,7 +19,7 @@ export default function EvidenceModal({
   lessonName?: string;
   badgeName?: string;
 }) {
-  const userId = GetUserid();
+  const userId = useUserId();
   const [files, setFiles] = useState<File[]>([]);
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import EvidenceModal from "../../components/EvidenceModal";
 import "./evidence.css";
-import { GetUserid } from "@/lib/useauth";
+import { useUserId } from "@/lib/useauth";
 
 type Lesson = {
   data: {
@@ -33,7 +33,7 @@ export default function Home() {
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [badge, setBadge] = useState<Badge | null>(null);
 
-  const userId = GetUserid();
+  const userId = useUserId();
   const searchParams = useSearchParams();
   const lessonId = searchParams.get("lesson_id");
 
