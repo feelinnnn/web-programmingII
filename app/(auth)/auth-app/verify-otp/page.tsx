@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Swal from 'sweetalert2'; // 1. Import SweetAlert2
 import styles from "./VerifyOtp.module.css";
 
 function OtpFrom() {
@@ -13,29 +14,17 @@ function OtpFrom() {
     const purpose = searchParams.get("purpose") || "register";
 
     const [otpCode, setOtpCode] = useState("");
-    const [message, setMessage] = useState("");
-    const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        if (!email) {
-            setError("Email data missing. Please do the process again.");
-        }
-    }, [email]);
 
     const handleVerify = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!email) return;
 
         setLoading(true);
-        setError("");
-        setMessage("");
 
         try {
-            const apiUrl =
-                purpose === "login"
-                    ? "/api/auth/login-step2"
-                    : "/api/auth/verify-register";
+            const apiUrl = purpose === "login" ? "/api/auth/login-step2" : "/api/auth/verify-register";
 
             const res = await fetch(apiUrl, {
                 method: "POST",
@@ -47,25 +36,43 @@ function OtpFrom() {
 
             if (!res.ok) throw new Error(data.message || "Invalid or expired OTP");
 
+            const swalConfig = {
+                confirmButtonColor: '#3b1f1f', 
+                buttonsStyling: true,
+            };
+
             if (purpose === "login") {
-                setMessage("2FA Login successful!");
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Login Successful!',
+                    text: 'Redirecting to community...',
+                    timer: 1500,
+                    showConfirmButton: false,
+                });
                 localStorage.setItem("token", data.token);
-                setTimeout(() => router.push("/community"), 1000);
+                router.push("/community");
             } else {
-                setMessage("Account verified! Redirecting to login page...");
-                setTimeout(() => router.push("/auth-app/login"), 2000);
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Account Verified!',
+                    text: 'You can now login.',
+                    confirmButtonText: 'Go to Login'
+                });
+                router.push("/auth-app/login");
             }
         } catch (err: any) {
-            setError(err.message);
+            Swal.fire({
+                icon: 'error',
+                title: 'Verification Failed',
+                text: err.message || 'Something went wrong',
+            });
         } finally {
             setLoading(false);
         }
     };
 
     const handleResend = async () => {
-        if (!email) return;
-        setError("");
-        setMessage("");
+        setLoading(true);
         try {
             const res = await fetch("/api/auth/resend-otp", {
                 method: "POST",
@@ -73,10 +80,18 @@ function OtpFrom() {
                 body: JSON.stringify({ email }),
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.message || "Failed to resend OTP");
-            setMessage("A new OTP has been sent to your email.");
+            if (!res.ok) throw new Error(data.message);
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Resent!',
+                text: 'A new OTP has been sent to your email.',
+                timer: 2000
+            });
         } catch (err: any) {
-            setError(err.message);
+            Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -84,43 +99,29 @@ function OtpFrom() {
         <div className={styles.container}>
             <div className={styles.card}>
                 <h2 className={styles.title}>OTP Verification</h2>
-
                 <p className={styles.description}>
                     We&apos;ve sent a 6-digit code to <br />
                     <strong>{email || "your email"}</strong>
                 </p>
 
-                {error && <div className={styles.errorBlock}>⚠️ {error}</div>}
-                {message && <div className={styles.successBlock}>✅ {message}</div>}
 
                 <form onSubmit={handleVerify} className={styles.form}>
                     <input
                         type="text"
                         maxLength={6}
-                        placeholder="000000"
                         value={otpCode}
                         onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                        disabled={!email || loading}
+                        disabled={loading}
                         required
                         className={styles.inputOtp}
                     />
-                    <button
-                        type="submit"
-                        disabled={!email || loading || otpCode.length < 6}
-                        className={styles.submitBtn}
-                    >
+                    <button type="submit" disabled={loading || otpCode.length < 6} className={styles.submitBtn}>
                         {loading ? "Checking..." : "Verify OTP"}
                     </button>
                 </form>
 
                 <div className={styles.resendWrap}>
-                    Didn&apos;t receive a code?{" "}
-                    <button
-                        type="button"
-                        className={styles.resendBtn}
-                        onClick={handleResend}
-                        disabled={!email || loading}
-                    >
+                    <button type="button" className={styles.resendBtn} onClick={handleResend} disabled={loading}>
                         Resend
                     </button>
                 </div>
