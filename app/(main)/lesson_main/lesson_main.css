@@ -81,6 +81,27 @@ body {
   height: 190px;
 }
 
+.progress-bar {
+  height: 4px;
+  background: #e0e0e0;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(to right, #4caf50, #45a049);
+  transition: width 0.3s ease;
+}
+
+.chapters-left {
+  padding: 8px 14px;
+  background: #f0f0f0;
+  font-size: 0.85rem;
+  color: #666;
+  border-bottom: 1px solid #e0e0e0;
+  text-align: center;
+}
+
 .card-content {
   padding: 14px;
   position: relative;

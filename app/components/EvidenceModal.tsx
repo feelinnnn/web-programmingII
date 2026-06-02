@@ -4,16 +4,20 @@ import './EvidenceModal.css';
 import { useUserId } from "@/lib/useauth";
 import { useState } from "react";
 
-export default function EvidenceModal({ 
-  isOpen, 
-  onClose, 
-  badgeId, 
-  badgeTypeSnapshot 
-}: { 
-  isOpen: boolean; 
-  onClose: () => void; 
-  badgeId: string | null; 
-  badgeTypeSnapshot: string | null; 
+export default function EvidenceModal({
+  isOpen,
+  onClose,
+  badgeId,
+  badgeTypeSnapshot,
+  lessonName,
+  badgeName
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  badgeId: string | null;
+  badgeTypeSnapshot: string | null;
+  lessonName?: string;
+  badgeName?: string;
 }) {
   const userId = useUserId();
   const [files, setFiles] = useState<File[]>([]);
@@ -96,8 +100,8 @@ export default function EvidenceModal({
         <div className="right">
           <button className="close" onClick={onClose}>✕</button>
           <img src="icon/medal.png" width={221} height={221} style={{ width: "100%", height: "auto", maxWidth: "221px" }} />
-          <h2>Submit evidence for [lesson name]</h2>
-          <p>You will receive this badge</p>
+          <h2>Submit evidence for {lessonName || "[lesson name]"}</h2>
+          <p>You will receive<br />{badgeName || "this badge"} badge</p>
           <button className="submit-btn" onClick={handleSubmit} disabled={loading}>
             {loading ? "Submitting..." : "Submit"}
           </button>
