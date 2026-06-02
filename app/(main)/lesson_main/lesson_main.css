@@ -8,13 +8,39 @@
 /* MAIN */
 
 .page:has(> .main-content) .main-content {
-  margin-left: 80px;
-  width: calc(100% - 80px);
-  padding: 30px;
+  margin-left: 60px;
+  width: calc(100% - 50px);
+  padding: 30px 60px 300px 0px;
 }
 
 .page:has(> .main-content) .section {
   margin-bottom: 50px;
+}
+
+.page:has(> .main-content) .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.page:has(> .main-content) .see-all-link {
+  font-size: 14px;
+  color: #8C5A3C;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 6px 16px;
+  border: 1px solid #8C5A3C;
+  border-radius: 6px;
+  transition: all 0.2s;
+  white-space: nowrap;
+  position: fixed;
+  right: 60px;
+  z-index: 10;
+}
+
+.page:has(> .main-content) .see-all-link:hover {
+  background: #8C5A3C;
+  color: #fff;
 }
 
 .page:has(> .main-content) .script-title {
@@ -38,13 +64,37 @@
 .page:has(> .main-content) .horizontal-scroll {
   display: flex;
   gap: 30px;
-  max-width: 100%;
-  overflow-x: scroll;
+  width: 100%;
+  overflow-x: auto;
   padding-bottom: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: #8C5A3C #f0e8d8;
+  transition: width 0.3s ease;
+  position: relative;
+  z-index: 20;
 }
 
 .page:has(> .main-content) .horizontal-scroll::-webkit-scrollbar {
-  display: none;
+  height: 8px;
+}
+
+.page:has(> .main-content) .horizontal-scroll::-webkit-scrollbar-track {
+  background: #f0e8d8;
+  border-radius: 4px;
+}
+
+.page:has(> .main-content) .horizontal-scroll::-webkit-scrollbar-thumb {
+  background: #8C5A3C;
+  border-radius: 4px;
+}
+
+.page:has(> .main-content) .horizontal-scroll::-webkit-scrollbar-thumb:hover {
+  background: #6B3E22;
+}
+
+.page:has(> .main-content) .horizontal-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #8C5A3C #f0e8d8;
 }
 
 /* CARDS */
@@ -155,3 +205,42 @@
   margin-top: 80px;
   height: 40px;
 }
+
+.page:has(> .main-content) .pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.page:has(> .main-content) .page-btn {
+  padding: 6px 16px;
+  border: 1px solid #8C5A3C;
+  border-radius: 6px;
+  background: #fff;
+  color: #4a342e;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.page:has(> .main-content) .page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.page:has(> .main-content) .page-btn:hover:not(:disabled) {
+  background: #8C5A3C;
+  color: #fff;
+}
+
+.page:has(> .main-content) .page-info {
+  font-size: 13px;
+  color: #8f796a;
+}
+
+.page:has(> .main-content) .main-footer {
+  height: 5px;
+}
+

@@ -34,6 +34,9 @@ export default function LessonPage() {
   const router = useRouter();
   const userId = useUserId();
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   const searchParams = useSearchParams();
   const lessonId = searchParams.get("lesson_id");
   const gotoEvidence = () => {
@@ -226,7 +229,7 @@ export default function LessonPage() {
     gotoEvidence();
   };
 
-  if (loading) return <div className="page"><p>Loading...</p></div>;
+  if (!mounted || loading) return <div className="page"><p>Loading...</p></div>;
   if (error) return <div className="page"><p>Error: {error}</p></div>;
 
   return (

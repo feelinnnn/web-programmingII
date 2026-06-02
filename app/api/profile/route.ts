@@ -3,9 +3,11 @@ import { getToken } from "next-auth/jwt";
 import connect from "@/lib/mongodb";
 import User from "@/models/User";
 import UserStats from "@/models/User_stat";
-import UserBadge from "@/models/UserBadge"; 
+import UserBadge from "@/models/UserBadge";
 import Badge from "@/models/Badge";
+import Lesson from "@/models/Lesson";
 import Progress from "@/models/Progress";
+import Follow from "@/models/Follow";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "COOKCULT_SECRET_KEY";
@@ -60,10 +62,12 @@ export async function GET(req: NextRequest) {
 
     const authUserId = user.user_id || user._id.toString();
 
-    const [stats, userBadges, progressDocs] = await Promise.all([
+    const [stats, userBadges, progressDocs, followerCount, followingCount] = await Promise.all([
       UserStats.findOne({ "user_stats.user_id": authUserId }).lean(),
       UserBadge.find({ userId: authUserId }).lean(),
       Progress.find({ userID: authUserId }).lean(),
+      Follow.countDocuments({ "comment.following_user_id": authUserId }),
+      Follow.countDocuments({ "comment.follower_user_id": authUserId }),
     ]);
 
     // Resolve badge details for each user_badge
@@ -73,8 +77,19 @@ export async function GET(req: NextRequest) {
       : [];
     const badgeMap = new Map(badges.map((b: any) => [b._id.toString(), b]));
 
+    // Find lessons that match these badge IDs (for thumbnail)
+    const lessons = badgeIds.length
+      ? await Lesson.find({ badge: { $in: badgeIds } }).lean()
+      : [];
+    const lessonMap = new Map(lessons.map((l: any) => [l.badge, l]));
+
     const badgesData = userBadges.map((ub: any) => {
       const badge = badgeMap.get(ub.badgeId?.toString()) as any;
+      const lesson = lessonMap.get(ub.badgeId);
+      // Fallback for self-declared badges (no matching Badge doc)
+      const badgeName = badge?.name || ub.userNote || "Self Declared";
+      const badgeDesc = badge?.description || ub.userNote || "";
+      const badgeType = badge?.badge_type || ub.badgeTypeSnapshot || "self-declared";
       return {
         id: ub._id,
         type: "user_badge",
@@ -83,24 +98,24 @@ export async function GET(req: NextRequest) {
           evidence_urls: ub.evidenceUrls,
           user_note: ub.userNote,
           badge_type_snapshot: ub.badgeTypeSnapshot,
+          showcased: ub.showcased || false,
           submitted_at: ub.submittedAt,
           verified_at: ub.verifiedAt,
         },
         relationships: {
-          badge: badge
-            ? {
-                data: {
-                  id: badge._id,
-                  type: "badge",
-                  attributes: {
-                    name: badge.name,
-                    description: badge.description,
-                    badge_type: badge.badge_type,
-                    icon_url: badge.icon_url,
-                  },
-                },
-              }
-            : { data: null },
+          badge: {
+            data: {
+              id: badge?._id || ub.badgeId,
+              type: "badge",
+              attributes: {
+                name: badgeName,
+                description: badgeDesc,
+                badge_type: badgeType,
+                icon_url: badge?.icon_url || null,
+                thumbnail_url: lesson?.thumbnail_url || ub.evidenceUrls?.[0] || null,
+              },
+            },
+          },
         },
       };
     });
@@ -140,6 +155,8 @@ export async function GET(req: NextRequest) {
           bio: user.bio,
           social_links: user.social_links,
           created_at: user.created_at,
+          follower_count: followerCount,
+          following_count: followingCount,
         },
         relationships: {
           stats: statsAttributes ? { data: statsAttributes } : { data: null },
