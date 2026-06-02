@@ -50,6 +50,33 @@ export default function LessonPage() {
   const [completedChapters, setCompletedChapters] = useState<Set<string>>(new Set());
   const [submittingChapter, setSubmittingChapter] = useState<string | null>(null);
 
+  // Check if user has access to this lesson (must have progress in it)
+  useEffect(() => {
+    if (!lessonId || !userId) return;
+
+    async function checkAccess() {
+      try {
+        const res = await fetch(`/api/lessons/continue/${userId}`);
+        if (!res.ok) {
+          router.push('/all_lesson');
+          return;
+        }
+        const json = await res.json();
+        const hasProgress = (json.data || []).some(
+          (p: any) => p.attributes.lessonId === lessonId
+        );
+        if (!hasProgress) {
+          router.push('/all_lesson');
+        }
+      } catch (err) {
+        console.error("Failed to check lesson access:", err);
+        router.push('/all_lesson');
+      }
+    }
+
+    checkAccess();
+  }, [lessonId, userId, router]);
+
   useEffect(() => {
     if (!lessonId || !userId) return;
 
@@ -156,7 +183,6 @@ export default function LessonPage() {
         // Recalculate allowed chapters
         const newAllowed = new Set<string>();
         const newCompletedCount = newCompletedChapters.size;
-        const newRemainingCount = chapters.length - newCompletedCount;
 
         if (newCompletedCount === chapters.length) {
           // All chapters completed - allow all chapters and submission
