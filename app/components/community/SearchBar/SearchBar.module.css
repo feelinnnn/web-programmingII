@@ -1,4 +1,4 @@
-.wrapper {
+.container {
   display: flex;
   align-items: center;
   background: var(--white);
@@ -27,12 +27,14 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--text-muted);
   display: flex;
   align-items: center;
   padding: 0;
 }
 
-.iconBtn:hover {
-  color: var(--dark);
+
+.searchimg {
+  width: 20px !important;
+  height: 20px !important;
+  object-fit: contain;
 }

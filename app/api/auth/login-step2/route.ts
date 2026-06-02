@@ -23,18 +23,58 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Invalid or expired OTP code." }, { status: 400 });
     }
 
-    const user = await User.findOne({ email: tempRecord.email });
-    if (!user) {
-      return NextResponse.json({ message: "User account not found in database." }, { status: 404 });
+    const otpAge =
+    Date.now() -
+    new Date(tempRecord.createdAt).getTime();
+
+    const OTP_EXPIRE_TIME = 5 * 60 * 1000;
+
+    if (otpAge > OTP_EXPIRE_TIME) {
+      await Temp_auth.deleteOne({
+        _id: tempRecord._id,
+      });
+
+      return NextResponse.json(
+        {
+          message: "OTP code has expired.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+      const user = await User.findOne({ email: tempRecord.email });
+      if (!user) {
+          return NextResponse.json({ message: "User account not found in database." }, { status: 404 });
+        }
+
+        if (!user) {
+      await Temp_auth.deleteOne({
+        _id: tempRecord._id,
+      });
+
+      return NextResponse.json(
+        {
+          message: "User account not found in database."
+        },
+        {
+          status: 404
+        }
+      );
     }
 
     const token = jwt.sign(
-      { 
+      {
         id: user._id.toString(),
-        email: tempRecord.email 
-      }, 
-      process.env.JWT_SECRET || "COOKCULT_SECRET_KEY", 
-      { expiresIn: "1d" }
+        user_id: user.user_id,
+        email: user.email,
+        role: user.role,
+      },
+      process.env.JWT_SECRET || process.env.JWT_SECRET ,
+      {
+        expiresIn: "1d",
+      }
     );
 
     await Temp_auth.deleteOne({ _id: tempRecord._id });

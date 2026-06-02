@@ -1,127 +1,763 @@
-.post-card {
-  background-color: #FFFFFF;
+.card {
+  background-color: #ffffff;
   border-radius: 12px;
-  border: 1px solid #EBE4D5;
+  border: 1px solid #ebe4d5;
   overflow: hidden;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  margin-bottom: 16px;
 }
 
-.post-header {
+/* ── Header ── */
+.header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
 }
 
-.user-info {
+.userInfo {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.avatar-placeholder {
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
-  background-color: #FF9800;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.user-details {
+.userDetails {
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
-.author-name {
-  font-weight: bold;
+.authorName {
+  font-weight: 700;
   font-size: 15px;
   color: #333;
+  font-family: var(--font-body);
 }
 
-.post-meta {
+.postMeta {
   font-size: 13px;
   color: #888;
-  margin-top: 2px;
+  font-family: var(--font-body);
 }
 
-.follow-btn {
+/* ── Header right side ── */
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.followBtn {
   background-color: transparent;
-  border: 1px solid #C4A484;
-  color: #8C5A3C;
+  border: 1px solid #c4a484;
+  color: #8c5a3c;
   padding: 6px 16px;
   border-radius: 20px;
   font-size: 14px;
+  font-family: var(--font-body);
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+  white-space: nowrap;
 }
 
-.follow-btn:hover {
-  background-color: #FDF5E6;
+.followBtn:hover {
+  background-color: var(--orange);
+  border-color: var(--orange);
+  color: #ffffff;
 }
 
-.post-body {
+.followingBtn {
+  background-color: #fdf5e6;
+  color: #b09070;
+  border-color: #d9c9b0;
+}
+
+.followingBtn:hover {
+  background-color: #ffe0e0;
+  border-color: #e0a0a0;
+  color: #c05050;
+}
+
+/* ── 3-dot menu ── */
+.menuWrap {
+  position: relative;
+}
+
+.menuBtn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #aaa;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  line-height: 1;
+  transition: background 0.15s, color 0.15s;
+  writing-mode: vertical-rl;
+  letter-spacing: -4px;
+}
+
+.menuBtn:hover {
+  background: #f5ebe0;
+  color: var(--dark);
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #ebe4d5;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  min-width: 130px;
+  z-index: 100;
+  overflow: hidden;
+}
+
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-family: var(--font-body);
+  color: #333;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.dropdownItem:hover {
+  background: #fdf5e6;
+}
+
+.deleteItem {
+  color: #c0392b;
+}
+
+.deleteItem:hover {
+  background: #fff4f4;
+}
+
+/* ── Body ── */
+.body {
   padding: 0 20px 15px 20px;
 }
 
-.post-text {
+.text {
   margin: 0;
   font-size: 14px;
   color: #333;
-  line-height: 1.5;
+  line-height: 1.6;
   white-space: pre-line;
+  font-family: var(--font-body);
 }
 
-.see-more {
-  color: #999;
-  cursor: pointer;
+/* แสดงแฮชแท็กโหมดฟีดธรรมดา */
+.feedTagsDisplay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
 }
 
-.see-more:hover {
-  text-decoration: underline;
+.feedTagItem {
+  color: var(--orange);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-body);
 }
 
-.post-image-placeholder {
+/* ── 🖼️ Image Container หน้าฟีดหลัก ── */
+.imageContainer {
+  position: relative;
+  width: 100%;
+  max-height: 450px;
+  overflow: hidden;
+  cursor: zoom-in;
+  z-index: 5;
+}
+
+.image {
   width: 100%;
   height: 350px;
-  background: linear-gradient(to bottom, #FF8A65, #FF9800);
+  object-fit: cover;
+  display: block;
 }
 
-.post-actions {
+/* ── 🔀 ปุ่มสไลด์ ซ้าย-ขวา ── */
+.slideBtnLeft, .slideBtnRight {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 15;
+  transition: background 0.2s;
+}
+
+.slideBtnLeft { left: 12px; }
+.slideBtnRight { right: 12px; }
+
+.slideBtnLeft:hover, .slideBtnRight:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.imageBadge {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  z-index: 15;
+  pointer-events: none;
+}
+
+/* ── Actions ── */
+.actions {
   display: flex;
   align-items: center;
   padding: 12px 20px;
-  gap: 10px;
+  gap: 8px;
 }
 
-.action-btn {
+.actionBtn {
   background: none;
   border: none;
   color: #555;
   font-size: 14px;
+  font-family: var(--font-body);
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 0;
+  padding: 4px 0;
+  transition: color 0.15s;
 }
 
-.action-btn:hover {
-  color: #000;
+.actionBtn:hover {
+  color: #222;
 }
 
-.icon {
-  font-size: 16px;
-}
+.liked { color: #ff3e3e; font-weight: bold; }
+.bookmarkIcon { width: 16px; margin-right: 5px; }
+.bookmarked { filter: invert(0.5) sepia(1) saturate(5) hue-rotate(10deg); }
 
 .divider {
-  color: #DDD;
+  color: #ddd;
   font-size: 14px;
-  margin: 0 5px;
+  margin: 0 4px;
+  user-select: none;
 }
 
-.bookmark-active {
+/* ── กล่องโปรไฟล์ ── */
+.avatar {
+  width: 40px;        
+  height: 40px;        
+  border-radius: 50%;  
+  overflow: hidden;   
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f0f0; 
+  flex-shrink: 0; 
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;  
+  border-radius: 50%;
+}
+
+/* ── 🔧 โครงสร้างโหมดแก้ไข (สไตล์ดึงจาก CreatePost) ── */
+.expanded {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.textarea {
+  width: 100%;
+  background: var(--cream);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--dark);
+  resize: none;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.textarea:focus {
+  border-color: var(--orange);
+}
+
+/* รูปภาพ Thumbnail */
+.imageGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.imageThumb {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1.5px solid var(--border);
+}
+
+.imageThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.removeImg {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/*  CreatePost */
+.tagArea {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  background: var(--cream);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 6px 10px;
+  transition: border-color 0.2s;
+}
+
+.tagArea:focus-within {
+  border-color: var(--orange);
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #ffe8d0;
+  color: var(--orange);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.tagRemove {
+  background: none;
+  border: none;
+  color: var(--orange);
+  font-size: 10px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  opacity: 0.7;
+}
+
+.tagRemove:hover {
+  opacity: 1;
+}
+
+.tagInput {
+  flex: 1;
+  min-width: 120px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--dark);
+}
+
+.tagInput::placeholder {
+  color: var(--text-muted);
+}
+
+/* แถบด้านล่างสุด */
+.bottomBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.toolBtns {
+  display: flex;
+  gap: 4px;
+}
+
+.toolBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.toolBtn:hover {
+  background: #f5ebe0;
+  color: var(--orange);
+}
+
+/* ปุ่มบล็อก Cancel / Save */
+.actionsBlock {
+  display: flex;
+  gap: 8px;
+}
+
+.cancelBtn {
+  padding: 7px 18px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.cancelBtn:hover {
+  background: #f5ebe0;
+}
+
+.postBtn {
+  padding: 7px 18px;
+  border: none;
+  border-radius: 8px;
+  background: var(--orange);
+  color: var(--white);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.postBtn:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.postBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── 🔍 Fullscreen Lightbox ── */
+.lightboxOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  cursor: zoom-out;
+}
+
+.lightboxContent {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  height: 100%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+}
+
+.lightboxImage {
+  max-width: 100%;
+  max-height: 75vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+  cursor: default;
+}
+
+.closeLightboxBtn {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  background: transparent;
+  color: #fff;
+  border: none;
+  font-size: 40px;
+  cursor: pointer;
+  z-index: 100005;
+  transition: color 0.2s;
+}
+
+.closeLightboxBtn:hover {
+  color: #ff6b6b;
+}
+
+.lightboxArrowLeft, .lightboxArrowRight {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: none;
+  width: 50px;
+  height: 50px;
+  font-size: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100005;
+  transition: background 0.2s;
+}
+
+.lightboxArrowLeft:hover, .lightboxArrowRight:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.lightboxArrowLeft { left: -60px; }
+.lightboxArrowRight { right: -60px; }
+
+.lightboxIndicator {
+  color: #eee;
+  margin-top: 15px;
+  font-size: 0.9rem;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 4px 14px;
+  border-radius: 20px;
+  pointer-events: none;
+}
+
+@media (max-width: 992px) {
+  .lightboxContent { max-width: 90%; }
+  .lightboxArrowLeft { left: 10px; }
+  .lightboxArrowRight { right: 10px; }
+}
+
+/* comments */
+
+.activeCommentBtn {
+  color: var(--orange) !important;
+  font-weight: bold;
+}
+
+.commentsContainer {
+  background-color: #faf8f5;
+  border-top: 1px solid #ebe4d5;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.commentsTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #555;
+  font-family: var(--font-body);
+}
+
+/* ฟอร์มส่งความเห็น */
+.commentForm {
+  width: 100%;
+}
+
+.commentInputWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #ffffff;
+  border: 1.5px solid var(--border);
+  border-radius: 24px;
+  padding: 4px 6px 4px 12px;
+  transition: border-color 0.2s;
+}
+
+.commentInputWrap:focus-within {
+  border-color: var(--orange);
+}
+
+.commentFormAvatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.commentInputField {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 13.5px;
+  font-family: var(--font-body);
+  color: var(--dark);
+  background: transparent;
+}
+
+.commentInputField::placeholder {
+  color: #bbb;
+}
+
+.commentSendBtn {
+  background-color: var(--orange);
+  color: var(--white);
+  border: none;
+  padding: 6px 14px;
+  border-radius: 18px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.commentSendBtn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.commentSendBtn:disabled {
+  background-color: #e0dcd5;
+  color: #a8a49c;
+  cursor: not-allowed;
+}
+
+/* รายการกล่องแสดงข้อความ */
+.commentsListStack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 320px; /* ล็อกความสูงไว้เพื่อความสวยงาม ถ้าคอมเมนต์ยาวจะ Scroll ในกล่องได้คั้บ */
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* ตกแต่ง Scrollbar ให้ดูตะมุตะมิ */
+.commentsListStack::-webkit-scrollbar {
+  width: 5px;
+}
+.commentsListStack::-webkit-scrollbar-thumb {
+  background: #e0dcd5;
+  border-radius: 10px;
+}
+
+.commentCardRow {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.commenterAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.commentBubbleWrap {
+  background-color: #ffffff;
+  border: 1px solid #eee9de;
+  border-radius: 14px;
+  padding: 8px 14px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.01);
+}
+
+.commentHeaderInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.commenterName {
+  font-size: 13px;
+  font-weight: 700;
+  color: #444;
+  font-family: var(--font-body);
+}
+
+.commentTimeMeta {
+  font-size: 11px;
+  color: #aaa;
+  font-family: var(--font-body);
+}
+
+.commentBodyText {
+  margin: 0;
+  font-size: 13.5px;
   color: #333;
-  font-weight: 500;
+  line-height: 1.5;
+  white-space: pre-line;
+  font-family: var(--font-body);
+}
+
+/* ตัวช่วยแจ้งเตือนสถานะต่างๆ */
+.commentsLoader, .commentsError, .noComments {
+  text-align: center;
+  padding: 12px 0;
+  font-size: 13px;
+  color: #888;
+  font-family: var(--font-body);
+}
+
+.commentsError {
+  color: #c0392b;
 }

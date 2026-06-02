@@ -3,7 +3,7 @@ import styles from './PopularCreations.module.css';
 export interface Creator {
   id: string;
   name: string;
-  role: string;
+  sub_namebio: string;
   followers: string;
   avatarUrl?: string;
   isFollowing?: boolean;
@@ -35,7 +35,7 @@ export default function PopularCreations({ creators }: Props) {
               </div>
               <div className={styles.creatorInfo}>
                 <span className={styles.creatorName}>{creator.name}</span>
-                <span className={styles.creatorMeta}>{creator.role} • {creator.followers} followers</span>
+                <span className={styles.creatorMeta}>{creator.sub_namebio} • {creator.followers} followers</span>
               </div>
               <button className={`${styles.followBtn} ${creator.isFollowing ? styles.following : ''}`}>
                 {creator.isFollowing ? 'Following' : '+ Follow'}

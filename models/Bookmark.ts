@@ -5,13 +5,14 @@ const BookmarkSchema = new mongoose.Schema(
     bookmark: {
       bookmark_id:    String,
       user_id:        String,
-      target_id: String,
+      target_id:      String,
+      post_id:        String,
       target_type : {
         type: String,
         enum: ["post", "lesson"],
         required: true,
       },
-      created_at:{ type: Date, default: Date.now },
+      created_at: { type: Date, default: Date.now },
     },
   },
   {
@@ -19,7 +20,7 @@ const BookmarkSchema = new mongoose.Schema(
   }
 );
 
-BookmarkSchema.index({ user_id: 1, post_id: 1 },{ unique: true });
+BookmarkSchema.index({ "bookmark.user_id": 1, "bookmark.post_id": 1 }, { unique: true });
  
 const Bookmark =
   mongoose.models.Bookmark || mongoose.model("Bookmark", BookmarkSchema);

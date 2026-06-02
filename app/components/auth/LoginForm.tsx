@@ -11,14 +11,29 @@ export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const [error, setError] = useState('');
+  // เก็บ errors แยกตาม field
+  const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
   const [loading, setLoading] = useState(false);
 
   const doLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setLoading(true);
+    setErrors({}); // ล้าง error เก่าก่อนเริ่มใหม่
 
+    // 1. Validation หน้าบ้าน (Client-side)
+    const newErrors: any = {};
+    if (!email) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = "Invalid email format";
+    
+    if (!password) newErrors.password = "Password is required";
+    else if (password.length < 6) newErrors.password = "Password must be at least 6 characters";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    // 2. ถ้าผ่านการตรวจ เริ่มยิง API
+    setLoading(true);
     try {
       const res = await fetch('/api/auth/login-step1', {
         method: 'POST',
@@ -33,9 +48,8 @@ export default function LoginForm() {
       }
 
       router.push(`/auth-app/verify-otp?email=${encodeURIComponent(email)}&purpose=login`);
-
     } catch (err: any) {
-      setError(err.message);
+      setErrors({ general: err.message });
     } finally {
       setLoading(false);
     }
@@ -44,6 +58,10 @@ export default function LoginForm() {
   return (
     <form onSubmit={doLogin} className={styles.form}>
       <h1 className={styles.title}>Login</h1>
+      
+      {/* แจ้งเตือนข้อผิดพลาดจาก Server (General Error) */}
+      {errors.general && <div className={styles.errorMessage} style={{textAlign: 'center', marginBottom: '10px'}}>{errors.general}</div>}
+
       <div className={styles.field}>
         <label className={styles.label}>Email</label>
         <input
@@ -51,27 +69,28 @@ export default function LoginForm() {
           placeholder="Example@email.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className={styles.input}
+          // เพิ่ม class inputError ถ้ามี error ที่ email
+          className={`${styles.input} ${errors.email ? styles.inputError : ''}`}
           disabled={loading}
-          required
         />
+        {errors.email && <div className={styles.errorMessage}>{errors.email}</div>}
       </div>
 
       <div className={styles.field}>
         <label className={styles.label}>Password</label>
         <input
           type="password"
-          placeholder="At least 8 characters"
+          placeholder="Enter your password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className={styles.input}
+          // เพิ่ม class inputError ถ้ามี error ที่ password
+          className={`${styles.input} ${errors.password ? styles.inputError : ''}`}
           disabled={loading}
-          required
         />
+        {errors.password && <div className={styles.errorMessage}>{errors.password}</div>}
+        
         <div className={styles.forgotBlock}>
-          <Link href="/forgot-password" className={styles.forgotLink}>
-            Forgot Password?
-          </Link>
+          <Link href="/forgot-password" className={styles.forgotLink}>Forgot Password?</Link>
         </div>
       </div>
 
@@ -82,4 +101,4 @@ export default function LoginForm() {
       <SocialButtons mode="signin" />
     </form>
   );
-}
+} 
