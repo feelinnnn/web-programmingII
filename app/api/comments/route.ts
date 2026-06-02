@@ -9,7 +9,8 @@ import User from "@/models/User";
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const postId = searchParams.get("postId");
+    const data = await request.json();
+    const postId = searchParams.get("postId") || data.postId;
     if (!postId) return NextResponse.json({ success: false, error: "Missing postId" }, { status: 400 });
 
     await dbConnect();

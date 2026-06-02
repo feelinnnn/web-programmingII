@@ -32,7 +32,7 @@ export async function POST(request: Request){
         }
 
         // 2. ค้นหาโพสต์และดักจับหากไม่พบข้อมูล
-        const postDoc: any = await Posts.findById({postId }).lean();
+        const postDoc: any = await Posts.findById({ _id : postId }).lean();
         if (!postDoc) {
             return NextResponse.json(
                 { errors: [{ status: "404", title: "Post Not Found" }] },
@@ -102,5 +102,44 @@ export async function GET(request: Request) {
   catch(err){
     return NextResponse.json({ errors: [{ status: "500", title: "Internal Server Error",}] },
         { status: 500 })
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    await dbConnect();
+
+    const { searchParams } = new URL(request.url);
+    const bookmarkId = searchParams.get("bookmarkId");
+
+    if (!bookmarkId) {
+      return NextResponse.json(
+        { errors: [{ status: "400", title: "Missing bookmarkId parameter" }] },
+        { status: 400 }
+      );
+    }
+
+
+    const result = await Bookmark.deleteOne({ "bookmark.bookmark_id": bookmarkId });
+
+    
+    if (result.deletedCount === 0) {
+      return NextResponse.json(
+        { errors: [{ status: "404", title: "Bookmark not found or already deleted" }] },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ 
+      success: true, 
+      message: "Bookmark deleted successfully" 
+    }, { status: 200 });
+
+  } catch (error) {
+    console.error("DELETE Bookmark Error:", error);
+    return NextResponse.json(
+      { errors: [{ status: "500", title: "Internal Server Error" }] },
+      { status: 500 }
+    );
   }
 }
