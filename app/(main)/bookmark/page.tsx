@@ -13,6 +13,7 @@ interface FlatBookmarkedPost {
   content: string;
   likes: number;
   comments: number;
+  imageUrls: string;
 }
 
 
