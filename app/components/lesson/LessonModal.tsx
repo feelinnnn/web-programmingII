@@ -1,7 +1,7 @@
 import "./LessonModal.css";
 import { useRouter } from "next/navigation";
 import { SessionProvider } from "next-auth/react";
-import { GetUserid } from "@/lib/useauth";
+import { useUserId } from "@/lib/useauth";
 
 
 type Chapter = { id: string; type: string };
@@ -28,10 +28,19 @@ type Props = {
 
 export default function LessonModal({ lesson, onClose }: Props) {
   const router = useRouter();
+  const userId = useUserId();
 
-const gotoLesson = (id: string) => {
-  router.push(`/lesson_page/?lesson_id=${id}`);
-};
+  const gotoLesson = async (id: string) => {
+    try {
+      await fetch(`/api/lessons/${id}/progress/${userId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (err) {
+      console.error('Failed to create progress:', err);
+    }
+    router.push(`/lesson_page/?lesson_id=${id}`);
+  };
   if (!lesson) return null;
 
   const { title, description, thumbnail_url, badge } = lesson.attributes;

@@ -1,7 +1,7 @@
 import { useSession } from "next-auth/react";
 import { jwtDecode } from "jwt-decode";
 
-export function GetUserid() {
+export function useUserId() {
 
     // Google
     const { data: session } = useSession();

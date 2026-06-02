@@ -1,21 +1,25 @@
 "use client";
 
 import './EvidenceModal.css';
-import { GetUserid } from "@/lib/useauth";
+import { useUserId } from "@/lib/useauth";
 import { useState } from "react";
 
 export default function EvidenceModal({
   isOpen,
   onClose,
   badgeId,
-  badgeTypeSnapshot
+  badgeTypeSnapshot,
+  lessonName,
+  badgeName
 }: {
   isOpen: boolean;
   onClose: () => void;
   badgeId: string | null;
   badgeTypeSnapshot: string | null;
+  lessonName?: string;
+  badgeName?: string;
 }) {
-  const userId = GetUserid();
+  const userId = useUserId();
   const [files, setFiles] = useState<File[]>([]);
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
@@ -68,11 +72,11 @@ export default function EvidenceModal({
       <div className="modal">
         <div className="left">
           <label className="upload-box">
-            <input
-              type="file"
-              hidden
+            <input 
+              type="file" 
+              hidden 
               multiple
-              onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
+              onChange={(e) => setFiles(Array.from(e.target.files ?? []))} 
             />
             <div className="upload-content">
               <span>{files.length > 0 ? `${files.length} file(s) selected` : "Upload file"}</span>
@@ -96,8 +100,8 @@ export default function EvidenceModal({
         <div className="right">
           <button className="close" onClick={onClose}>✕</button>
           <img src="icon/medal.png" width={221} height={221} style={{ width: "100%", height: "auto", maxWidth: "221px" }} />
-          <h2>Submit evidence for [lesson name]</h2>
-          <p>You will receive this badge</p>
+          <h2>Submit evidence for {lessonName || "[lesson name]"}</h2>
+          <p>You will receive<br />{badgeName || "this badge"} badge</p>
           <button className="submit-btn" onClick={handleSubmit} disabled={loading}>
             {loading ? "Submitting..." : "Submit"}
           </button>
