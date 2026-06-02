@@ -34,6 +34,8 @@ type LessonProgress = {
 
 export default function AllLessons() {
   const userId = useUserId();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [progressMap, setProgressMap] = useState<Map<string, LessonProgress>>(new Map());
@@ -111,6 +113,8 @@ export default function AllLessons() {
   });
 
   // const badgeTypes = ["self-declared", "evidence-backed", "expert-certified", "lesson"];
+
+  if (!mounted) return null;
 
   return (
     <div className="page">

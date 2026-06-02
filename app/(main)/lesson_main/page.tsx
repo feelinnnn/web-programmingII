@@ -78,11 +78,43 @@ function LessonCard({ lesson, large = false, onClick, progressPercentage, remain
 
 export default function Home() {
   const userId = useUserId();
+  const [mounted, setMounted] = useState(false);
+  const [navExpanded, setNavExpanded] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  // Detect navbar expansion
+  useEffect(() => {
+    const check = () => setNavExpanded(localStorage.getItem("navbar-expanded") === "true");
+    check();
+    window.addEventListener("navbar-toggle", check);
+    window.addEventListener("storage", check);
+    return () => {
+      window.removeEventListener("navbar-toggle", check);
+      window.removeEventListener("storage", check);
+    };
+  }, [mounted]);
+
+  // Mouse wheel horizontal scroll
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      const target = e.target as HTMLElement;
+      const scroll = target.closest(".horizontal-scroll") as HTMLElement | null;
+      if (scroll && Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        e.preventDefault();
+        scroll.scrollLeft += e.deltaY;
+      }
+    };
+    document.addEventListener("wheel", handleWheel, { passive: false });
+    return () => document.removeEventListener("wheel", handleWheel);
+  }, [mounted]);
+
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [allLessons, setAllLessons] = useState<Lesson[]>([]);
   const [progressMap, setProgressMap] = useState<Map<string, Progress>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [allPage, setAllPage] = useState(1);
+  const PER_PAGE = 10;
 
   useEffect(() => {
     if (!userId) return;
@@ -129,7 +161,7 @@ export default function Home() {
     return remaining > 0;
   });
 
-  if (loading) return <div className="page"><p>Loading...</p></div>;
+  if (!mounted || loading) return <div className="page"><p>Loading...</p></div>;
   if (error) return <div className="page"><p>Error: {error}</p></div>;
 
   return (
@@ -139,10 +171,15 @@ export default function Home() {
         {/* Latest */}
         {latestLessons.length > 0 && (
           <section className="section">
-            <h2 className="script-title">Latest lesson</h2>
-            <p className="subtitle">Freshly made</p>
+            <div className="section-header">
+              <div>
+                <h2 className="script-title">Latest lesson</h2>
+                <p className="subtitle">Freshly made</p>
+              </div>
+              <Link href="/all_lesson" className="see-all-link">See all lessons</Link>
+            </div>
 
-            <div className="horizontal-scroll">
+            <div className="horizontal-scroll" style={navExpanded ? { width: "calc(100% - 200px)" } : undefined}>
               {latestLessons.map(lesson => (
                 <LessonCard
                   key={lesson.id}
@@ -156,11 +193,11 @@ export default function Home() {
         )}
 
         {/* Continue */}
-        {continueLessons.length > 0 && (
-          <section className="section">
-            <h2 className="script-title">Continue</h2>
+        <section className="section">
+          <h2 className="script-title">Continue</h2>
 
-            <div className="horizontal-scroll small-cards">
+          {continueLessons.length > 0 ? (
+            <div className="horizontal-scroll small-cards" style={navExpanded ? { width: "calc(100% - 200px)" } : undefined}>
               {continueLessons.map(lesson => {
                 const progress = progressMap.get(lesson.id);
                 const percentage = progress ? (progress.attributes.completedCount / progress.attributes.totalChapters) * 100 : 0;
@@ -176,32 +213,49 @@ export default function Home() {
                 );
               })}
             </div>
-          </section>
-        )}
+          ) : (
+            <p className="subtitle">No lessons in progress. Start a lesson to continue!</p>
+          )}
+        </section>
 
         {/* All lessons */}
-        {allLessons.length > 0 && (
-          <section className="section">
-            <h2 className="normal-title">All lessons</h2>
+        <section className="section">
+          <h2 className="normal-title">All lessons</h2>
 
-            <div className="lesson-grid">
-              {allLessons.map(lesson => (
-                <LessonCard
-                  key={lesson.id}
-                  lesson={lesson}
-                  onClick={() => setSelectedLesson(lesson)}
-                />
-              ))}
-            </div>
-          </section>
-        )}
+          {allLessons.length === 0 ? (
+            <p className="subtitle">No lessons available.</p>
+          ) : (
+            <>
+              <div className="lesson-grid">
+                {allLessons.slice((allPage - 1) * PER_PAGE, allPage * PER_PAGE).map(lesson => (
+                  <LessonCard
+                    key={lesson.id}
+                    lesson={lesson}
+                    onClick={() => setSelectedLesson(lesson)}
+                  />
+                ))}
+              </div>
 
-        {/* Footer */}
-        <footer className="footer">
-          <Link href="/all_lesson" className="lang-btn">ดูหลักสูตรทั้งหมด</Link>
+              {allLessons.length > PER_PAGE && (
+              <div className="pagination">
+                <button
+                  className="page-btn"
+                  disabled={allPage <= 1}
+                  onClick={() => setAllPage(allPage - 1)}
+                >‹ Prev</button>
+                <span className="page-info">{allPage} / {Math.max(1, Math.ceil(allLessons.length / PER_PAGE))}</span>
+                <button
+                  className="page-btn"
+                  disabled={allPage >= Math.max(1, Math.ceil(allLessons.length / PER_PAGE))}
+                  onClick={() => setAllPage(allPage + 1)}
+                >Next ›</button>
+              </div>
+              )}
+            </>
+          )}
+        </section>
 
-          <div className="footer-line" />
-        </footer>
+        <footer className="main-footer" />
       </main>
 
       <LessonModal lesson={selectedLesson} onClose={() => setSelectedLesson(null)} />

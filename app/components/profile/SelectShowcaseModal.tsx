@@ -25,6 +25,7 @@ interface BadgeData {
           description?: string;
           badge_type?: string;
           icon_url?: string;
+          thumbnail_url?: string;
         };
       };
     };
@@ -114,6 +115,7 @@ export default function SelectShowcaseModal({ badges, initialSelected, onSave, o
     const badgeInfo = badge.relationships?.badge?.data;
     const name = badgeInfo?.attributes?.name || "Badge";
     const color = getBadgeColor(badge);
+    const imgUrl = badgeInfo?.attributes?.thumbnail_url || badgeInfo?.attributes?.icon_url || null;
 
     return (
       <div
@@ -122,11 +124,19 @@ export default function SelectShowcaseModal({ badges, initialSelected, onSave, o
         onClick={() => !disabled && toggle(badge.id)}
       >
         <div className="ss-cardContent">
-          <span className="ss-pill" style={{ backgroundColor: color }}>{name}</span>
+          {imgUrl && (
+            <img
+              src={imgUrl}
+              alt={name}
+              className="ss-cardImg"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+            />
+          )}
+          <span className="card-badge-pill" style={{ backgroundColor: color, color: "#333" }}>Badge</span>
           {isSelected && <span className="ss-checkmark">✓</span>}
           {disabled && <span className="ss-fullBadge">Full</span>}
         </div>
-        <span className="ss-cardName">{name}</span>
+        <div className="card-label">{name}</div>
       </div>
     );
   };
@@ -191,6 +201,8 @@ export default function SelectShowcaseModal({ badges, initialSelected, onSave, o
                 })}
               </div>
             </div>
+
+            <div className="ss-divider" />
 
             {/* Selected column */}
             <div className="ss-col">

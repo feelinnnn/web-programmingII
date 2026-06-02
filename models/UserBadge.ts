@@ -11,6 +11,7 @@ export interface IUserBadge extends Document {
   submittedAt: Date
   verifiedAt: Date | null
   badgeTypeSnapshot: "self-declared" | "evidence-backed" | "expert-certified" | "lesson"
+  showcased: boolean
 }
 
 const UserBadgeSchema = new Schema<IUserBadge>({
@@ -27,10 +28,11 @@ const UserBadgeSchema = new Schema<IUserBadge>({
   adminComment: { type: String, default: null },
   submittedAt: { type: Date, default: Date.now },
   verifiedAt: { type: Date, default: null },
-  badgeTypeSnapshot: { 
-    type: String, 
+  badgeTypeSnapshot: {
+    type: String,
     enum: ["self-declared", "evidence-backed", "expert-certified", "lesson"]
-  }
+  },
+  showcased: { type: Boolean, default: false }
 })
 
 export default mongoose.models.UserBadge || mongoose.model<IUserBadge>('UserBadge', UserBadgeSchema)

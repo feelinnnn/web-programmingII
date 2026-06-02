@@ -29,6 +29,7 @@ export default function Navbar() {
     const next = !isExpanded;
     setIsExpanded(next);
     localStorage.setItem("navbar-expanded", String(next));
+    window.dispatchEvent(new Event("navbar-toggle"));
   };
 
   const fetchProfile = async () => {

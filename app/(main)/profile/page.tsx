@@ -7,6 +7,8 @@ import EditProfileModal from "../../components/profile/EditProfileModal";
 import ViewProfileModal from "../../components/profile/ViewProfileModal";
 import SelectShowcaseModal from "../../components/profile/SelectShowcaseModal";
 import BadgeInfoModal from "../../components/profile/BadgeInfoModal";
+import AddBadgeModal from "../../components/profile/AddBadgeModal";
+import BadgeDetailModal from "../../components/profile/BadgeDetailModal";
 import "./profile.css";
 
 interface UserProfile {
@@ -26,12 +28,21 @@ interface UserProfile {
       youtube: string;
     };
     created_at: string;
+    follower_count?: number;
+    following_count?: number;
   };
   relationships: {
     stats: { data: any };
     badges: { data: any[] };
     progress: { data: { lessons_started: number; total_completed_chapters: number } };
   };
+}
+
+function formatCount(n: number): string {
+  if (n >= 1000000) return (n / 1000000).toFixed(1) + "M";
+  if (n >= 10000) return Math.round(n / 1000) + "K";
+  if (n >= 1000) return (n / 1000).toFixed(1) + "K";
+  return String(n);
 }
 
 export default function ProfilePage() {
@@ -50,6 +61,14 @@ export default function ProfilePage() {
   const [showcaseMode, setShowcaseMode] = useState<"all" | "select">("all");
   const [showcaseBadges, setShowcaseBadges] = useState<Set<string>>(new Set());
   const [showInfo, setShowInfo] = useState(false);
+  const [showAddBadge, setShowAddBadge] = useState(false);
+  const [detailBadge, setDetailBadge] = useState<any>(null);
+  const [editBadge, setEditBadge] = useState<any>(null);
+  const [page, setPage] = useState(1);
+  const PER_PAGE = 10;
+
+  // Reset page when filters change
+  useEffect(() => { setPage(1); }, [search, colorFilter, showcaseMode]);
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -75,6 +94,10 @@ export default function ProfilePage() {
 
       const json = await res.json();
       setProfile(json.data);
+      // Load showcased badges
+      const badges = json.data?.relationships?.badges?.data || [];
+      const showcasedIds = new Set<string>(badges.filter((b: any) => b.attributes?.showcased).map((b: any) => b.id));
+      setShowcaseBadges(showcasedIds);
     } catch (err: any) {
       console.error("Profile fetch error:", err);
       setError(err.message || "Failed to load profile");
@@ -142,6 +165,10 @@ export default function ProfilePage() {
     if (colorFilter && getBadgeColor(b) !== colorFilter) return false;
     return true;
   });
+
+  // Pagination
+  const totalPages = Math.ceil(filteredBadges.length / PER_PAGE);
+  const pagedBadges = filteredBadges.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
   return (
     <div className="layout-container">
@@ -271,24 +298,24 @@ export default function ProfilePage() {
 
           <div className="stats-row">
             <div className="stat-box">
-              <strong>{stats?.total_badges_verified ?? 0}</strong>
-              <span>Badges Verified</span>
+              <strong>{formatCount(attributes.follower_count ?? 0)}</strong>
+              <span>Follower</span>
             </div>
             <div className="stat-box">
-              <strong>{stats?.total_self_declared_count ?? 0}</strong>
-              <span>Self Declared</span>
+              <strong>{formatCount(attributes.following_count ?? 0)}</strong>
+              <span>Following</span>
             </div>
             <div className="stat-box">
-              <strong>{stats?.total_evidence_backed_count ?? 0}</strong>
-              <span>Evidence Backed</span>
+              <strong>{badges.length}</strong>
+              <span>Badge</span>
             </div>
             <div className="stat-box">
-              <strong>{stats?.total_expert_certified_count ?? 0}</strong>
-              <span>Expert Certified</span>
+              <strong>{progress?.total_completed_chapters ?? 0}</strong>
+              <span>Lesson Complete</span>
             </div>
             <div className="stat-box">
-              <strong>{progress?.lessons_started ?? 0}</strong>
-              <span>Lessons Started</span>
+              <strong>{stats?.total_lesson_badge_count ?? 0}</strong>
+              <span>Cooking Recipe</span>
             </div>
           </div>
         </header>
@@ -310,7 +337,7 @@ export default function ProfilePage() {
             </div>
             <div className="right-controls">
               <button className="select-showcase-btn" onClick={() => setShowShowcase(true)}>Select Showcase</button>
-              <button className="add-btn">+ Add</button>
+              <button className="add-btn" onClick={() => setShowAddBadge(true)}>+ Add</button>
             </div>
           </div>
 
@@ -364,34 +391,45 @@ export default function ProfilePage() {
                 {showcaseMode === "select" ? "No badges selected. Click \"Select Showcase\" to choose badges." : "No badges found."}
               </p>
             )}
-            {filteredBadges.map((userBadge: any, i: number) => {
+            {pagedBadges.map((userBadge: any, i: number) => {
               const badge = userBadge.relationships?.badge?.data;
               const color = getBadgeColor(userBadge);
               return (
-                <div key={userBadge.id || i} className="card">
+                <div key={userBadge.id || i} className="card" onClick={() => setDetailBadge({ badge: userBadge, color })}>
                   <div className="card-image-area">
-                    {badge?.attributes?.icon_url ? (
+                    {(badge?.attributes?.thumbnail_url || badge?.attributes?.icon_url) ? (
                       <img
-                        src={badge.attributes.icon_url}
+                        src={badge?.attributes?.thumbnail_url || badge?.attributes?.icon_url}
                         alt={badge?.attributes?.name || "Badge"}
                         className="card-badge-icon"
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = "none";
-                          (e.target as HTMLImageElement).nextElementSibling?.classList.remove("hidden");
                         }}
                       />
                     ) : null}
-                    <span className={`card-badge ${badge?.attributes?.icon_url ? "hidden" : ""}`} style={{ backgroundColor: color }}>
-                      {badge?.attributes?.name || "Badge"}
-                    </span>
-                  </div>
-                  <div className="card-footer">
-                    {badge?.attributes?.name || "Unknown"}
+                    <span className="card-badge-pill" style={{ backgroundColor: color, color: "#333" }}>Badge</span>
+                    <div className="card-label">{badge?.attributes?.name || "Unknown"}</div>
                   </div>
                 </div>
               );
             })}
           </div>
+
+          {totalPages > 1 && (
+            <div className="pagination">
+              <button
+                className="page-btn"
+                disabled={page <= 1}
+                onClick={() => setPage(page - 1)}
+              >‹ Prev</button>
+              <span className="page-info">{page} / {totalPages}</span>
+              <button
+                className="page-btn"
+                disabled={page >= totalPages}
+                onClick={() => setPage(page + 1)}
+              >Next ›</button>
+            </div>
+          )}
         </section>
       </main>
 
@@ -432,13 +470,78 @@ export default function ProfilePage() {
         <SelectShowcaseModal
           badges={badges}
           initialSelected={showcaseBadges}
-          onSave={(selected) => setShowcaseBadges(selected)}
+          onSave={async (selected) => {
+            setShowcaseBadges(selected);
+            const token = localStorage.getItem("token");
+            try {
+              const res = await fetch("/api/profile/showcase", {
+                method: "PATCH",
+                headers: {
+                  "Content-Type": "application/json",
+                  ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+                body: JSON.stringify({ badgeIds: [...selected] }),
+              });
+              if (!res.ok) console.error("Showcase save failed:", await res.json());
+            } catch (err) {
+              console.error("Showcase save error:", err);
+            }
+          }}
           onClose={() => setShowShowcase(false)}
         />
       )}
 
       {showInfo && (
         <BadgeInfoModal onClose={() => setShowInfo(false)} />
+      )}
+
+      {showAddBadge && (
+        <AddBadgeModal
+          onClose={() => setShowAddBadge(false)}
+          onCreated={() => { setShowAddBadge(false); fetchProfile(); }}
+        />
+      )}
+
+      {editBadge && (
+        <AddBadgeModal
+          editData={editBadge}
+          onClose={() => setEditBadge(null)}
+          onCreated={() => { setEditBadge(null); fetchProfile(); }}
+        />
+      )}
+
+      {detailBadge && (
+        <BadgeDetailModal
+          badge={detailBadge.badge}
+          color={detailBadge.color}
+          onClose={() => setDetailBadge(null)}
+          onVerify={async () => {
+            const token = localStorage.getItem("token");
+            await fetch(`/api/user-badges/${detailBadge.badge.id}/verify`, {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+              },
+            });
+            setDetailBadge(null);
+            fetchProfile();
+          }}
+          onEdit={() => {
+            const b = detailBadge.badge;
+            setDetailBadge(null);
+            setEditBadge(b);
+          }}
+          onDelete={async () => {
+            const token = localStorage.getItem("token");
+            await fetch(`/api/user-badges/${detailBadge.badge.id}`, {
+              method: "DELETE",
+              headers: token ? { Authorization: `Bearer ${token}` } : {},
+            });
+            setDetailBadge(null);
+            fetchProfile();
+          }}
+        />
       )}
     </div>
   );
