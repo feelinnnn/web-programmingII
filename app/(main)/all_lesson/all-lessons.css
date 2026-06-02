@@ -64,12 +64,80 @@ body {
   height: 20px;
   background: #ccc;
   border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.switch.active {
+  background: #4caf50;
+}
+.filtercontainer{
+  margin-left: auto;
 }
 
 .filter {
   color: white;
   margin-left: auto;
   height: 70%;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+}
+
+.filter.active {
+  opacity: 1;
+  filter: brightness(1.2);
+}
+
+/* Filter Modal */
+.filter-modal {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  z-index: 1000;
+  margin-top: 10px;
+}
+
+.filter-option {
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  color: #333;
+  font-size: 14px;
+  transition: background 0.2s ease;
+}
+
+.filter-option:hover {
+  background: #f5f5f5;
+}
+
+.filter-option:last-child {
+  border-bottom: none;
+}
+
+.filter-option.selected {
+  background: #e8f5e9;
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+/* Result Count */
+.result-count {
+  margin-top: 15px;
+  font-size: 14px;
+  color: #666;
+  padding: 0 10px;
+}
+
+/* No Results Message */
+.no-results {
+  text-align: center;
+  padding: 40px;
+  color: #999;
+  font-size: 16px;
 }
 
 /* Grid */

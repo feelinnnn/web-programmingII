@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import EvidenceModal from "../../components/evidence/EvidenceModal";
 import "./evidence.css";
 import { useUserId } from "@/lib/useauth";
@@ -29,6 +29,7 @@ type Badge = {
 };
 
 export default function Home() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [badge, setBadge] = useState<Badge | null>(null);
@@ -36,6 +37,42 @@ export default function Home() {
   const userId = useUserId();
   const searchParams = useSearchParams();
   const lessonId = searchParams.get("lesson_id");
+
+  // Check if user has completed the lesson before allowing evidence submission
+  useEffect(() => {
+    if (!lessonId || !userId) return;
+
+    async function checkLessonCompletion() {
+      try {
+        const res = await fetch(`/api/lessons/continue/${userId}`);
+        if (!res.ok) {
+          router.push('/all_lesson');
+          return;
+        }
+        const json = await res.json();
+        const lessonProgress = (json.data || []).find(
+          (p: any) => p.attributes.lessonId === lessonId
+        );
+
+        if (!lessonProgress) {
+          // No progress for this lesson at all
+          router.push('/all_lesson');
+          return;
+        }
+
+        const { remainingCount } = lessonProgress.attributes;
+        if (remainingCount > 0) {
+          // Has progress but not completed yet
+          router.push(`/lesson_page?lesson_id=${lessonId}`);
+        }
+      } catch (err) {
+        console.error("Failed to check lesson completion:", err);
+        router.push('/all_lesson');
+      }
+    }
+
+    checkLessonCompletion();
+  }, [lessonId, userId, router]);
 
   useEffect(() => {
     if (!lessonId) return;

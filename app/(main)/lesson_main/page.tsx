@@ -2,6 +2,8 @@
 
 import "./lesson_main.css";
 import { useEffect, useState } from "react";
+import Link from "next/link";
+
 import LessonModal from "../../components/lesson/LessonModal";
 import { useUserId } from "@/lib/useauth";
 
@@ -196,7 +198,7 @@ export default function Home() {
 
         {/* Footer */}
         <footer className="footer">
-          <button className="lang-btn">ดูหลักสูตรทั้งหมด</button>
+          <Link href="/all_lesson" className="lang-btn">ดูหลักสูตรทั้งหมด</Link>
 
           <div className="footer-line" />
         </footer>
