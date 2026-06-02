@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
- 
+
 const BookmarkSchema = new mongoose.Schema(
   {
     bookmark: {

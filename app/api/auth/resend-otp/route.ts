@@ -13,13 +13,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Email is required." }, { status: 400 });
     }
 
-    const tempRecord = await Temp_auth.findOne({ email }).sort({ created_at: -1 });
+    const tempRecord = await Temp_auth.findOne({ email }).sort({ createdAt: -1 });
 
     if (!tempRecord) {
       return NextResponse.json(
         { message: "Session not found. Please restart the registration or login process." },
         { status: 400 }
       );
+    }
+    const diff = Date.now() - new Date(tempRecord.createdAt).getTime();
+
+    if (diff < 60 * 1000) {
+      const remainSeconds =
+        Math.ceil((60 * 1000 - diff) / 1000);
+
+      return NextResponse.json(
+        { message: `Please wait ${remainSeconds} seconds before requesting another OTP.`, },
+        { status: 429, });
     }
 
     const newOtpCode = otpGenerator.generate(6, {
@@ -29,8 +39,8 @@ export async function POST(request: Request) {
     });
 
     tempRecord.otp_code = newOtpCode;
-    if ((tempRecord as any).created_at) {
-      (tempRecord as any).created_at = new Date();
+    if ((tempRecord as any).createdAt) {
+      (tempRecord as any).createdAt = new Date();
     }
     await tempRecord.save();
 
