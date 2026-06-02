@@ -1,7 +1,7 @@
 import "./LessonModal.css";
 import { useRouter } from "next/navigation";
 import { SessionProvider } from "next-auth/react";
-import { GetUserid } from "@/lib/useauth";
+import { useUserId } from "@/lib/useauth";
 
 
 type Chapter = { id: string; type: string };

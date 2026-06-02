@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { SessionProvider } from "next-auth/react";
-import { GetUserid } from "@/lib/useauth";
+import { useUserId } from "@/lib/useauth";
 
 
 export default function Home() {
