@@ -74,25 +74,29 @@ export default function CommunityFeedPage() {
 
   const currentUserId = useUserId() || ""; 
 
-  useEffect(()=>{
-    const fetchBookmark = async () =>{
-      const res =  await fetch(`/api/bookmark?userId=${currentUserId}`,{
-        method : "GET",
-        headers: {
-        'Content-Type': 'application/json', 
+    // 🔑 แก้ไขตรงส่วน fetchBookmark ในหน้าหลักของคุณ
+  useEffect(() => {
+    // ดักจับ: ถ้ายังไม่มีไอดีผู้ใช้ (ยังโหลดเซสชันไม่เสร็จ) ไม่ต้องเพิ่งยิง API ให้เสียเวลา
+    if (!currentUserId) return;
+
+    const fetchBookmark = async () => {
+      try {
+        const res = await fetch(`/api/bookmark?userId=${currentUserId}`, {
+          method: "GET",
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          setBookmarked(data.data || []); // เก็บรายการบุ๊กมาร์กจริงลง State
+        }
+      } catch (error) {
+        console.error("Failed to load bookmarks:", error);
       }
-      })
-      const data = await res.json();
-      if(!res.ok){
+    };
 
-        return
-      }
-
-      setBookmarked(data.data)
-    }
-
-    fetchBookmark()
-  }, [])
+    fetchBookmark();
+  }, [currentUserId]); // 👈 เพิ่ม currentUserId เข้าไปใน Dependency Array ตรงนี้!
 
   const fetchHashtags = async () => {
     try {

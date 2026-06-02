@@ -5,6 +5,7 @@ import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
 import Temp_auth from "@/models/Temp_auth";
 import { sendOtpEmail } from "@/services/emailservice";
+import {validateEmail,validatePassword,validateUsername} from "@/lib/validation"
 
 export async function POST(request: Request) {
   try {
@@ -13,6 +14,21 @@ export async function POST(request: Request) {
 
     if (!email || !password || !username) {
       return NextResponse.json({ message: "Please fill in all required fields." }, { status: 400 });
+    }
+
+    const emailError = validateEmail(email);
+    if (emailError) {
+      return NextResponse.json({ message: emailError }, { status: 400 });
+    }
+
+    const usernameError = validateUsername(username);
+    if (usernameError) {
+      return NextResponse.json({ message: usernameError }, { status: 400 });
+    }
+
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      return NextResponse.json({ message: passwordError }, { status: 400 });
     }
 
     const existingUser = await User.findOne({ email });
@@ -33,12 +49,12 @@ export async function POST(request: Request) {
     
     await Temp_auth.create({ 
       email, 
-      password_hash: password,
+      password_hash: passwordHash,
       otp_code: otpCode, 
       purpose: "register",
       createdAt: new Date()
     });
-
+    
     await sendOtpEmail(email, otpCode);
     
     return NextResponse.json({ message: "OTP verification code has been sent to your email." }, { status: 200 });
