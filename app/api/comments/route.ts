@@ -46,34 +46,16 @@ export async function POST(request: Request) {
     await dbConnect();
 
     // 1. ตรวจสอบ User ID จาก NextAuth Session หรือ JWT Header
-    let currentUserId: string | null = null;
+    const body = await request.json();
+    let currentUserId = body.userId;
 
-    // ตรวจสอบจาก NextAuth
-    const session = await getServerSession();
-    if (session?.user?.id) {
-      currentUserId = session.user.id as string;
-    }
-
-    // ถ้าไม่มี session ให้ตรวจสอบจาก Authorization Header (JWT)
-    if (!currentUserId) {
-      const authHeader = request.headers.get("authorization");
-      if (authHeader?.startsWith("Bearer ")) {
-        try {
-          const token = authHeader.split(" ")[1];
-          const decoded: any = jwt.verify(token, process.env.JWT_SECRET!);
-          currentUserId = decoded.user_id || decoded.id;
-        } catch (err) {
-          console.error("JWT Verification failed:", err);
-        }
-      }
-    }
 
     // ถ้าไม่ผ่านทั้ง 2 วิธี
     if (!currentUserId) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    const { postId, content } = await request.json();
+    const { postId, content } = body;
 
     const newCommentData = {
       comment_id: crypto.randomUUID(),
