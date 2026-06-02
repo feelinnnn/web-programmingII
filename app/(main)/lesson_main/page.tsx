@@ -2,7 +2,7 @@
 
 import "./lesson_main.css";
 import { useEffect, useState } from "react";
-import LessonModal from "../../components/LessonModal";
+import LessonModal from "../../components/lesson/LessonModal";
 import { useUserId } from "@/lib/useauth";
 
 type Lesson = {
