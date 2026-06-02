@@ -21,7 +21,8 @@ export async function POST(req: NextRequest) {
       adminComment: null,
       submittedAt: Date.now(),
       verifiedAt: isLesson ? Date.now() : null,
-      badgeTypeSnapshot
+      badgeTypeSnapshot,
+      showcased: false
     })
 
     return NextResponse.json({

@@ -4,7 +4,7 @@ const FollowSchema = new mongoose.Schema(
   {
     comment: {
       follow_id:    String,
-      follow_user_id:        String,
+      follower_user_id:        String,
       following_user_id: String,
       created_at : { type: Date, default: Date.now }
     },
@@ -14,7 +14,7 @@ const FollowSchema = new mongoose.Schema(
   }
 );
 
-FollowSchema.index({ follower_id: 1, following_id: 1 },{ unique: true });
+FollowSchema.index({ "comment.follower_user_id": 1, "comment.following_user_id": 1 }, { unique: true });
 
 const Follow =
   mongoose.models.Follow || mongoose.model("Follow", FollowSchema);

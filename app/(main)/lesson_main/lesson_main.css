@@ -1,11 +1,5 @@
-/* app/page.css */
-
-body {
-  margin: 0;
-  background: #efe4c9;
-}
-
-.page {
+/* Scoped to lesson-main page only — .main-content is unique to this page */
+.page:has(> .main-content) {
   display: flex;
   min-height: 100vh;
 }
@@ -13,27 +7,53 @@ body {
 
 /* MAIN */
 
-.main-content {
-  margin-left: 80px;
-  width: calc(100% - 80px);
-  padding: 30px;
+.page:has(> .main-content) .main-content {
+  margin-left: 60px;
+  width: calc(100% - 50px);
+  padding: 30px 60px 300px 0px;
 }
 
-.section {
+.page:has(> .main-content) .section {
   margin-bottom: 50px;
 }
 
-.script-title {
+.page:has(> .main-content) .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.page:has(> .main-content) .see-all-link {
+  font-size: 14px;
+  color: #8C5A3C;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 6px 16px;
+  border: 1px solid #8C5A3C;
+  border-radius: 6px;
+  transition: all 0.2s;
+  white-space: nowrap;
+  position: fixed;
+  right: 60px;
+  z-index: 10;
+}
+
+.page:has(> .main-content) .see-all-link:hover {
+  background: #8C5A3C;
+  color: #fff;
+}
+
+.page:has(> .main-content) .script-title {
   font-size: 2.2rem;
   margin: 0;
 }
 
-.normal-title {
+.page:has(> .main-content) .normal-title {
   font-size: 2rem;
   margin-bottom: 20px;
 }
 
-.subtitle {
+.page:has(> .main-content) .subtitle {
   margin-top: 5px;
   margin-bottom: 25px;
   font-size: 1.1rem;
@@ -41,21 +61,45 @@ body {
 
 /* HORIZONTAL */
 
-.horizontal-scroll {
+.page:has(> .main-content) .horizontal-scroll {
   display: flex;
   gap: 30px;
-  max-width: 100%;
-  overflow-x: scroll;
+  width: 100%;
+  overflow-x: auto;
   padding-bottom: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: #8C5A3C #f0e8d8;
+  transition: width 0.3s ease;
+  position: relative;
+  z-index: 20;
 }
 
-.horizontal-scroll::-webkit-scrollbar {
-  display: none;
+.page:has(> .main-content) .horizontal-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.page:has(> .main-content) .horizontal-scroll::-webkit-scrollbar-track {
+  background: #f0e8d8;
+  border-radius: 4px;
+}
+
+.page:has(> .main-content) .horizontal-scroll::-webkit-scrollbar-thumb {
+  background: #8C5A3C;
+  border-radius: 4px;
+}
+
+.page:has(> .main-content) .horizontal-scroll::-webkit-scrollbar-thumb:hover {
+  background: #6B3E22;
+}
+
+.page:has(> .main-content) .horizontal-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #8C5A3C #f0e8d8;
 }
 
 /* CARDS */
 
-.lesson-card {
+.page:has(> .main-content) .lesson-card {
   min-width: 220px;
   background: #f4f4f4;
   border-radius: 18px;
@@ -63,11 +107,11 @@ body {
   flex-shrink: 0;
 }
 
-.lesson-card.large {
+.page:has(> .main-content) .lesson-card.large {
   min-width: 500px;
 }
 
-.card-image {
+.page:has(> .main-content) .card-image {
   height: 140px;
   background: linear-gradient(
     to bottom,
@@ -77,8 +121,29 @@ body {
   );
 }
 
-.large .card-image {
+.page:has(> .main-content) .large .card-image {
   height: 190px;
+}
+
+.progress-bar {
+  height: 4px;
+  background: #e0e0e0;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(to right, #4caf50, #45a049);
+  transition: width 0.3s ease;
+}
+
+.chapters-left {
+  padding: 8px 14px;
+  background: #f0f0f0;
+  font-size: 0.85rem;
+  color: #666;
+  border-bottom: 1px solid #e0e0e0;
+  text-align: center;
 }
 
 .card-content {
@@ -87,23 +152,23 @@ body {
   min-height: 110px;
 }
 
-.card-content h3 {
+.page:has(> .main-content) .card-content h3 {
   margin: 0;
   font-size: 1.8rem;
 }
 
-.lesson-card:not(.large) .card-content h3 {
+.page:has(> .main-content) .lesson-card:not(.large) .card-content h3 {
   font-size: 1rem;
 }
 
-.card-content p {
+.page:has(> .main-content) .card-content p {
   margin-top: 10px;
   color: #777;
   line-height: 1.5;
   font-size: 0.95rem;
 }
 
-.arrow {
+.page:has(> .main-content) .arrow {
   position: absolute;
   right: 14px;
   bottom: 12px;
@@ -112,7 +177,7 @@ body {
 
 /* GRID */
 
-.lesson-grid {
+.page:has(> .main-content) .lesson-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 30px;
@@ -120,12 +185,12 @@ body {
 
 /* FOOTER */
 
-.footer {
+.page:has(> .main-content) .footer {
   margin-top: 80px;
   padding-bottom: 30px;
 }
 
-.lang-btn {
+.page:has(> .main-content) .lang-btn {
   background: transparent;
   border: 1px solid #5e3a3a;
   color: #5e3a3a;
@@ -135,9 +200,47 @@ body {
   float: right;
 }
 
-.footer-line {
+.page:has(> .main-content) .footer-line {
   clear: both;
   margin-top: 80px;
   height: 40px;
-
 }
+
+.page:has(> .main-content) .pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.page:has(> .main-content) .page-btn {
+  padding: 6px 16px;
+  border: 1px solid #8C5A3C;
+  border-radius: 6px;
+  background: #fff;
+  color: #4a342e;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.page:has(> .main-content) .page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.page:has(> .main-content) .page-btn:hover:not(:disabled) {
+  background: #8C5A3C;
+  color: #fff;
+}
+
+.page:has(> .main-content) .page-info {
+  font-size: 13px;
+  color: #8f796a;
+}
+
+.page:has(> .main-content) .main-footer {
+  height: 5px;
+}
+

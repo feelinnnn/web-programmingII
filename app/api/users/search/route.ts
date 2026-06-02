@@ -1,0 +1,62 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
+import connect from "@/lib/mongodb";
+import User from "@/models/User";
+import jwt from "jsonwebtoken";
+
+const JWT_SECRET = process.env.JWT_SECRET || "COOKCULT_SECRET_KEY";
+const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET || "COOKCULT_SECRET_KEY";
+
+async function getCurrentUserId(req: NextRequest): Promise<string | null> {
+  try {
+    const session = await getToken({ req, secret: NEXTAUTH_SECRET });
+    if (session?.id) return session.id as string;
+    if (session?.sub) return session.sub;
+  } catch {}
+  const authHeader = req.headers.get("authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    try {
+      const token = authHeader.slice(7);
+      const decoded: any = jwt.verify(token, JWT_SECRET);
+      return decoded.user_id || decoded.id || null;
+    } catch {}
+  }
+  return null;
+}
+
+export async function GET(req: NextRequest) {
+  const q = req.nextUrl.searchParams.get("q") || "";
+  if (!q.trim()) return NextResponse.json({ data: [] });
+
+  try {
+    await connect();
+
+    // Get current user to exclude
+    const currentId = await getCurrentUserId(req);
+    let currentUser = null;
+    if (currentId) {
+      currentUser = await User.findOne({ user_id: currentId }).lean()
+        || await User.findById(currentId).lean();
+    }
+    const excludeId = currentUser?._id?.toString();
+
+    const filter: any = { display_name: { $regex: q, $options: "i" } };
+    if (excludeId) filter._id = { $ne: excludeId };
+
+    const users = await User.find(filter)
+      .select("display_name profile_image_url sub_namebio")
+      .limit(5)
+      .lean();
+
+    const results = users.map((u: any) => ({
+      id: u._id,
+      display_name: u.display_name,
+      profile_image_url: u.profile_image_url,
+      sub_namebio: u.sub_namebio || "",
+    }));
+
+    return NextResponse.json({ data: results });
+  } catch (error: any) {
+    return NextResponse.json({ errors: [{ detail: error.message }] }, { status: 500 });
+  }
+}

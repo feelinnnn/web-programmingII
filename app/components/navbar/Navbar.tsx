@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import "./Navbar.css";
 
 export default function Navbar() {
@@ -14,6 +15,7 @@ export default function Navbar() {
     display_name: string;
     profile_image_url: string;
     role: string;
+    sub_namebio: string;
   } | null>(null);
 
   // Load saved navbar state after mount (avoids hydration mismatch)
@@ -27,36 +29,47 @@ export default function Navbar() {
     const next = !isExpanded;
     setIsExpanded(next);
     localStorage.setItem("navbar-expanded", String(next));
+    window.dispatchEvent(new Event("navbar-toggle"));
+  };
+
+  const fetchProfile = async () => {
+    try {
+      const token =
+        typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+      const headers: Record<string, string> = {
+        "Content-Type": "application/vnd.api+json",
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const res = await fetch("/api/profile", { headers });
+      if (!res.ok) return;
+
+      const json = await res.json();
+      setProfile({
+        display_name: json.data.attributes.display_name,
+        profile_image_url: json.data.attributes.profile_image_url,
+        role: json.data.attributes.role,
+        sub_namebio: json.data.attributes.sub_namebio || "",
+      });
+    } catch {
+      // Silently fail — user may not be logged in
+    }
   };
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const token =
-          typeof window !== "undefined" ? localStorage.getItem("token") : null;
-
-        const headers: Record<string, string> = {
-          "Content-Type": "application/vnd.api+json",
-        };
-        if (token) {
-          headers["Authorization"] = `Bearer ${token}`;
-        }
-
-        const res = await fetch("/api/profile", { headers });
-        if (!res.ok) return;
-
-        const json = await res.json();
-        setProfile({
-          display_name: json.data.attributes.display_name,
-          profile_image_url: json.data.attributes.profile_image_url,
-          role: json.data.attributes.role,
-        });
-      } catch {
-        // Silently fail — user may not be logged in
-      }
-    };
-
     fetchProfile();
+  }, []);
+
+  // Re-fetch profile when edit is saved elsewhere
+  useEffect(() => {
+    const handleProfileUpdated = () => {
+      fetchProfile();
+    };
+    window.addEventListener("profile-updated", handleProfileUpdated);
+    return () => window.removeEventListener("profile-updated", handleProfileUpdated);
   }, []);
 
   const handleLogout = (e: React.MouseEvent) => {
@@ -75,7 +88,7 @@ export default function Navbar() {
 
   const displayName = profile?.display_name || "Guest";
   const avatarSrc = fixImageUrl(profile?.profile_image_url || "/avatar/Avatar.png");
-  const roleLabel = profile?.role === "admin" ? "Admin" : "Home Cook";
+  const roleLabel = profile?.sub_namebio || (profile?.role === "admin" ? "Admin" : "Home Cook");
 
   return (
     <nav className={`navbar ${expanded ? "expanded" : "collapsed"}`}>
@@ -104,7 +117,7 @@ export default function Navbar() {
           </svg>
           {expanded && <span className="menu-text">Home</span>}
         </Link>
-        <Link href="/all_lesson" className="menu-item">
+        <Link href="/lesson_main" className="menu-item">
           <svg className="pic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
           </svg>
@@ -114,7 +127,7 @@ export default function Navbar() {
           <svg className="pic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
           </svg>
-          {expanded && <span className="menu-text">History</span>}
+          {expanded && <span className="menu-text">Badge Status</span>}
         </Link>
         <Link href="/bookmark" className="menu-item">
           <svg className="pic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

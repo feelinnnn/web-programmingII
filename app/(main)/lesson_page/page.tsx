@@ -3,6 +3,7 @@ import "./lesson-page.css";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
+import { useUserId } from "@/lib/useauth";
 
 
 
@@ -31,7 +32,11 @@ type Lesson = {
 
 export default function LessonPage() {
   const router = useRouter();
-  
+  const userId = useUserId();
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   const searchParams = useSearchParams();
   const lessonId = searchParams.get("lesson_id");
   const gotoEvidence = () => {
@@ -43,15 +48,47 @@ export default function LessonPage() {
   const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [allowedChapters, setAllowedChapters] = useState<Set<string>>(new Set());
+  const [canAccessSubmission, setCanAccessSubmission] = useState(false);
+  const [completedChapters, setCompletedChapters] = useState<Set<string>>(new Set());
+  const [submittingChapter, setSubmittingChapter] = useState<string | null>(null);
+
+  // Check if user has access to this lesson (must have progress in it)
+  useEffect(() => {
+    if (!lessonId || !userId) return;
+
+    async function checkAccess() {
+      try {
+        const res = await fetch(`/api/lessons/continue/${userId}`);
+        if (!res.ok) {
+          router.push('/all_lesson');
+          return;
+        }
+        const json = await res.json();
+        const hasProgress = (json.data || []).some(
+          (p: any) => p.attributes.lessonId === lessonId
+        );
+        if (!hasProgress) {
+          router.push('/all_lesson');
+        }
+      } catch (err) {
+        console.error("Failed to check lesson access:", err);
+        router.push('/all_lesson');
+      }
+    }
+
+    checkAccess();
+  }, [lessonId, userId, router]);
 
   useEffect(() => {
-    if (!lessonId) return;
+    if (!lessonId || !userId) return;
 
     async function fetchData() {
       try {
-        const [lessonRes, chaptersRes] = await Promise.all([
+        const [lessonRes, chaptersRes, progressRes] = await Promise.all([
           fetch(`/api/lessons/${lessonId}`),
           fetch(`/api/lessons/${lessonId}/chapters`),
+          fetch(`/api/lessons/continue/${userId}`),
         ]);
 
         if (!lessonRes.ok) throw new Error("Failed to fetch lesson");
@@ -67,6 +104,47 @@ export default function LessonPage() {
         setLesson(lessonJson.data);
         setChapters(sortedChapters);
         setSelectedChapter(sortedChapters[0] ?? null);
+
+        // Handle progress
+        if (progressRes.ok) {
+          const progressJson = await progressRes.json();
+          const lessonProgress = progressJson.data?.find(
+            (p: any) => p.attributes.lessonId === lessonId
+          );
+
+          if (lessonProgress) {
+            const { completedCount, remainingCount } = lessonProgress.attributes;
+            const completedIds = new Set<string>(
+              lessonProgress.relationships.completedChapters.data.map((c: any) => c.id)
+            );
+            setCompletedChapters(completedIds);
+
+            const allowed = new Set<string>();
+
+            if (completedCount === 0) {
+              // Only allow first chapter
+              if (sortedChapters.length > 0) {
+                allowed.add(sortedChapters[0].id);
+              }
+            } else if (remainingCount === 0) {
+              // Allow all chapters
+              sortedChapters.forEach(ch => allowed.add(ch.id));
+              setCanAccessSubmission(true);
+            } else {
+              // Allow completed chapters and next incomplete chapter
+              sortedChapters.forEach((ch) => {
+                if (completedIds.has(ch.id)) {
+                  allowed.add(ch.id);
+                } else if (allowed.size === completedCount) {
+                  // Add the next incomplete chapter
+                  allowed.add(ch.id);
+                }
+              });
+            }
+
+            setAllowedChapters(allowed);
+          }
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unknown error");
       } finally {
@@ -75,9 +153,83 @@ export default function LessonPage() {
     }
 
     fetchData();
-  }, [lessonId]);
+  }, [lessonId, userId]);
 
-  if (loading) return <div className="page"><p>Loading...</p></div>;
+  const handleChapterClick = (chapter: Chapter) => {
+    if (!allowedChapters.has(chapter.id)) {
+      alert("You can't access this chapter yet. Complete the previous chapters first.");
+      return;
+    }
+    setSelectedChapter(chapter);
+  };
+
+  const handleChapterSubmit = async () => {
+    if (!selectedChapter || !lessonId) return;
+    if (completedChapters.has(selectedChapter.id)) {
+      alert("You have already completed this chapter.");
+      return;
+    }
+
+    setSubmittingChapter(selectedChapter.id);
+    try {
+      const res = await fetch(`/api/lessons/${lessonId}/progress/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (res.ok) {
+        await res.json();
+
+        const newCompletedChapters = new Set([...completedChapters, selectedChapter.id]);
+        setCompletedChapters(newCompletedChapters);
+
+        // Recalculate allowed chapters
+        const newAllowed = new Set<string>();
+        const newCompletedCount = newCompletedChapters.size;
+
+        if (newCompletedCount === chapters.length) {
+          // All chapters completed - allow all chapters and submission
+          chapters.forEach(ch => newAllowed.add(ch.id));
+          setCanAccessSubmission(true);
+        } else {
+          // Allow completed chapters and next incomplete chapter
+          chapters.forEach((ch) => {
+            if (newCompletedChapters.has(ch.id)) {
+              newAllowed.add(ch.id);
+            } else if (newAllowed.size === newCompletedCount) {
+              newAllowed.add(ch.id);
+            }
+          });
+        }
+
+        setAllowedChapters(newAllowed);
+        alert("Chapter completed! Moving to the next chapter...");
+
+        // Move to next chapter
+        const currentIndex = chapters.findIndex(ch => ch.id === selectedChapter.id);
+        if (currentIndex < chapters.length - 1) {
+          setSelectedChapter(chapters[currentIndex + 1]);
+        }
+      } else {
+        alert("Failed to submit chapter. Please try again.");
+      }
+    } catch (err) {
+      console.error("Error submitting chapter:", err);
+      alert("Error submitting chapter. Please try again.");
+    } finally {
+      setSubmittingChapter(null);
+    }
+  };
+
+  const handleSubmitClick = () => {
+    if (!canAccessSubmission) {
+      alert("You can't submit yet. Complete all chapters first.");
+      return;
+    }
+    gotoEvidence();
+  };
+
+  if (!mounted || loading) return <div className="page"><p>Loading...</p></div>;
   if (error) return <div className="page"><p>Error: {error}</p></div>;
 
   return (
@@ -111,30 +263,48 @@ export default function LessonPage() {
           </p>
 
           <div className="submit-row">
-            <button className="submit-btn">Submit</button>
+            {selectedChapter ? (
+              <>
+                <button
+                  className="submit-btn"
+                  onClick={handleChapterSubmit}
+                  disabled={submittingChapter === selectedChapter.id || completedChapters.has(selectedChapter.id)}
+                >
+                  {submittingChapter === selectedChapter.id ? "Submitting..." : completedChapters.has(selectedChapter.id) ? "Completed" : "Submit Chapter"}
+                </button>
+                {selectedChapter && chapters.length > 0 && chapters[chapters.length - 1].id === selectedChapter.id && (
+                  <button className="submit-btn" onClick={handleSubmitClick} style={{ marginLeft: "10px" }}>
+                    Submit Evidence
+                  </button>
+                )}
+              </>
+            ) : null}
           </div>
         </div>
       </div>
 
       {/* Episode Sidebar */}
       <div className="episode-sidebar">
-        {chapters.map((chapter, i) => (
-          <div key={chapter.id} onClick={() => setSelectedChapter(chapter)}>
-            <div className={`episode-item ${selectedChapter?.id === chapter.id ? "active" : ""}`}>
-              <div className="episode-icon">
-                <img
-                  src={chapter.attributes.type === "video" ? "/icon/video-icon.png" : "/icon/doc-icon.png"}
-                  alt={chapter.attributes.type}
-                />
+        {chapters.map((chapter, i) => {
+          const isAllowed = allowedChapters.has(chapter.id);
+          return (
+            <div key={chapter.id} onClick={() => handleChapterClick(chapter)} style={{ opacity: isAllowed ? 1 : 0.5, cursor: isAllowed ? "pointer" : "not-allowed" }}>
+              <div className={`episode-item ${selectedChapter?.id === chapter.id ? "active" : ""}`}>
+                <div className="episode-icon">
+                  <img
+                    src={chapter.attributes.type === "video" ? "/icon/video-icon.png" : "/icon/doc-icon.png"}
+                    alt={chapter.attributes.type}
+                  />
+                </div>
+                <span className="episode-title">{chapter.attributes.title}</span>
               </div>
-              <span className="episode-title">{chapter.attributes.title}</span>
+              {i < chapters.length - 1 && <div className="connector" />}
             </div>
-            {i < chapters.length - 1 && <div className="connector" />}
-          </div>
-        ))}
+          );
+        })}
         <div className="connector" />
-        
-         <div onClick={() => gotoEvidence()}>
+
+         <div onClick={handleSubmitClick} style={{ opacity: canAccessSubmission ? 1 : 0.5, cursor: canAccessSubmission ? "pointer" : "not-allowed" }}>
             <div className={`episode-item ${selectedChapter ? "active" : ""}`}>
               <div className="episode-icon">
                 <img

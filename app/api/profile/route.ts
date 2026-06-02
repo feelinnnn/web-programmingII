@@ -3,9 +3,11 @@ import { getToken } from "next-auth/jwt";
 import connect from "@/lib/mongodb";
 import User from "@/models/User";
 import UserStats from "@/models/User_stat";
-import UserBadge from "@/models/UserBadge"; 
+import UserBadge from "@/models/UserBadge";
 import Badge from "@/models/Badge";
+import Lesson from "@/models/Lesson";
 import Progress from "@/models/Progress";
+import Follow from "@/models/Follow";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "COOKCULT_SECRET_KEY";
@@ -58,49 +60,62 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const dbUserId = user._id.toString();
+    const authUserId = user.user_id || user._id.toString();
 
-    const [stats, userBadges, progressDocs] = await Promise.all([
-      UserStats.findOne({ "user_stats.user_id": dbUserId }).lean(),
-      UserBadge.find({ "user_badges.user_id": dbUserId }).lean(),
-      Progress.find({ userID: dbUserId }).lean(),
+    const [stats, userBadges, progressDocs, followerCount, followingCount] = await Promise.all([
+      UserStats.findOne({ "user_stats.user_id": authUserId }).lean(),
+      UserBadge.find({ userId: authUserId }).lean(),
+      Progress.find({ userID: authUserId }).lean(),
+      Follow.countDocuments({ "comment.following_user_id": authUserId }),
+      Follow.countDocuments({ "comment.follower_user_id": authUserId }),
     ]);
 
     // Resolve badge details for each user_badge
-    const badgeIds = userBadges.map((ub: any) => ub.user_badges.badge_id);
+    const badgeIds = userBadges.map((ub: any) => ub.badgeId);
     const badges = badgeIds.length
       ? await Badge.find({ _id: { $in: badgeIds } }).lean()
       : [];
     const badgeMap = new Map(badges.map((b: any) => [b._id.toString(), b]));
 
+    // Find lessons that match these badge IDs (for thumbnail)
+    const lessons = badgeIds.length
+      ? await Lesson.find({ badge: { $in: badgeIds } }).lean()
+      : [];
+    const lessonMap = new Map(lessons.map((l: any) => [l.badge, l]));
+
     const badgesData = userBadges.map((ub: any) => {
-      const badge = badgeMap.get(ub.user_badges.badge_id?.toString()) as any;
+      const badge = badgeMap.get(ub.badgeId?.toString()) as any;
+      const lesson = lessonMap.get(ub.badgeId);
+      // Fallback for self-declared badges (no matching Badge doc)
+      const badgeName = badge?.name || ub.userNote || "Self Declared";
+      const badgeDesc = badge?.description || ub.userNote || "";
+      const badgeType = badge?.badge_type || ub.badgeTypeSnapshot || "self-declared";
       return {
         id: ub._id,
         type: "user_badge",
         attributes: {
-          status: ub.user_badges.status,
-          evidence_url: ub.user_badges.evidence_url,
-          user_note: ub.user_badges.user_note,
-          badge_type_snapshot: ub.user_badges.badge_type_snapshot,
-          submitted_at: ub.user_badges.submitted_at,
-          verified_at: ub.user_badges.verified_at,
+          status: ub.status,
+          evidence_urls: ub.evidenceUrls,
+          user_note: ub.userNote,
+          badge_type_snapshot: ub.badgeTypeSnapshot,
+          showcased: ub.showcased || false,
+          submitted_at: ub.submittedAt,
+          verified_at: ub.verifiedAt,
         },
         relationships: {
-          badge: badge
-            ? {
-                data: {
-                  id: badge._id,
-                  type: "badge",
-                  attributes: {
-                    name: badge.name,
-                    description: badge.description,
-                    badge_type: badge.badge_type,
-                    icon_url: badge.icon_url,
-                  },
-                },
-              }
-            : { data: null },
+          badge: {
+            data: {
+              id: badge?._id || ub.badgeId,
+              type: "badge",
+              attributes: {
+                name: badgeName,
+                description: badgeDesc,
+                badge_type: badgeType,
+                icon_url: badge?.icon_url || null,
+                thumbnail_url: lesson?.thumbnail_url || ub.evidenceUrls?.[0] || null,
+              },
+            },
+          },
         },
       };
     });
@@ -135,10 +150,13 @@ export async function GET(req: NextRequest) {
           authProvider: user.authProvider,
           display_name: user.display_name,
           role: user.role,
+          sub_namebio: user.sub_namebio || "",
           profile_image_url: user.profile_image_url,
           bio: user.bio,
           social_links: user.social_links,
           created_at: user.created_at,
+          follower_count: followerCount,
+          following_count: followingCount,
         },
         relationships: {
           stats: statsAttributes ? { data: statsAttributes } : { data: null },
@@ -172,7 +190,7 @@ export async function PATCH(req: NextRequest) {
     const body = await req.json();
 
     // Only allow updating these safe fields
-    const allowedFields = ["display_name", "bio", "profile_image_url", "social_links"];
+    const allowedFields = ["display_name", "sub_namebio", "bio", "profile_image_url", "social_links"];
     const updates: Record<string, any> = {};
 
     for (const field of allowedFields) {
@@ -212,6 +230,7 @@ export async function PATCH(req: NextRequest) {
           authProvider: updatedUser.authProvider,
           display_name: updatedUser.display_name,
           role: updatedUser.role,
+          sub_namebio: updatedUser.sub_namebio || "",
           profile_image_url: updatedUser.profile_image_url,
           bio: updatedUser.bio,
           social_links: updatedUser.social_links,
