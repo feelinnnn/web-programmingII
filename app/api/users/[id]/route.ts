@@ -22,37 +22,40 @@ export async function GET(
       );
     }
 
-    const dbUserId = user._id.toString();
+    const authUserId = user.user_id || user._id.toString();
 
     const [stats, userBadges] = await Promise.all([
-      UserStats.findOne({ "user_stats.user_id": dbUserId }).lean(),
-      UserBadge.find({ "user_badges.user_id": dbUserId }).lean(),
+      UserStats.findOne({ "user_stats.user_id": authUserId }).lean(),
+      UserBadge.find({ userId: authUserId }).lean(),
     ]);
 
-    const badgeIds = userBadges.map((ub: any) => ub.user_badges.badge_id);
+    const badgeIds = userBadges.map((ub: any) => ub.badgeId);
     const badges = badgeIds.length
       ? await Badge.find({ _id: { $in: badgeIds } }).lean()
       : [];
     const badgeMap = new Map(badges.map((b: any) => [b._id.toString(), b]));
 
     const badgesData = userBadges.map((ub: any) => {
-      const badge = badgeMap.get(ub.user_badges.badge_id?.toString()) as any;
+      const badge = badgeMap.get(ub.badgeId?.toString()) as any;
       return {
         id: ub._id,
         attributes: {
-          status: ub.user_badges.status,
-          badge_type_snapshot: ub.user_badges.badge_type_snapshot,
+          status: ub.status,
+          badge_type_snapshot: ub.badgeTypeSnapshot,
         },
         relationships: {
-          badge: badge ? {
-            data: {
-              id: badge._id,
-              attributes: {
-                name: badge.name,
-                badge_type: badge.badge_type,
-              },
-            },
-          } : { data: null },
+          badge: badge
+            ? {
+                data: {
+                  id: badge._id,
+                  attributes: {
+                    name: badge.name,
+                    badge_type: badge.badge_type,
+                    icon_url: badge.icon_url,
+                  },
+                },
+              }
+            : { data: null },
         },
       };
     });

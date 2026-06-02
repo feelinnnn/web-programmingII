@@ -370,7 +370,18 @@ export default function ProfilePage() {
               return (
                 <div key={userBadge.id || i} className="card">
                   <div className="card-image-area">
-                    <span className="card-badge" style={{ backgroundColor: color }}>
+                    {badge?.attributes?.icon_url ? (
+                      <img
+                        src={badge.attributes.icon_url}
+                        alt={badge?.attributes?.name || "Badge"}
+                        className="card-badge-icon"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = "none";
+                          (e.target as HTMLImageElement).nextElementSibling?.classList.remove("hidden");
+                        }}
+                      />
+                    ) : null}
+                    <span className={`card-badge ${badge?.attributes?.icon_url ? "hidden" : ""}`} style={{ backgroundColor: color }}>
                       {badge?.attributes?.name || "Badge"}
                     </span>
                   </div>
