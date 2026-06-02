@@ -38,7 +38,7 @@ export async function POST(request: Request) {
       purpose: "register",
       createdAt: new Date()
     });
-
+    
     await sendOtpEmail(email, otpCode);
     
     return NextResponse.json({ message: "OTP verification code has been sent to your email." }, { status: 200 });

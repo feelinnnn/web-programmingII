@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Bookmark from "@/models/Bookmark";
 import Posts from "@/models/Post";
-import Users from "@/models/User"; // 👈 1. Import โมเดล User เข้ามาเพิ่ม
+import Users from "@/models/User";
 
 export async function GET(request: Request) {
   try {
@@ -12,53 +12,54 @@ export async function GET(request: Request) {
 
     if (!userId) return NextResponse.json({ error: "Missing userId" }, { status: 400 });
 
-    // ขั้นตอนที่ 1: ดึง Bookmarks ทั้งหมดของคนที่เรียกดูมาเก็บไว้
+    // 1. ดึงข้อมูลบุ๊กมาร์กทั้งหมดของ user นี้
     const bookmarks = await Bookmark.find({ "bookmark.user_id": userId }).lean();
     const postIds = bookmarks.map(item => item.bookmark.post_id);
 
-    // ขั้นตอนที่ 2: ดึงคอลเลกชันโพสต์ตัวเต็มที่มีรหัสตรงกันออกมารวมกัน
-    // (สมมติว่าไอดีโพสต์ในโมเดลคุณเก็บอยู่ที่ฟิลด์ "_id" หรือ "post.post_id" ให้ปรับตามจริงนะครับ)
-    const bookmarkedPosts: any[] = await Posts.find({ 
-      "_id": { $in: postIds } 
-    }).lean();
+    // 2. ดึงข้อมูลโพสต์ตัวเต็มที่มีไอดีตรงกับที่เซฟไว้
+    const bookmarkedPosts: any[] = await Posts.find({ "_id": { $in: postIds } }).lean();
 
-    // ขั้นตอนที่ 3: 🔑 แตกกลุ่มเอาเฉพาะ user_id ของ "เจ้าของโพสต์" เหล่านั้นออกมารวบรวมไว้
-    // (สมมติว่าโพสต์ของคุณเก็บไอดีคนโพสต์ไว้ที่ฟิลด์ "author_id" หรือ "post.user_id" ให้ปรับให้ตรงนะครับ)
+    // 3. รวบรวมไอดีเจ้าของโพสต์เพื่อไปหาข้อมูล User
     const authorIds = bookmarkedPosts.map(post => post.author_id || post.post?.user_id);
+    const usersList = await Users.find({ "user_id": { $in: authorIds } }).lean();
 
-    // ขั้นตอนที่ 4: วิ่งไปค้นหาข้อมูลผู้ใช้เฉพาะกลุ่มคนที่เป็นเจ้าของโพสต์เหล่านั้นขึ้นมา
-    const usersList = await Users.find({ 
-      "user_id": { $in: authorIds } 
-    }).lean();
-
-    // ขั้นตอนที่ 5: 🏎️ ทำโครงสร้างจับคู่ (Map Mapping) เพื่อให้ดึงข้อมูลได้เร็วขึ้น ไม่ต้องวนลูปซ้อนลูป
+    // 4. ทำ Map ของ User ไว้สำหรับจับคู่ข้อมูล
     const userMap = new Map();
     usersList.forEach(user => {
-      userMap.set(user.user_id, {
-        role: user.role,                         // 👈 ได้ role ที่ต้องการแล้ว!
-        display_name: user.display_name,
-        profile_image_url: user.profile_image_url,
-        sub_namebio: user.sub_namebio
-      });
+      userMap.set(user.user_id, user);
     });
 
-    // ขั้นตอนที่ 6: เอาข้อมูลโพสต์ตัวเต็ม มาประกอบร่างรวมกับข้อมูลของผู้ใช้ที่เป็นเจ้าของโพสต์
-    const fullMergedData = bookmarkedPosts.map(post => {
-      const creatorId = post.author_id || post.post?.user_id;
-      const creatorInfo = userMap.get(creatorId) || { role: "user", display_name: "Unknown User" }; // ข้อมูลสำรองเผื่อไม่พบข้อมูลผู้ใช้
+    // 5. 🔑 🛠️ แปลงรูปทรงข้อมูลจากโครงสร้าง DB ซับซ้อน ให้กลายเป็น Object แบนเรียบ
+   // 🔑 แก้ไขขั้นตอนที่ 5 ใน Route หลังบ้านของคุญให้ถูกต้อง:
 
-      return {
-        ...post,
-        // ผูกก้อนข้อมูลประวัติและ Role ของเจ้าของโพสต์ลงไปตรงนี้เลย!
-        creatorProfile: creatorInfo 
-      };
-    });
+const flatPosts = bookmarkedPosts.map(item => {
+  // item คือเอกสารก้อนใหญ่ 
+  // postData คือวัตถุภายในที่มีข้อมูลโพสต์จริง ๆ { post_id, content, created_at, ... }
+  const postData = item.post; 
 
-    // คืนค่ากลับไปให้หน้าบ้านใช้งานอย่างเอร็ดอร่อย
-    return NextResponse.json({ success: true, data: fullMergedData });
+  const creatorId = postData?.user_id;
+  const userDoc = userMap.get(creatorId);
+
+  return {
+    id: item._id.toString(), 
+    author: userDoc?.display_name || "Unknown User",
+    role: userDoc?.sub_namebio || userDoc?.role || "user", 
+    
+    // 🎯 🛠️ แก้ไขตรงนี้: เปลี่ยนจาก post.created_at เป็น postData.created_at ให้ถูกตัว!
+    time: postData?.created_at ? new Date(postData.created_at).toISOString() : new Date().toISOString(), 
+    
+    content: postData?.content || "",
+    likes: postData?.likes_count ?? 0,
+    comments: postData?.comments_count ?? 0,
+    imageUrls: postData?.image_url || []
+  };
+});
+
+    // คืนค่ากลับไปในฟิลด์ data
+    return NextResponse.json({ success: true, data: flatPosts });
 
   } catch (error) {
-    console.error("Fetch Bookmarked Posts with Creator Role Error:", error);
+    console.error("Fetch Flat Bookmarked Posts Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
