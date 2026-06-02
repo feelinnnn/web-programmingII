@@ -1,0 +1,275 @@
+.ss-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.ss-modal {
+  background: #fdf6ec;
+  border-radius: 12px;
+  width: 900px;
+  max-width: 95vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+.ss-modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 30px 16px;
+  border-bottom: 1px solid #E0CFB0;
+}
+
+.ss-title {
+  margin: 0;
+  font-size: 24px;
+  color: #3B1F1F;
+}
+
+.ss-selectedCount {
+  font-size: 14px;
+  color: #8C5A3C;
+  background: #FFE0B5;
+  padding: 4px 14px;
+  border-radius: 20px;
+}
+
+/* Toolbar */
+.ss-toolbar {
+  padding: 16px 30px 12px;
+  border-bottom: 1px solid #E0CFB0;
+}
+
+.ss-search {
+  width: 100%;
+  padding: 8px 14px;
+  border: 1px solid #D8AE7E;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #4a342e;
+  background: #fff;
+  outline: none;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+}
+
+.ss-search:focus {
+  border-color: #8C5A3C;
+}
+
+.ss-search::placeholder {
+  color: #aaa;
+}
+
+.ss-filterRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ss-filterTag {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 2px solid #ccc;
+  background: #fff;
+  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+
+.ss-filterTag.active {
+  background: #fff;
+  border-color: #333;
+  color: #333;
+}
+
+.ss-filterTag:hover {
+  opacity: 0.85;
+}
+
+.ss-filterCount {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 50%;
+  padding: 1px 6px;
+  font-size: 11px;
+}
+
+/* Body */
+.ss-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 30px;
+}
+
+/* Two columns */
+.ss-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  min-height: 0;
+}
+
+.ss-col {
+  min-width: 0;
+}
+
+.ss-colTitle {
+  margin: 0 0 14px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #4a342e;
+}
+
+.ss-colEmpty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 24px;
+  color: #999;
+  font-size: 13px;
+}
+
+.ss-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+/* Card */
+.ss-card {
+  background-color: #3A2A26;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 130px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 2px solid transparent;
+}
+
+.ss-card:hover {
+  border-color: #D8AE7E;
+}
+
+.ss-card.selected {
+  border-color: #D8AE7E;
+  box-shadow: 0 0 0 2px rgba(216, 174, 126, 0.4);
+}
+
+.ss-card.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ss-card.disabled:hover {
+  border-color: transparent;
+}
+
+.ss-cardContent {
+  flex: 1;
+  padding: 10px;
+  position: relative;
+}
+
+.ss-pill {
+  display: inline-block;
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  color: #333;
+  font-weight: bold;
+}
+
+.ss-checkmark {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #D8AE7E;
+  color: #3B1F1F;
+  font-size: 12px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ss-fullBadge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: #FF5A5A;
+  color: #fff;
+  font-size: 9px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+.ss-cardName {
+  background-color: #5D4E4A;
+  color: #D7CCC8;
+  font-size: 11px;
+  padding: 6px 10px;
+}
+
+.ss-empty {
+  text-align: center;
+  padding: 40px;
+  color: #888;
+}
+
+/* Buttons */
+.ss-buttons {
+  display: flex;
+  gap: 10px;
+  padding: 16px 30px 24px;
+  border-top: 1px solid #E0CFB0;
+}
+
+.ss-saveBtn {
+  flex: 1;
+  padding: 10px 0;
+  background: #4a342e;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.ss-cancelBtn {
+  flex: 1;
+  padding: 10px 0;
+  background: #eee;
+  color: #333;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+@media (max-width: 700px) {
+  .ss-columns {
+    grid-template-columns: 1fr;
+  }
+  .ss-modal {
+    max-height: 95vh;
+  }
+}

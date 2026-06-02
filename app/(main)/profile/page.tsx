@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import EditProfileModal from "../../components/profile/EditProfileModal";
 import ViewProfileModal from "../../components/profile/ViewProfileModal";
+import SelectShowcaseModal from "../../components/profile/SelectShowcaseModal";
+import BadgeInfoModal from "../../components/profile/BadgeInfoModal";
 import "./profile.css";
 
 interface UserProfile {
@@ -13,6 +16,7 @@ interface UserProfile {
     email: string;
     profile_image_url: string;
     bio: string;
+    sub_namebio: string;
     role: string;
     social_links: {
       instagram: string;
@@ -31,11 +35,21 @@ interface UserProfile {
 }
 
 export default function ProfilePage() {
+  const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [showShowcase, setShowShowcase] = useState(false);
+  const [search, setSearch] = useState("");
+  const [userSearch, setUserSearch] = useState("");
+  const [userResults, setUserResults] = useState<any[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [colorFilter, setColorFilter] = useState<string | null>(null);
+  const [showcaseMode, setShowcaseMode] = useState<"all" | "select">("all");
+  const [showcaseBadges, setShowcaseBadges] = useState<Set<string>>(new Set());
+  const [showInfo, setShowInfo] = useState(false);
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -102,6 +116,33 @@ export default function ProfilePage() {
   const verifiedBadges = badges.filter((b: any) => b.attributes?.status === "verified");
   const pendingBadges = badges.filter((b: any) => b.attributes?.status === "pending");
 
+  // Assign color based on badge_type_snapshot
+  const getBadgeColor = (b: any): string => {
+    const type = b.attributes?.badge_type_snapshot || "";
+    if (type === "self-declared") return "#A0D585";      // green
+    if (type === "evidence-backed") return "#FFA95A";    // orange
+    if (type === "expert-certified") return "#FF5A5A";   // red
+    if (type === "lesson") return "#FFD45A";             // yellow
+    return "#A0D585"; // fallback green
+  };
+
+  const colorCounts: Record<string, number> = {};
+  badges.forEach((b: any) => {
+    const c = getBadgeColor(b);
+    colorCounts[c] = (colorCounts[c] || 0) + 1;
+  });
+
+  const filteredBadges = badges.filter((b: any) => {
+    if (showcaseMode === "select" && !showcaseBadges.has(b.id)) return false;
+    if (!search.trim() && !colorFilter) return true;
+    if (search.trim()) {
+      const name = b.relationships?.badge?.data?.attributes?.name || "";
+      if (!name.toLowerCase().includes(search.toLowerCase())) return false;
+    }
+    if (colorFilter && getBadgeColor(b) !== colorFilter) return false;
+    return true;
+  });
+
   return (
     <div className="layout-container">
 
@@ -122,7 +163,7 @@ export default function ProfilePage() {
               <div className="user-details">
                 <h1>{attributes.display_name || "Cook"}</h1>
                 <p className="subtitle">
-                  {attributes.role === "admin" ? "Admin" : "Home cook"}
+                  {attributes.sub_namebio || (attributes.role === "admin" ? "Admin" : "Home cook")}
                   <span className="social-icons">
                     {attributes.social_links?.instagram && (
                       <a href={attributes.social_links.instagram} target="_blank" rel="noopener noreferrer" title="Instagram">
@@ -180,7 +221,52 @@ export default function ProfilePage() {
                 </p>
               </div>
             </div>
-            <button className="edit-btn" onClick={() => setShowModal(true)}>Edit profile</button>
+            <div className="profile-top-right">
+              <div className="user-search-wrapper">
+                <input
+                  className="user-search-input"
+                  type="text"
+                  placeholder="Search user..."
+                  value={userSearch}
+                  onChange={async (e) => {
+                    setUserSearch(e.target.value);
+                    const q = e.target.value.trim();
+                    if (!q) { setUserResults([]); setShowDropdown(false); return; }
+                    try {
+                      const res = await fetch(`/api/users/search?q=${encodeURIComponent(q)}`);
+                      const json = await res.json();
+                      setUserResults(json.data || []);
+                      setShowDropdown(true);
+                    } catch { setUserResults([]); }
+                  }}
+                  onFocus={() => { if (userResults.length > 0) setShowDropdown(true); }}
+                  onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+                />
+                {showDropdown && userResults.length > 0 && (
+                  <ul className="user-dropdown">
+                    {userResults.map((u: any) => (
+                      <li key={u.id} className="user-dropdown-item"
+                        onClick={() => {
+                          setShowDropdown(false);
+                          setUserSearch("");
+                          router.push(`/user-profile?user_id=${u.id}`);
+                        }}>
+                        <img
+                          src={(u.profile_image_url || "/avatar/Avatar.png").replace(/=s\d+-c/, "=s400")}
+                          alt={u.display_name}
+                          className="user-dropdown-avatar"
+                        />
+                        <div className="user-dropdown-info">
+                          <span className="user-dropdown-name">{u.display_name}</span>
+                          {u.sub_namebio && <span className="user-dropdown-bio">{u.sub_namebio}</span>}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <button className="edit-btn" onClick={() => setShowModal(true)}>Edit profile</button>
+            </div>
           </div>
 
           <div className="stats-row">
@@ -212,40 +298,79 @@ export default function ProfilePage() {
             <div className="left-controls">
               <h2 className="showcase-title">Showcase</h2>
               <div className="toggle-group">
-                <button className="active">All</button>
-                <button>Select</button>
+                <button
+                  className={showcaseMode === "all" ? "active" : ""}
+                  onClick={() => setShowcaseMode("all")}
+                >All</button>
+                <button
+                  className={showcaseMode === "select" ? "active" : ""}
+                  onClick={() => setShowcaseMode("select")}
+                >Select</button>
               </div>
             </div>
             <div className="right-controls">
-              <button className="select-showcase-btn">Select Showcase</button>
+              <button className="select-showcase-btn" onClick={() => setShowShowcase(true)}>Select Showcase</button>
               <button className="add-btn">+ Add</button>
             </div>
           </div>
 
+          <div className="showcase-search">
+            <input
+              className="search-input"
+              type="text"
+              placeholder="Search badges..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+
           <div className="filter-tags">
-            <span className="tag tag-all">
+            <span
+              className={`tag tag-all ${!colorFilter ? "active" : ""}`}
+              onClick={() => setColorFilter(null)}
+            >
               All <span className="count">{badges.length}</span>
             </span>
-            <span className="tag tag-green">
-              Verified <span className="count">{verifiedBadges.length}</span>
+            <span
+              className={`tag tag-green ${colorFilter === "#A0D585" ? "active" : ""}`}
+              onClick={() => setColorFilter(colorFilter === "#A0D585" ? null : "#A0D585")}
+            >
+              Badge <span className="count">{colorCounts["#A0D585"] || 0}</span>
             </span>
-            <span className="tag tag-orange">
-              Pending <span className="count">{pendingBadges.length}</span>
+            <span
+              className={`tag tag-red ${colorFilter === "#FF5A5A" ? "active" : ""}`}
+              onClick={() => setColorFilter(colorFilter === "#FF5A5A" ? null : "#FF5A5A")}
+            >
+              Badge <span className="count">{colorCounts["#FF5A5A"] || 0}</span>
             </span>
+            <span
+              className={`tag tag-orange ${colorFilter === "#FFA95A" ? "active" : ""}`}
+              onClick={() => setColorFilter(colorFilter === "#FFA95A" ? null : "#FFA95A")}
+            >
+              Badge <span className="count">{colorCounts["#FFA95A"] || 0}</span>
+            </span>
+            <span
+              className={`tag tag-yellow ${colorFilter === "#FFD45A" ? "active" : ""}`}
+              onClick={() => setColorFilter(colorFilter === "#FFD45A" ? null : "#FFD45A")}
+            >
+              Badge <span className="count">{colorCounts["#FFD45A"] || 0}</span>
+            </span>
+            <img src="/icon/giveinfo.svg" className="filter-info-btn" alt="info" onClick={() => setShowInfo(true)} />
           </div>
 
           <div className="card-grid">
-            {badges.length === 0 && (
+            {filteredBadges.length === 0 && (
               <p style={{ gridColumn: "1 / -1", textAlign: "center", padding: "2rem" }}>
-                No badges yet. Complete lessons to earn badges!
+                {showcaseMode === "select" ? "No badges selected. Click \"Select Showcase\" to choose badges." : "No badges found."}
               </p>
             )}
-            {badges.map((userBadge: any, i: number) => {
+            {filteredBadges.map((userBadge: any, i: number) => {
               const badge = userBadge.relationships?.badge?.data;
+              const color = getBadgeColor(userBadge);
               return (
                 <div key={userBadge.id || i} className="card">
                   <div className="card-image-area">
-                    <span className="card-badge">
+                    <span className="card-badge" style={{ backgroundColor: color }}>
                       {badge?.attributes?.name || "Badge"}
                     </span>
                   </div>
@@ -264,6 +389,7 @@ export default function ProfilePage() {
           initialData={{
             email: attributes.email,
             display_name: attributes.display_name,
+            sub_namebio: attributes.sub_namebio || "",
             bio: attributes.bio,
             profile_image_url: attributes.profile_image_url,
             social_links: attributes.social_links,
@@ -282,12 +408,26 @@ export default function ProfilePage() {
             display_name: attributes.display_name,
             email: attributes.email,
             bio: attributes.bio,
+            sub_namebio: attributes.sub_namebio || "",
             profile_image_url: attributes.profile_image_url,
             role: attributes.role,
             social_links: attributes.social_links,
           }}
           onClose={() => setShowViewModal(false)}
         />
+      )}
+
+      {showShowcase && (
+        <SelectShowcaseModal
+          badges={badges}
+          initialSelected={showcaseBadges}
+          onSave={(selected) => setShowcaseBadges(selected)}
+          onClose={() => setShowShowcase(false)}
+        />
+      )}
+
+      {showInfo && (
+        <BadgeInfoModal onClose={() => setShowInfo(false)} />
       )}
     </div>
   );

@@ -163,6 +163,7 @@
   margin-left: 12px;
   opacity: 0;
   animation: fadeIn 0.3s ease 0.1s forwards;
+  text-decoration: none;
 }
 
 .profile-name {
@@ -170,11 +171,27 @@
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 2px;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-decoration: none;
+  text-shadow: none;
+  outline: none;
+  border: none;
 }
 
 .profile-role {
   color: #A39D9B;
   font-size: 12px;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-decoration: none;
+  text-shadow: none;
+  outline: none;
+  border: none;
 }
 
 .logout-icon {
@@ -193,6 +210,6 @@
 
 /* ── Animation ── */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateX(8px); }
-  to   { opacity: 1; transform: translateX(0); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }

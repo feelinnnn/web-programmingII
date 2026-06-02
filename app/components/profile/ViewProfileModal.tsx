@@ -9,6 +9,7 @@ interface Props {
     display_name: string;
     email: string;
     bio: string;
+    sub_namebio: string;
     profile_image_url: string;
     role: string;
     social_links: {
@@ -47,10 +48,7 @@ export default function ViewProfileModal({ profile, onClose }: Props) {
           }}
         />
 
-        <h2 className="vm-viewName">{profile.display_name || "Cook"}</h2>
-        <p className="vm-viewRole">
-          {profile.role === "admin" ? "Admin" : "Home Cook"}
-        </p>
+        <h2 className="vm-viewName">{profile.display_name}</h2>
 
         {profile.bio && <p className="vm-viewBio">{profile.bio}</p>}
 

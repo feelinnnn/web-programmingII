@@ -1,0 +1,59 @@
+.bi-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.bi-modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 28px 32px 24px;
+  width: 320px;
+  text-align: center;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
+}
+
+.bi-title {
+  margin: 0 0 20px;
+  font-size: 18px;
+  color: #4a342e;
+}
+
+.bi-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.bi-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bi-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.bi-label {
+  font-size: 15px;
+  color: #333;
+}
+
+.bi-closeBtn {
+  padding: 8px 36px;
+  background: #eee;
+  color: #333;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}

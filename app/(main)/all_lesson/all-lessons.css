@@ -1,16 +1,11 @@
-body {
-  margin: 0;
-  font-family: sans-serif;
-  background: #e8dcc7;
-}
-
-.page {
+/* Scoped to all-lessons page only — .topbar is unique to this page */
+.page:has(.topbar) {
   margin-left: 80px;
   display: flex;
 }
 
 /* Main */
-.main {
+.page:has(.topbar) > .main {
   flex: 1;
   flex-direction: column;
   padding: 20px;
@@ -18,14 +13,14 @@ body {
 }
 
 /* Topbar */
-.topbar {
+.page:has(.topbar) .topbar {
   position: sticky;
   top: 20px;
   height: 75px;
   max-width: 100%;
   padding: 10px;
   font-size: 20px;
-  
+
   background: #4a2c2a;
 
   border-radius: 12px;
@@ -37,7 +32,7 @@ body {
 }
 
 
-#search {
+.page:has(.topbar) #search {
   padding: 10px 15px;
   border-radius: 20px;
   width: 60%;
@@ -48,32 +43,32 @@ body {
   background-color: whitesmoke;
 }
 
-#search:focus {
+.page:has(.topbar) #search:focus {
   border-color: #4a2c2a;
 }
 
-.toggle {
+.page:has(.topbar) .toggle {
   display: flex;
   align-items: center;
   gap: 10px;
   color: white;
 }
 
-.switch {
+.page:has(.topbar) .switch {
   width: 40px;
   height: 20px;
   background: #ccc;
   border-radius: 20px;
 }
 
-.filter {
+.page:has(.topbar) .filter {
   color: white;
   margin-left: auto;
   height: 70%;
 }
 
 /* Grid */
-.grid {
+.page:has(.topbar) .grid {
   margin-top: 20px;
 
   display: grid;
@@ -82,19 +77,19 @@ body {
 }
 
 /* Card */
-.card {
+.page:has(.topbar) .card {
   min-width: 250px;
   border-radius: 12px;
   overflow: hidden;
   background: white;
 }
 
-.card-top {
+.page:has(.topbar) .card-top {
   height: 120px;
   background: linear-gradient(to bottom, #ff4b4b, #ffcc33);
 }
 
-.card-bottom {
+.page:has(.topbar) .card-bottom {
   background: #ddd;
   padding: 10px;
   height: 60px;
