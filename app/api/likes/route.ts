@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Like from "@/models/Like";
 import Post from "@/models/Post";
+import mongoose from "mongoose";
 
 export async function POST(request: Request) {
   try {
@@ -12,25 +13,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing user_id or post_id" }, { status: 400 });
     }
 
-    // ตรวจสอบว่าผู้ใช้คนนี้เคยไลค์โพสต์นี้ไปหรือยัง
+    // 1. ตรวจสอบว่าผู้ใช้คนนี้เคยไลค์โพสต์นี้ไปหรือยัง
     const existingLike = await Like.findOne({ user_id, post_id });
 
+    // เตรียม ObjectId สำหรับค้นหาใน Post
+    // ลองแปลงเป็น ObjectId เผื่อไว้ในกรณีที่ฐานข้อมูลใช้ ObjectId
+    const postQuery = mongoose.Types.ObjectId.isValid(post_id) 
+      ? { _id: new mongoose.Types.ObjectId(post_id) } 
+      : { "post.post_id": post_id };
+
     if (existingLike) {
-      // ถ้าเคยไลค์แล้ว -> ยกเลิกการไลค์ (Unlike)
+      // --- UNLIKE ---
       await Like.deleteOne({ _id: existingLike._id });
       
-      // ดึงจำนวนไลค์ล่าสุดของโพสต์นี้
-      const totalLikes = await Like.countDocuments({ post_id });
-      
-      await Post.findOneAndUpdate(
-        { 
-          $or: [
-            { _id: post_id },
-            { "post.post_id": post_id }
-          ] 
-        },
-        { $set: { "post.likes_count": totalLikes } }
+      // ใช้ $inc: -1 เพื่อลดจำนวนไลค์
+      const updatedPost = await Post.findOneAndUpdate(
+        postQuery,
+        { $inc: { "post.likes_count": -1 } },
+        { returnDocument: 'after' }
       );
+
+      const totalLikes = updatedPost ? updatedPost.post.likes_count : 0;
       
       return NextResponse.json({ 
         message: "Unliked successfully", 
@@ -39,22 +42,17 @@ export async function POST(request: Request) {
       }, { status: 200 });
 
     } else {
-      // ถ้ายังไม่เคยไลค์ -> บันทึกการไลค์ใหม่ (Like)
+      // --- LIKE ---
       await Like.create({ user_id, post_id });
       
-      // ดึงจำนวนไลค์ล่าสุด
-      const totalLikes = await Like.countDocuments({ post_id });
-
-      // 🔄 อัปเดตยอดลงโครงสร้างลูกคั้บ
-      await Post.findOneAndUpdate(
-        { 
-          $or: [
-            { _id: post_id },
-            { "post.post_id": post_id }
-          ] 
-        },
-        { $set: { "post.likes_count": totalLikes } }
+      // ใช้ $inc: 1 เพื่อเพิ่มจำนวนไลค์
+      const updatedPost = await Post.findOneAndUpdate(
+        postQuery,
+        { $inc: { "post.likes_count": 1 } },
+        { returnDocument: 'after' }
       );
+
+      const totalLikes = updatedPost ? updatedPost.post.likes_count : 1;
 
       return NextResponse.json({ 
         message: "Liked successfully", 
