@@ -70,6 +70,18 @@ export default function LoginForm() {
     }
   };
 
+  const handleEmailChange = (val: string) => {
+    setEmail(val);
+    const err = validateEmail(val);
+    setErrors(prev => ({ ...prev, email: err || undefined, general: undefined }));
+  };
+
+  const handlePasswordChange = (val: string) => {
+    setPassword(val);
+    const err = val ? undefined : "Password is required.";
+    setErrors(prev => ({ ...prev, password: err, general: undefined }));
+  };
+
   return (
     <form onSubmit={doLogin} className={styles.form}>
       <h1 className={styles.title}>Login</h1>
@@ -83,7 +95,7 @@ export default function LoginForm() {
           type="email"
           placeholder="Example@email.com"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => handleEmailChange(e.target.value)}
           className={`${styles.input} ${errors.email ? styles.inputError : ''}`}
           disabled={loading}
         />
@@ -96,7 +108,7 @@ export default function LoginForm() {
           type="password"
           placeholder="Enter your password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => handlePasswordChange(e.target.value)}
           className={`${styles.input} ${errors.password ? styles.inputError : ''}`}
           disabled={loading}
         />
