@@ -8,12 +8,12 @@
 }
 
 .title {
-  font-family: var(--font-script);
-  font-size: 44px;
+  font-family: var(--font-title);
+  font-size: 54px;
   font-weight: 400;
   color: var(--cream);
   text-align: center;
-  line-height: 1.2;
+  line-height: 1.1;
 }
 
 .subtitle {

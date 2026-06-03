@@ -5,7 +5,6 @@ import Badge from '@/models/Badge'
 import Lesson from '@/models/Lesson'
 import { getToken } from 'next-auth/jwt'
 import jwt from 'jsonwebtoken'
-import Lesson from '@/models/Lesson'
 import Progress from '@/models/Progress'
 
 const JWT_SECRET = process.env.JWT_SECRET || "COOKCULT_SECRET_KEY"

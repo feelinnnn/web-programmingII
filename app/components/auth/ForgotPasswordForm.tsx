@@ -82,16 +82,6 @@ export default function ForgotPasswordForm() {
       <button type="submit" className={styles.submitBtn} disabled={loading}>
         {loading ? 'Sending OTP...' : 'Send OTP'}
       </button>
-
-      <div style={{ textAlign: 'center', marginTop: '10px' }}>
-        <button 
-          type="button" 
-          onClick={() => router.push('/auth-app/login')}
-          style={{ background: 'none', border: 'none', color: 'var(--brown-dark)', cursor: 'pointer', fontWeight: 600 }}
-        >
-          Back to Login
-        </button>
-      </div>
     </form>
   );
 }
