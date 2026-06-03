@@ -57,3 +57,14 @@
   background-color: #e8d5b7;
   color: var(--brown-dark);
 }
+
+@media (max-width: 768px) {
+  .title {
+    font-size: 34px;
+    white-space: pre-line;
+  }
+  
+  .divider {
+    height: 40px;
+  }
+}

@@ -40,7 +40,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ errors: { email: "This email is already registered." } }, { status: 400 });
     }
 
-    const existingUsername = await User.findOne({ username });
+    const existingUsername = await User.findOne({ display_name: username });
     if (existingUsername) {
       return NextResponse.json({ errors: { username: "This username is already taken." } }, { status: 400 });
     }
@@ -59,6 +59,7 @@ export async function POST(request: Request) {
     await Temp_auth.create({ 
       email, 
       password_hash: passwordHash,
+      username,
       otp_code: otpCode, 
       purpose: "register",
       createdAt: new Date()
