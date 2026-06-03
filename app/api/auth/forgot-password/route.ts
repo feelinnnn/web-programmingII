@@ -12,17 +12,38 @@ export async function POST(request: Request) {
     const { email } = await request.json();
 
     if (!email) {
-      return NextResponse.json({ message: "Email is required." }, { status: 400 });
+      return NextResponse.json({
+        errors: [{
+          status: "400",
+          title: "Bad Request",
+          detail: "Email is required.",
+          source: { pointer: "/data/attributes/email" }
+        }]
+      }, { status: 400 });
     }
 
     const emailError = validateEmail(email);
     if (emailError) {
-      return NextResponse.json({ message: emailError }, { status: 400 });
+      return NextResponse.json({
+        errors: [{
+          status: "400",
+          title: "Validation Error",
+          detail: emailError,
+          source: { pointer: "/data/attributes/email" }
+        }]
+      }, { status: 400 });
     }
 
     const user = await User.findOne({ email });
     if (!user) {
-      return NextResponse.json({ message: "No account found with this email." }, { status: 404 });
+      return NextResponse.json({
+        errors: [{
+          status: "404",
+          title: "Not Found",
+          detail: "No account found with this email.",
+          source: { pointer: "/data/attributes/email" }
+        }]
+      }, { status: 404 });
     }
 
     const otpCode = otpGenerator.generate(6, { 
@@ -42,9 +63,22 @@ export async function POST(request: Request) {
     
     await sendOtpEmail(email, otpCode);
     
-    return NextResponse.json({ message: "OTP verification code has been sent to your email." }, { status: 200 });
-  } catch (error) {
+    return NextResponse.json({
+      data: {
+        type: "auth",
+        attributes: {
+          message: "OTP verification code has been sent to your email."
+        }
+      }
+    }, { status: 200 });
+  } catch (error: any) {
     console.error("Forgot password error:", error);
-    return NextResponse.json({ message: "Failed to send OTP. Please try again." }, { status: 500 });
+    return NextResponse.json({
+      errors: [{
+        status: "500",
+        title: "Internal Server Error",
+        detail: error.message || "Failed to send OTP. Please try again."
+      }]
+    }, { status: 500 });
   }
 }

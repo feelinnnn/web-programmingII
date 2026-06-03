@@ -11,12 +11,25 @@ export async function POST(request: Request) {
     const { email, token, password } = await request.json();
 
     if (!email || !token || !password) {
-      return NextResponse.json({ message: "Missing required fields." }, { status: 400 });
+      return NextResponse.json({
+        errors: [{
+          status: "400",
+          title: "Bad Request",
+          detail: "Missing required fields."
+        }]
+      }, { status: 400 });
     }
 
     const passwordError = validatePassword(password);
     if (passwordError) {
-      return NextResponse.json({ message: passwordError }, { status: 400 });
+      return NextResponse.json({
+        errors: [{
+          status: "400",
+          title: "Validation Error",
+          detail: passwordError,
+          source: { pointer: "/data/attributes/password" }
+        }]
+      }, { status: 400 });
     }
 
     const tempRecord = await Temp_auth.findOne({
@@ -26,7 +39,13 @@ export async function POST(request: Request) {
     });
 
     if (!tempRecord) {
-      return NextResponse.json({ message: "Invalid or expired reset token." }, { status: 400 });
+      return NextResponse.json({
+        errors: [{
+          status: "400",
+          title: "Unauthorized",
+          detail: "Invalid or expired reset token."
+        }]
+      }, { status: 400 });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -36,9 +55,22 @@ export async function POST(request: Request) {
 
     await Temp_auth.deleteOne({ _id: tempRecord._id });
 
-    return NextResponse.json({ message: "Password reset successfully!" }, { status: 200 });
-  } catch (error) {
+    return NextResponse.json({
+      data: {
+        type: "auth",
+        attributes: {
+          message: "Password reset successfully!"
+        }
+      }
+    }, { status: 200 });
+  } catch (error: any) {
     console.error("Reset password error:", error);
-    return NextResponse.json({ message: "Failed to reset password. Please try again." }, { status: 500 });
+    return NextResponse.json({
+      errors: [{
+        status: "500",
+        title: "Internal Server Error",
+        detail: error.message || "Failed to reset password. Please try again."
+      }]
+    }, { status: 500 });
   }
 }

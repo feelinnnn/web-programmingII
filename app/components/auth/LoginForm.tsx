@@ -61,20 +61,29 @@ export default function LoginForm() {
 
       if (!res.ok) {
         if (data.errors) {
-          setErrors(data.errors);
-        } else {
-          // Map general error message to both fields
-          const errMsg = data.message || 'Invalid email or password';
-          setErrors({ 
-            email: errMsg.toLowerCase().includes('password') ? undefined : errMsg,
-            password: errMsg.toLowerCase().includes('email') ? undefined : errMsg,
-            general: undefined 
+          const fieldErrors: any = {};
+          data.errors.forEach((err: any) => {
+            if (err.source?.pointer) {
+              const field = err.source.pointer.split('/').pop();
+              fieldErrors[field] = err.detail;
+            } else {
+              fieldErrors.general = err.detail;
+            }
           });
           
-          // If it's a truly general error (doesn't mention either), show on both
-          if (!errMsg.toLowerCase().includes('email') && !errMsg.toLowerCase().includes('password')) {
-            setErrors({ email: errMsg, password: errMsg });
+          // Map general error message to both fields if it's truly general
+          if (fieldErrors.general) {
+            const errMsg = fieldErrors.general;
+            setErrors({ 
+              email: errMsg.toLowerCase().includes('password') ? undefined : errMsg,
+              password: errMsg.toLowerCase().includes('email') ? undefined : errMsg,
+              general: errMsg
+            });
+          } else {
+            setErrors(fieldErrors);
           }
+        } else {
+          setErrors({ general: 'Invalid email or password' });
         }
         return;
       }
@@ -82,7 +91,7 @@ export default function LoginForm() {
       await Swal.fire({
         icon: 'success',
         title: 'OTP Sent!',
-        text: 'Please check your email for the verification code.',
+        text: data.data.attributes.message || 'Please check your email for the verification code.',
         timer: 2000,
         showConfirmButton: false,
       });

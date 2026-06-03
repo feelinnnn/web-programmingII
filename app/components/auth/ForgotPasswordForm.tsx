@@ -34,14 +34,27 @@ export default function ForgotPasswordForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        setErrors({ email: data.message || 'Something went wrong' });
+        if (data.errors) {
+          const fieldErrors: any = {};
+          data.errors.forEach((err: any) => {
+            if (err.source?.pointer) {
+              const field = err.source.pointer.split('/').pop();
+              fieldErrors[field] = err.detail;
+            } else {
+              fieldErrors.general = err.detail;
+            }
+          });
+          setErrors(fieldErrors);
+        } else {
+          setErrors({ general: 'Something went wrong' });
+        }
         return;
       }
 
       await Swal.fire({
         icon: 'success',
         title: 'OTP Sent!',
-        text: 'Please check your email for the verification code.',
+        text: data.data.attributes.message || 'Please check your email for the verification code.',
         timer: 2000,
         showConfirmButton: false,
       });

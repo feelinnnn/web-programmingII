@@ -10,10 +10,13 @@ export async function POST(request: Request) {
     const { email, otpCode } = await request.json();
 
     if (!email || !otpCode) {
-      return NextResponse.json(
-        { message: "Missing required fields." },
-        { status: 400 }
-      );
+      return NextResponse.json({
+        errors: [{
+          status: "400",
+          title: "Bad Request",
+          detail: "Missing required fields."
+        }]
+      }, { status: 400 });
     }
 
     const tempRecord = await Temp_auth.findOne({
@@ -23,10 +26,13 @@ export async function POST(request: Request) {
     });
 
     if (!tempRecord) {
-      return NextResponse.json(
-        { message: "Invalid or expired OTP code." },
-        { status: 400 }
-      );
+      return NextResponse.json({
+        errors: [{
+          status: "400",
+          title: "Unauthorized",
+          detail: "Invalid or expired OTP code."
+        }]
+      }, { status: 400 });
     }
 
     // Generate a reset token
@@ -36,9 +42,7 @@ export async function POST(request: Request) {
     await Temp_auth.deleteMany({ email, purpose: "reset_password" });
     await Temp_auth.create({
       email,
-      otp_code: resetToken, // We'll reuse otp_code field to store token or add a new field. 
-      // Actually, let's reuse otp_code for simplicity in this prototype or add token field.
-      // Since I already have otp_code as String, it works.
+      otp_code: resetToken, 
       purpose: "reset_password",
       createdAt: new Date()
     });
@@ -46,20 +50,23 @@ export async function POST(request: Request) {
     // Delete the forgot_password OTP record
     await Temp_auth.deleteOne({ _id: tempRecord._id });
 
-    return NextResponse.json(
-      {
-        message: "OTP verified successfully!",
-        resetToken: resetToken
-      },
-      {
-        status: 200,
+    return NextResponse.json({
+      data: {
+        type: "auth",
+        attributes: {
+          message: "OTP verified successfully!",
+          resetToken: resetToken
+        }
       }
-    );
+    }, { status: 200 });
   } catch (error: any) {
     console.error("Verify Forgot Password Error:", error);
-    return NextResponse.json(
-      { message: "Verification failed.", error: error.message },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      errors: [{
+        status: "500",
+        title: "Internal Server Error",
+        detail: error.message || "Verification failed."
+      }]
+    }, { status: 500 });
   }
 }

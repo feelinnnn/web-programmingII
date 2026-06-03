@@ -19,7 +19,14 @@ export async function POST(request: Request) {
     if (!username) errors.username = "Username is required.";
 
     if (Object.keys(errors).length > 0) {
-      return NextResponse.json({ errors }, { status: 400 });
+      return NextResponse.json({
+        errors: Object.entries(errors).map(([field, detail]) => ({
+          status: "400",
+          title: "Validation Error",
+          detail,
+          source: { pointer: `/data/attributes/${field}` }
+        }))
+      }, { status: 400 });
     }
 
     const emailError = validateEmail(email);
@@ -32,17 +39,38 @@ export async function POST(request: Request) {
     if (passwordError) errors.password = passwordError;
 
     if (Object.keys(errors).length > 0) {
-      return NextResponse.json({ errors }, { status: 400 });
+      return NextResponse.json({
+        errors: Object.entries(errors).map(([field, detail]) => ({
+          status: "400",
+          title: "Validation Error",
+          detail,
+          source: { pointer: `/data/attributes/${field}` }
+        }))
+      }, { status: 400 });
     }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return NextResponse.json({ errors: { email: "This email is already registered." } }, { status: 400 });
+      return NextResponse.json({
+        errors: [{
+          status: "400",
+          title: "Conflict",
+          detail: "This email is already registered.",
+          source: { pointer: "/data/attributes/email" }
+        }]
+      }, { status: 400 });
     }
 
     const existingUsername = await User.findOne({ display_name: username });
     if (existingUsername) {
-      return NextResponse.json({ errors: { username: "This username is already taken." } }, { status: 400 });
+      return NextResponse.json({
+        errors: [{
+          status: "400",
+          title: "Conflict",
+          detail: "This username is already taken.",
+          source: { pointer: "/data/attributes/username" }
+        }]
+      }, { status: 400 });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -67,9 +95,22 @@ export async function POST(request: Request) {
     
     await sendOtpEmail(email, otpCode);
     
-    return NextResponse.json({ message: "OTP verification code has been sent to your email." }, { status: 200 });
-  } catch (error) {
+    return NextResponse.json({
+      data: {
+        type: "auth",
+        attributes: {
+          message: "OTP verification code has been sent to your email."
+        }
+      }
+    }, { status: 200 });
+  } catch (error: any) {
     console.error("Registration error:", error);
-    return NextResponse.json({ message: "Registration failed. Please try again." }, { status: 500 });
+    return NextResponse.json({
+      errors: [{
+        status: "500",
+        title: "Internal Server Error",
+        detail: error.message || "Registration failed. Please try again."
+      }]
+    }, { status: 500 });
   }
 }
