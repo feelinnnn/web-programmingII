@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import SocialButtons from './SocialButtons';
 import styles from './LoginForm.module.css';
+import { validateEmail } from '@/lib/validation';
 
 export default function LoginForm() {
   const router = useRouter();
@@ -19,20 +20,22 @@ export default function LoginForm() {
     e.preventDefault();
     setErrors({}); // ล้าง error เก่าก่อนเริ่มใหม่
 
-    // 1. Validation หน้าบ้าน (Client-side)
+    // Client-side validation
     const newErrors: any = {};
-    if (!email) newErrors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = "Invalid email format";
     
-    if (!password) newErrors.password = "Password is required";
-    else if (password.length < 6) newErrors.password = "Password must be at least 6 characters";
+    const emailErr = validateEmail(email);
+    if (emailErr) newErrors.email = emailErr;
+    
+    if (!password) {
+      newErrors.password = "Password is required.";
+    }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
-    // 2. ถ้าผ่านการตรวจ เริ่มยิง API
+    // ถ้าผ่านการตรวจ เริ่มยิง API
     setLoading(true);
     try {
       const res = await fetch('/api/auth/login-step1', {
@@ -44,7 +47,19 @@ export default function LoginForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || 'Invalid email or password');
+        if (data.errors) {
+          setErrors(data.errors);
+        } else {
+          // Handle specific known messages from backend
+          if (data.message?.toLowerCase().includes('email')) {
+            setErrors({ email: data.message });
+          } else if (data.message?.toLowerCase().includes('password')) {
+            setErrors({ password: data.message });
+          } else {
+            setErrors({ general: data.message || 'Invalid email or password' });
+          }
+        }
+        return;
       }
 
       router.push(`/auth-app/verify-otp?email=${encodeURIComponent(email)}&purpose=login`);
@@ -69,7 +84,6 @@ export default function LoginForm() {
           placeholder="Example@email.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          // เพิ่ม class inputError ถ้ามี error ที่ email
           className={`${styles.input} ${errors.email ? styles.inputError : ''}`}
           disabled={loading}
         />
@@ -83,7 +97,6 @@ export default function LoginForm() {
           placeholder="Enter your password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          // เพิ่ม class inputError ถ้ามี error ที่ password
           className={`${styles.input} ${errors.password ? styles.inputError : ''}`}
           disabled={loading}
         />

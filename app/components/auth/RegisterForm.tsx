@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import SocialButtons from './SocialButtons';
 import styles from './RegisterForm.module.css';
+import { validateEmail, validatePassword, validateUsername } from '@/lib/validation';
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -12,15 +13,37 @@ export default function RegisterForm() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState<{
+    username?: string;
+    email?: string;
+    password?: string;
+    confirmPassword?: string;
+    general?: string;
+  }>({});
   const [loading, setLoading] = useState(false);
 
   const doRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError('');
+    setErrors({});
+
+    // Client-side validation
+    const newErrors: any = {};
+    
+    const emailErr = validateEmail(email);
+    if (emailErr) newErrors.email = emailErr;
+
+    const usernameErr = validateUsername(username);
+    if (usernameErr) newErrors.username = usernameErr;
+
+    const passwordErr = validatePassword(password);
+    if (passwordErr) newErrors.password = passwordErr;
 
     if (password !== confirmPassword) {
-      setError("Passwords don't match!");
+      newErrors.confirmPassword = "Passwords don't match!";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
@@ -36,13 +59,26 @@ export default function RegisterForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || 'Something went wrong');
+        // If the backend returns field-specific errors, map them
+        if (data.errors) {
+          setErrors(data.errors);
+        } else {
+          // Handle specific known messages from backend
+          if (data.message?.toLowerCase().includes('email')) {
+            setErrors({ email: data.message });
+          } else if (data.message?.toLowerCase().includes('username')) {
+            setErrors({ username: data.message });
+          } else {
+            setErrors({ general: data.message || 'Something went wrong' });
+          }
+        }
+        return;
       }
 
       router.push(`/auth-app/verify-otp?email=${encodeURIComponent(email)}&username=${encodeURIComponent(username)}&purpose=register`);
 
     } catch (err: any) {
-      setError(err.message);
+      setErrors({ general: err.message });
     } finally {
       setLoading(false);
     }
@@ -52,6 +88,8 @@ export default function RegisterForm() {
     <form onSubmit={doRegister} className={styles.form}>
       <h1 className={styles.title}>Create Account</h1>
 
+      {errors.general && <div className={styles.errorMessage} style={{ textAlign: 'center', marginBottom: '10px' }}>{errors.general}</div>}
+
       <div className={styles.field}>
         <label className={styles.label}>Username</label>
         <input
@@ -59,10 +97,10 @@ export default function RegisterForm() {
           placeholder="Enter your username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          className={styles.input}
+          className={`${styles.input} ${errors.username ? styles.inputError : ''}`}
           disabled={loading}
-          required
         />
+        {errors.username && <div className={styles.errorMessage}>{errors.username}</div>}
       </div>
 
       <div className={styles.field}>
@@ -72,10 +110,10 @@ export default function RegisterForm() {
           placeholder="Example@email.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className={styles.input}
+          className={`${styles.input} ${errors.email ? styles.inputError : ''}`}
           disabled={loading}
-          required
         />
+        {errors.email && <div className={styles.errorMessage}>{errors.email}</div>}
       </div>
 
       <div className={styles.field}>
@@ -85,10 +123,10 @@ export default function RegisterForm() {
           placeholder="At least 8 characters"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className={styles.input}
+          className={`${styles.input} ${errors.password ? styles.inputError : ''}`}
           disabled={loading}
-          required
         />
+        {errors.password && <div className={styles.errorMessage}>{errors.password}</div>}
       </div>
 
       <div className={styles.field}>
@@ -98,10 +136,10 @@ export default function RegisterForm() {
           placeholder="At least 8 characters"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          className={styles.input}
+          className={`${styles.input} ${errors.confirmPassword ? styles.inputError : ''}`}
           disabled={loading}
-          required
         />
+        {errors.confirmPassword && <div className={styles.errorMessage}>{errors.confirmPassword}</div>}
       </div>
 
       <button type="submit" className={styles.submitBtn} disabled={loading}>
