@@ -9,13 +9,16 @@ const TempAuthSchema = new mongoose.Schema(
     password_hash: { 
       type: String
     }, 
+    username: {
+      type: String
+    },
     otp_code: { 
       type: String, 
       required: true 
     },
     purpose: { 
       type: String, 
-      enum: ["register", "login"], 
+      enum: ["register", "login", "forgot_password", "reset_password"], 
       required: true 
     },
     createdAt: { 

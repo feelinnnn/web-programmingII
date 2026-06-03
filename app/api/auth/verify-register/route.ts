@@ -8,7 +8,7 @@ export async function POST(request: Request) {
   try {
     await dbConnect();
 
-    const { email, otpCode, username } = await request.json();
+    const { email, otpCode } = await request.json();
 
     // ตรวจสอบข้อมูลที่ส่งมา
     if (!email || !otpCode) {
@@ -85,7 +85,7 @@ export async function POST(request: Request) {
       authProvider: "local",
       role: "user",
       display_name:
-        username || tempRecord.email.split("@")[0],
+        tempRecord.username || tempRecord.email.split("@")[0],
     });
 
     // ลบ OTP หลังสมัครสำเร็จ

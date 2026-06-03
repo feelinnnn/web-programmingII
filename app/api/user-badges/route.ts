@@ -5,6 +5,8 @@ import Badge from '@/models/Badge'
 import Lesson from '@/models/Lesson'
 import { getToken } from 'next-auth/jwt'
 import jwt from 'jsonwebtoken'
+import Lesson from '@/models/Lesson'
+import Progress from '@/models/Progress'
 
 const JWT_SECRET = process.env.JWT_SECRET || "COOKCULT_SECRET_KEY"
 const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET || "COOKCULT_SECRET_KEY"
@@ -137,6 +139,23 @@ export async function POST(req: NextRequest) {
       badgeTypeSnapshot,
       showcased: false
     })
+
+    // Update Progress.badgeSubmitted if badge type is "lesson" or "evidence-backed"
+    if (badgeTypeSnapshot === "lesson" || badgeTypeSnapshot === "evidence-backed") {
+      try {
+        const lesson = await Lesson.findOne({ badge: badgeId })
+        if (lesson) {
+          const progress = await Progress.findOne({ userID: userId, lessonId: lesson._id })
+          if (progress) {
+            progress.badgeSubmitted = true
+            await progress.save()
+          }
+        }
+      } catch (updateErr) {
+        console.error("Failed to update Progress.badgeSubmitted:", updateErr)
+        // Don't fail badge creation if Progress update fails
+      }
+    }
 
     return NextResponse.json({
       jsonapi: { version: "1.0" },
