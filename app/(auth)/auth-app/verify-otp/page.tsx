@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Swal from 'sweetalert2'; // 1. Import SweetAlert2
+import Swal from 'sweetalert2';
 import styles from "./VerifyOtp.module.css";
 
 function OtpFrom() {
@@ -15,7 +15,18 @@ function OtpFrom() {
 
     const [otpCode, setOtpCode] = useState("");
     const [loading, setLoading] = useState(false);
+    const [timeLeft, setTimeLeft] = useState(60); // Countdown timer state
 
+    // Countdown effect
+    useEffect(() => {
+        if (timeLeft <= 0) return;
+
+        const timer = setInterval(() => {
+            setTimeLeft((prev) => prev - 1);
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [timeLeft]);
 
     const handleVerify = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -36,11 +47,6 @@ function OtpFrom() {
 
             if (!res.ok) throw new Error(data.message || "Invalid or expired OTP");
 
-            const swalConfig = {
-                confirmButtonColor: '#3b1f1f', 
-                buttonsStyling: true,
-            };
-
             if (purpose === "login") {
                 await Swal.fire({
                     icon: 'success',
@@ -56,7 +62,8 @@ function OtpFrom() {
                     icon: 'success',
                     title: 'Account Verified!',
                     text: 'You can now login.',
-                    confirmButtonText: 'Go to Login'
+                    confirmButtonText: 'Go to Login',
+                    confirmButtonColor: '#3b1f1f',
                 });
                 router.push("/auth-app/login");
             }
@@ -65,6 +72,7 @@ function OtpFrom() {
                 icon: 'error',
                 title: 'Verification Failed',
                 text: err.message || 'Something went wrong',
+                confirmButtonColor: '#3b1f1f',
             });
         } finally {
             setLoading(false);
@@ -72,6 +80,8 @@ function OtpFrom() {
     };
 
     const handleResend = async () => {
+        if (timeLeft > 0) return; // Prevent resend if timer is active
+
         setLoading(true);
         try {
             const res = await fetch("/api/auth/resend-otp", {
@@ -86,10 +96,17 @@ function OtpFrom() {
                 icon: 'success',
                 title: 'Resent!',
                 text: 'A new OTP has been sent to your email.',
-                timer: 2000
+                timer: 2000,
+                showConfirmButton: false,
             });
+            setTimeLeft(60); // Reset timer to 60 seconds
         } catch (err: any) {
-            Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+            Swal.fire({ 
+                icon: 'error', 
+                title: 'Error', 
+                text: err.message,
+                confirmButtonColor: '#3b1f1f',
+            });
         } finally {
             setLoading(false);
         }
@@ -114,6 +131,7 @@ function OtpFrom() {
                         disabled={loading}
                         required
                         className={styles.inputOtp}
+                        placeholder="000000"
                     />
                     <button type="submit" disabled={loading || otpCode.length < 6} className={styles.submitBtn}>
                         {loading ? "Checking..." : "Verify OTP"}
@@ -121,8 +139,14 @@ function OtpFrom() {
                 </form>
 
                 <div className={styles.resendWrap}>
-                    <button type="button" className={styles.resendBtn} onClick={handleResend} disabled={loading}>
-                        Resend
+                    <span>Didn&apos;t receive the code? </span>
+                    <button 
+                        type="button" 
+                        className={styles.resendBtn} 
+                        onClick={handleResend} 
+                        disabled={loading || timeLeft > 0}
+                    >
+                        Resend {timeLeft > 0 && `(${timeLeft}s)`}
                     </button>
                 </div>
             </div>

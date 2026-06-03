@@ -25,8 +25,8 @@
 
 .panel .circle {
   position: absolute;
-  width: 900px;
-  height: 900px;
+  width: 140vh; /* ใช้ vh เพื่อให้สัมพันธ์กับความสูงหน้าจอ */
+  height: 140vh;
   background-color: var(--brown-dark);
   border-radius: 50%;
   top: 50%;
@@ -34,11 +34,11 @@
 }
 
 .left .circle {
-  left: -185px;
+  left: -40vh; /* ขยับให้กินพื้นที่เข้ามาเกินครึ่งจอนิดนึง */
 }
 
 .right .circle {
-  right: -185px;
+  right: -40vh;
 }
 
 .panelInner {

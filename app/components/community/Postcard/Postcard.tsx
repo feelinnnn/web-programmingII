@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import styles from './Postcard.module.css';
 import { useUserId } from '@/lib/useauth';
+import { json } from 'stream/consumers';
 
 function formatTimeAgo(dateString: string | Date): string {
   if (!dateString) return "เมื่อสักครู่";
@@ -19,6 +20,21 @@ function formatTimeAgo(dateString: string | Date): string {
   if (days < 7) return `${days}d ago`;
 
   return postDate.toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" });
+}
+
+export interface Bookmark {
+  bookmark_id: string;
+  user_id: string;
+  target_id: string;
+  post_id :string;
+  target_type: 'post' | 'lesson'; // เจาะจงประเภทตามค่าที่ยอมรับได้
+  created_at: string;             // ฝั่งหน้าบ้านที่รับจาก API จะได้มาเป็น String (ISO Date)
+}
+
+export interface BookmarkDocument {
+  _id: string;
+  bookmark: Bookmark;
+  __v: number;
 }
 
 interface FlattenedComment {
@@ -47,19 +63,22 @@ export interface PostCardProps {
   isLiked?: boolean;
   isBookmarked?: boolean;
   isFollowing?: boolean;
+  bookmarks?: BookmarkDocument[];
   onLike?: (id: string) => void;
   onBookmark?: (id: string) => void;
   onFollow?: (id: string) => void;
-  onEdit?: (id: string, newContent: string, newImages: string[], newHashtags?: string[]) => Promise<boolean> | void;
+  onEdit?: (id: string, newContent: string, newImages: string[], newHashtags: string[]) => Promise<boolean> | void;
   onDelete?: (id: string) => void;
+  onComment?: (id: string) =>void;
   hashtags?: string[];
 }
+
 
 export default function PostCard({
   id, author, sub_namebio = "", time, content,
   imageUrls = [], imageUrl = [], image_url = [],
-  avatarUrl, likes, comments: initialCommentsCount, isLiked = false, isBookmarked = false, isFollowing = false,
-  onLike, onBookmark, onFollow, onEdit, onDelete, hashtags = [],
+  avatarUrl, likes, comments: initialCommentsCount, isLiked = false, bookmarks , isFollowing = false,
+  onLike, onBookmark, onFollow, onEdit, onDelete, onComment, hashtags = [],
 }: PostCardProps) {
 
   const userId = useUserId();
@@ -67,12 +86,11 @@ export default function PostCard({
   const finalImages = useMemo(() => {
     return imageUrls.length > 0 ? imageUrls : (imageUrl.length > 0 ? imageUrl : image_url);
   }, [imageUrls, imageUrl, image_url]);
-
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
   const [previewImgIndex, setPreviewImgIndex] = useState(0);
   const menuRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
+  const [myBookmarks, setMyBookmarks] = useState<BookmarkDocument[]>(bookmarks!) 
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(content);
   const [editImages, setEditImages] = useState<string[]>(finalImages);
@@ -96,6 +114,30 @@ export default function PostCard({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (bookmarks) {
+      setMyBookmarks(bookmarks);
+    }
+  }, [bookmarks]);
+  useEffect(() =>{
+    const fetchInitComment =  async ()=>{
+        try {
+        const res = await fetch(`/api/comments?postId=${id}`);
+        const data = await res.json();
+        if (data.success) {
+          setCommentCount(data.comments.length);
+        } else {
+          setCommentError(data.error || "can not load comments");
+        }
+      } catch (err) {
+        setCommentError("can not connect to comment system");
+      } finally {
+        setIsLoadingComments(false);
+      }
+    }
+    fetchInitComment();
+  }, [])
 
   const handleToggleComments = () => {
     setShowCommentsSection(!showCommentsSection);
@@ -138,9 +180,8 @@ export default function PostCard({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         },
-        body: JSON.stringify({ postId: id, content: newCommentText }),
+        body: JSON.stringify({ postId: id, userId : userId,content: newCommentText }),
       });
 
       const data = await res.json();
@@ -246,6 +287,43 @@ export default function PostCard({
     setPreviewImgIndex(currentImgIndex);
     setIsPreviewOpen(true);
   };
+const handleBookmark = async (id : string) =>{
+
+    const foundTarget = myBookmarks?.find(item => item.bookmark.post_id === id);
+
+    if(!foundTarget){
+
+      console.log(id)
+      const res = await fetch(`/api/bookmark`,{
+        method : "POST",
+        headers : {'Content-Type': 'application/json', },
+        body : JSON.stringify({postId : id, userId : userId, targetType :  "post"})
+      })
+      if(!res.ok){
+        alert("Cannot add bookmark something wrong in handleBookmark Function (POST Bookmark)" );
+        return;
+      }
+      const data = await res.json();
+
+      if (data.insertBookmark) {
+        setMyBookmarks((prev) => [...prev, data.insertBookmark]);
+      }
+    } else {
+      
+      const bookmarkIdToDelete = foundTarget.bookmark.bookmark_id;
+
+      const res = await fetch(`/api/bookmark?bookmarkId=${bookmarkIdToDelete}`, {
+        method: "DELETE"
+      });
+
+      if (!res.ok) {
+        alert("Cannot remove bookmark something wrong in handleBookmark Function (DELETE Bookmark)");
+        return;
+      }
+
+      setMyBookmarks((prev) => prev.filter(item => item.bookmark.bookmark_id !== bookmarkIdToDelete));
+    }
+}
 
   const finalAvatarUrl = avatarUrl && avatarUrl !== "/avatar/default.png" ? avatarUrl : "/avatar/Avatar.png";
 
@@ -404,7 +482,7 @@ export default function PostCard({
           </button>
 
           <span className={styles.divider}>|</span>
-          <button className={`${styles.actionBtn} ${isBookmarked ? styles.bookmarked : ''}`} onClick={() => onBookmark?.(id)}>
+          <button className={`${styles.actionBtn} ${myBookmarks?.some(item => item.bookmark.post_id === id) ? styles.bookmarked : ''}`} onClick={() => handleBookmark(id)}>
             <img src="/picture-navbar/bookmark.png" alt="bookmark" className={styles.bookmarkIcon} /> Bookmark
           </button>
         </div>

@@ -20,6 +20,7 @@ const BookmarkSchema = new mongoose.Schema(
   }
 );
 
+// 👈 แก้ไขตรงนี้: เติม bookmark. นำหน้าฟิลด์ เพื่อให้ทำ Unique Index ข้างในวัตถุได้ถูกต้อง
 BookmarkSchema.index({ "bookmark.user_id": 1, "bookmark.post_id": 1 }, { unique: true });
  
 const Bookmark =

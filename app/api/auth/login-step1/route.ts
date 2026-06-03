@@ -16,19 +16,20 @@ export async function POST(request: Request) {
     const email = body.email?.trim();
     const password = body.password?.trim();
 
-    // Required fields
-    if (!email || !password) {
-      return NextResponse.json(
-        { message: "Please fill in all fields." },
-        { status: 400 }
-      );
+    const errors: { [key: string]: string } = {};
+
+    if (!email) errors.email = "Email is required.";
+    if (!password) errors.password = "Password is required.";
+
+    if (Object.keys(errors).length > 0) {
+      return NextResponse.json({ errors }, { status: 400 });
     }
 
     // Email format validation
     const emailError = validateEmail(email);
     if (emailError) {
       return NextResponse.json(
-        { message: emailError },
+        { errors: { email: emailError } },
         { status: 400 }
       );
     }
@@ -38,7 +39,7 @@ export async function POST(request: Request) {
 
     if (!user) {
       return NextResponse.json(
-        { message: "Invalid email or password." },
+        { errors: { general: "Invalid email or password." } },
         { status: 400 }
       );
     }
@@ -50,8 +51,7 @@ export async function POST(request: Request) {
     ) {
       return NextResponse.json(
         {
-          message:
-            "This account uses Google Login. Please sign in with Google.",
+          errors: { general: "This account uses Google Login. Please sign in with Google." },
         },
         { status: 400 }
       );
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
 
     if (!isMatch) {
       return NextResponse.json(
-        { message: "Invalid email or password." },
+        { errors: { general: "Invalid email or password." } },
         { status: 400 }
       );
     }

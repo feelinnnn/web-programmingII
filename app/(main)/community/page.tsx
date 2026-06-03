@@ -47,14 +47,56 @@ const MOCK_CREATORS: Creator[] = [
   { id: '1', name: 'Wanilla Pie', sub_namebio: 'Home Cook', followers: '2.1K', images: [{ likes: 507 }, { likes: 345 }] },
 ];
 
+export interface Bookmark {
+  bookmark_id: string;
+  user_id: string;
+  target_id: string;
+  post_id :string;
+  target_type: 'post' | 'lesson'; // เจาะจงประเภทตามค่าที่ยอมรับได้
+  created_at: string;             // ฝั่งหน้าบ้านที่รับจาก API จะได้มาเป็น String (ISO Date)
+}
+
+export interface BookmarkDocument {
+  _id: string;
+  bookmark: Bookmark;
+  __v: number;
+}
+
+// เวลาใช้งานจริง เนื่องจากข้อมูลส่งกลับมาเป็น Array []
+// ตัวแปรที่ใช้รับค่าจะเป็นชนิด BookmarkDocument[] ครับ
+
 export default function CommunityFeedPage() {
   const [posts, setPosts] = useState<PostApiStructure[]>([]);
-  const [bookmarked, setBookmarked] = useState<Set<string>>(new Set());
+  const [bookmarked, setBookmarked] = useState<BookmarkDocument[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUserAvatar, setCurrentUserAvatar] = useState<string>("/avatar/Avatar.png");
   const [hashtags, setHashtags] = useState<Hashtag[]>([]);
 
   const currentUserId = useUserId() || ""; 
+
+    // 🔑 แก้ไขตรงส่วน fetchBookmark ในหน้าหลักของคุณ
+  useEffect(() => {
+    // ดักจับ: ถ้ายังไม่มีไอดีผู้ใช้ (ยังโหลดเซสชันไม่เสร็จ) ไม่ต้องเพิ่งยิง API ให้เสียเวลา
+    if (!currentUserId) return;
+
+    const fetchBookmark = async () => {
+      try {
+        const res = await fetch(`/api/bookmark?userId=${currentUserId}`, {
+          method: "GET",
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          setBookmarked(data.data || []); // เก็บรายการบุ๊กมาร์กจริงลง State
+        }
+      } catch (error) {
+        console.error("Failed to load bookmarks:", error);
+      }
+    };
+
+    fetchBookmark();
+  }, [currentUserId]); // 👈 เพิ่ม currentUserId เข้าไปใน Dependency Array ตรงนี้!
 
   const fetchHashtags = async () => {
     try {
@@ -226,13 +268,6 @@ export default function CommunityFeedPage() {
     }
   };
 
-  const toggleBookmark = (id: string) => {
-    setBookmarked((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  };
 
   return (
     <div className={styles.page}>
@@ -255,7 +290,6 @@ export default function CommunityFeedPage() {
             posts={posts}
             renderPost={(post) => {
               const isOwner = currentUserId && post.attributes.userId === currentUserId;
-
               return (
                 <PostCard
                   key={post.id}
@@ -271,10 +305,9 @@ export default function CommunityFeedPage() {
                   comments={post.attributes.commentsCount}
                   isLiked={post.attributes.isLiked}   
                   hashtags={post.attributes.hashtags}
-                  isBookmarked={bookmarked.has(post.id)}
+                  bookmarks ={bookmarked}
                   onLike={handleLike}                 
-                  onBookmark={toggleBookmark}
-                  onEdit={isOwner ? (id, content, images) => handleEdit(id, content, images) : undefined}
+                  //onEdit ={isOwner ? (id, content, images) => handleEdit(id, content, images) : undefined}
                   onDelete={isOwner ? handleDelete : undefined}
                 />
               );

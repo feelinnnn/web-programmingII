@@ -5,35 +5,44 @@ import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
 import Temp_auth from "@/models/Temp_auth";
 import { sendOtpEmail } from "@/services/emailservice";
-import {validateEmail,validatePassword,validateUsername} from "@/lib/validation"
+import { validateEmail, validatePassword, validateUsername } from "@/lib/validation"
 
 export async function POST(request: Request) {
   try {
     await dbConnect();
     const { email, password, username } = await request.json();
 
-    if (!email || !password || !username) {
-      return NextResponse.json({ message: "Please fill in all required fields." }, { status: 400 });
+    const errors: { [key: string]: string } = {};
+
+    if (!email) errors.email = "Email is required.";
+    if (!password) errors.password = "Password is required.";
+    if (!username) errors.username = "Username is required.";
+
+    if (Object.keys(errors).length > 0) {
+      return NextResponse.json({ errors }, { status: 400 });
     }
 
     const emailError = validateEmail(email);
-    if (emailError) {
-      return NextResponse.json({ message: emailError }, { status: 400 });
-    }
+    if (emailError) errors.email = emailError;
 
     const usernameError = validateUsername(username);
-    if (usernameError) {
-      return NextResponse.json({ message: usernameError }, { status: 400 });
-    }
+    if (usernameError) errors.username = usernameError;
 
     const passwordError = validatePassword(password);
-    if (passwordError) {
-      return NextResponse.json({ message: passwordError }, { status: 400 });
+    if (passwordError) errors.password = passwordError;
+
+    if (Object.keys(errors).length > 0) {
+      return NextResponse.json({ errors }, { status: 400 });
     }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return NextResponse.json({ message: "This email is already registered." }, { status: 400 });
+      return NextResponse.json({ errors: { email: "This email is already registered." } }, { status: 400 });
+    }
+
+    const existingUsername = await User.findOne({ username });
+    if (existingUsername) {
+      return NextResponse.json({ errors: { username: "This username is already taken." } }, { status: 400 });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -54,11 +63,12 @@ export async function POST(request: Request) {
       purpose: "register",
       createdAt: new Date()
     });
-
+    
     await sendOtpEmail(email, otpCode);
     
     return NextResponse.json({ message: "OTP verification code has been sent to your email." }, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ message: "Registration failed. Please try again.", error }, { status: 500 });
+    console.error("Registration error:", error);
+    return NextResponse.json({ message: "Registration failed. Please try again." }, { status: 500 });
   }
 }
