@@ -84,6 +84,37 @@ export default function RegisterForm() {
     }
   };
 
+  const handleUsernameChange = (val: string) => {
+    setUsername(val);
+    const err = validateUsername(val);
+    setErrors(prev => ({ ...prev, username: err || undefined, general: undefined }));
+  };
+
+  const handleEmailChange = (val: string) => {
+    setEmail(val);
+    const err = validateEmail(val);
+    setErrors(prev => ({ ...prev, email: err || undefined, general: undefined }));
+  };
+
+  const handlePasswordChange = (val: string) => {
+    setPassword(val);
+    const err = validatePassword(val);
+    // Only show mismatch error if confirm field has been touched/filled
+    const confirmErr = (confirmPassword && val !== confirmPassword) ? "Passwords don't match!" : undefined;
+    setErrors(prev => ({ 
+      ...prev, 
+      password: err || undefined, 
+      confirmPassword: confirmErr,
+      general: undefined 
+    }));
+  };
+
+  const handleConfirmPasswordChange = (val: string) => {
+    setConfirmPassword(val);
+    const err = (val && val !== password) ? "Passwords don't match!" : undefined;
+    setErrors(prev => ({ ...prev, confirmPassword: err, general: undefined }));
+  };
+
   return (
     <form onSubmit={doRegister} className={styles.form}>
       <h1 className={styles.title}>Create Account</h1>
@@ -96,7 +127,7 @@ export default function RegisterForm() {
           type="text"
           placeholder="Enter your username"
           value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          onChange={(e) => handleUsernameChange(e.target.value)}
           className={`${styles.input} ${errors.username ? styles.inputError : ''}`}
           disabled={loading}
         />
@@ -109,7 +140,7 @@ export default function RegisterForm() {
           type="email"
           placeholder="Example@email.com"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => handleEmailChange(e.target.value)}
           className={`${styles.input} ${errors.email ? styles.inputError : ''}`}
           disabled={loading}
         />
@@ -122,7 +153,7 @@ export default function RegisterForm() {
           type="password"
           placeholder="At least 8 characters"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => handlePasswordChange(e.target.value)}
           className={`${styles.input} ${errors.password ? styles.inputError : ''}`}
           disabled={loading}
         />
@@ -135,7 +166,7 @@ export default function RegisterForm() {
           type="password"
           placeholder="At least 8 characters"
           value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
+          onChange={(e) => handleConfirmPasswordChange(e.target.value)}
           className={`${styles.input} ${errors.confirmPassword ? styles.inputError : ''}`}
           disabled={loading}
         />
