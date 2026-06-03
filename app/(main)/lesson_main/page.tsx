@@ -31,6 +31,8 @@ type Progress = {
     lessonId: string;
     completedCount: number;
     totalChapters: number;
+    remainingCount: number;
+    badgeSubmitted?: boolean;
   };
 };
 
@@ -40,9 +42,10 @@ interface LessonCardProps {
   onClick: () => void;
   progressPercentage?: number;
   remainingChapters?: number;
+  submissionNeeded?: boolean;
 }
 
-function LessonCard({ lesson, large = false, onClick, progressPercentage, remainingChapters }: LessonCardProps) {
+function LessonCard({ lesson, large = false, onClick, progressPercentage, remainingChapters, submissionNeeded }: LessonCardProps) {
   return (
     <div className={`lesson-card ${large ? "large" : ""}`} onClick={onClick}>
       <div
@@ -60,9 +63,14 @@ function LessonCard({ lesson, large = false, onClick, progressPercentage, remain
         </div>
       )}
 
-      {remainingChapters !== undefined && (
+      {submissionNeeded ? (
+        <div className="chapters-left">
+          badge submission left
+        </div>
+      ) : remainingChapters !== undefined && (
         <div className="chapters-left">
           {remainingChapters} {remainingChapters === 1 ? "chapter" : "chapters"} left
+
         </div>
       )}
 
@@ -157,8 +165,8 @@ export default function Home() {
   const continueLessons = allLessons.filter(lesson => {
     const progress = progressMap.get(lesson.id);
     if (!progress) return false;
-    const remaining = progress.attributes.totalChapters - progress.attributes.completedCount;
-    return remaining > 0;
+    // Show lessons with remaining chapters OR unsubmitted badge
+    return progress.attributes.remainingCount > 0 || !progress.attributes.badgeSubmitted;
   });
 
   if (!mounted || loading) return <div className="page"><p>Loading...</p></div>;
@@ -202,6 +210,7 @@ export default function Home() {
                 const progress = progressMap.get(lesson.id);
                 const percentage = progress ? (progress.attributes.completedCount / progress.attributes.totalChapters) * 100 : 0;
                 const remaining = progress ? progress.attributes.totalChapters - progress.attributes.completedCount : 0;
+                const needsSubmission = remaining === 0 && !progress?.attributes.badgeSubmitted;
                 return (
                   <LessonCard
                     key={lesson.id}
@@ -209,6 +218,7 @@ export default function Home() {
                     onClick={() => setSelectedLesson(lesson)}
                     progressPercentage={percentage}
                     remainingChapters={remaining}
+                    submissionNeeded={needsSubmission}
                   />
                 );
               })}
