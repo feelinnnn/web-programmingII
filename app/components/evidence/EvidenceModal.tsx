@@ -24,6 +24,17 @@ export default function EvidenceModal({
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const handleAddFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newFiles = Array.from(e.target.files ?? []);
+    setFiles([...files, ...newFiles]);
+    // Clear input so same file can be added again
+    e.target.value = '';
+  };
+
+  const handleDeleteFile = (index: number) => {
+    setFiles(files.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async () => {
     if (files.length === 0) return;
     setLoading(true);
@@ -72,15 +83,38 @@ export default function EvidenceModal({
       <div className="modal">
         <div className="left">
           <label className="upload-box">
-            <input 
-              type="file" 
-              hidden 
+            <input
+              type="file"
+              hidden
               multiple
-              onChange={(e) => setFiles(Array.from(e.target.files ?? []))} 
+              onChange={handleAddFiles}
             />
-            <div className="upload-content">
-              <span>{files.length > 0 ? `${files.length} file(s) selected` : "Upload file"}</span>
-            </div>
+            {files.length > 0 ? (
+              <div className="files-list-content">
+                <h3>{files.length} file(s) selected</h3>
+                <ul>
+                  {files.map((file, index) => (
+                    <li key={index}>
+                      <div className="file-info">
+                        <span className="file-name">{file.name}</span>
+                        <span className="file-size">({(file.size / 1024).toFixed(2)} KB)</span>
+                      </div>
+                      <button
+                        className="delete-btn"
+                        onClick={() => handleDeleteFile(index)}
+                        type="button"
+                      >
+                        ✕
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <div className="upload-content">
+                <span>Click to add files</span>
+              </div>
+            )}
             <div className="upload-bar">
               <span className="icon">
                 <img src="icon/clip.png" alt="" />

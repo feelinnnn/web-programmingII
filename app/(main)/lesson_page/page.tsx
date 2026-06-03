@@ -27,6 +27,7 @@ type Lesson = {
     title: string;
     description: string;
     thumbnail_url: string;
+    badge?: string;
   };
 };
 
@@ -52,6 +53,7 @@ export default function LessonPage() {
   const [canAccessSubmission, setCanAccessSubmission] = useState(false);
   const [completedChapters, setCompletedChapters] = useState<Set<string>>(new Set());
   const [submittingChapter, setSubmittingChapter] = useState<string | null>(null);
+  const [badgeType, setBadgeType] = useState<string | null>(null);
 
   // Check if user has access to this lesson (must have progress in it)
   useEffect(() => {
@@ -102,6 +104,17 @@ export default function LessonPage() {
         );
 
         setLesson(lessonJson.data);
+
+        // Fetch badge type from badge API
+        const badgeId = lessonJson.data.attributes.badge;
+        if (badgeId) {
+          const badgeRes = await fetch(`/api/badges/${badgeId}`);
+          if (badgeRes.ok) {
+            const badgeJson = await badgeRes.json();
+            setBadgeType(badgeJson.data.attributes.badge_type);
+          }
+        }
+
         setChapters(sortedChapters);
         setSelectedChapter(sortedChapters[0] ?? null);
 
@@ -191,6 +204,11 @@ export default function LessonPage() {
           // All chapters completed - allow all chapters and submission
           chapters.forEach(ch => newAllowed.add(ch.id));
           setCanAccessSubmission(true);
+
+          // For "lesson" badge type, auto-grant badge when all chapters are complete
+          if (badgeType === "lesson") {
+            await grantBadge(true);
+          }
         } else {
           // Allow completed chapters and next incomplete chapter
           chapters.forEach((ch) => {
@@ -218,6 +236,35 @@ export default function LessonPage() {
       alert("Error submitting chapter. Please try again.");
     } finally {
       setSubmittingChapter(null);
+    }
+  };
+
+  const grantBadge = async (silent = true) => {
+    if (!lesson || !badgeType) return;
+
+    try {
+      const badgeId = lesson.attributes.badge;
+      await fetch('/api/user-badges', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          data: {
+            attributes: {
+              userId,
+              badgeId,
+              badgeTypeSnapshot: badgeType,
+              userNote: null,
+              evidenceUrls: [],
+            }
+          }
+        })
+      });
+
+      if (!silent) {
+        alert("Badge granted! You have completed this lesson.");
+      }
+    } catch (err) {
+      console.error("Error granting badge:", err);
     }
   };
 
@@ -265,14 +312,16 @@ export default function LessonPage() {
           <div className="submit-row">
             {selectedChapter ? (
               <>
-                <button
-                  className="submit-btn"
-                  onClick={handleChapterSubmit}
-                  disabled={submittingChapter === selectedChapter.id || completedChapters.has(selectedChapter.id)}
-                >
-                  {submittingChapter === selectedChapter.id ? "Submitting..." : completedChapters.has(selectedChapter.id) ? "Completed" : "Submit Chapter"}
-                </button>
-                {selectedChapter && chapters.length > 0 && chapters[chapters.length - 1].id === selectedChapter.id && (
+                {lesson?.attributes.badge !== "lesson" && (
+                  <button
+                    className="submit-btn"
+                    onClick={() => handleChapterSubmit()}
+                    disabled={submittingChapter === selectedChapter.id || completedChapters.has(selectedChapter.id)}
+                  >
+                    {submittingChapter === selectedChapter.id ? "Submitting..." : completedChapters.has(selectedChapter.id) ? "Completed" : "Submit Chapter"}
+                  </button>
+                )}
+                {selectedChapter && chapters.length > 0 && chapters[chapters.length - 1].id === selectedChapter.id &&  badgeType !== "lesson" &&(
                   <button className="submit-btn" onClick={handleSubmitClick} style={{ marginLeft: "10px" }}>
                     Submit Evidence
                   </button>
@@ -302,19 +351,23 @@ export default function LessonPage() {
             </div>
           );
         })}
-        <div className="connector" />
+        
+        
+         {badgeType !== "lesson" && (
 
-         <div onClick={handleSubmitClick} style={{ opacity: canAccessSubmission ? 1 : 0.5, cursor: canAccessSubmission ? "pointer" : "not-allowed" }}>
-            <div className={`episode-item ${selectedChapter ? "active" : ""}`}>
-              <div className="episode-icon">
-                <img
-                  src={"/icon/doc-icon.png"}
-                  alt={"submission"}
-                />
+           <div onClick={handleSubmitClick} style={{ opacity: canAccessSubmission ? 1 : 0.5, cursor: canAccessSubmission ? "pointer" : "not-allowed" }}>
+        <div className="connector" />  
+              <div className={`episode-item ${selectedChapter ? "active" : ""}`}>
+                <div className="episode-icon">
+                  <img
+                    src={"/icon/doc-icon.png"}
+                    alt={"submission"}
+                  />
+                </div>
+                <span className="episode-title">{"Submission"}</span>
               </div>
-              <span className="episode-title">{"Submission"}</span>
             </div>
-          </div>
+         )}
       </div>
     </div>
   );

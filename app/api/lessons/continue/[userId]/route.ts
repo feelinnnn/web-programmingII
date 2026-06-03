@@ -43,6 +43,7 @@ export async function GET(
             totalChapters: allChapters.length,
             completedCount: progress.completedChapter.length,
             remainingCount: incompleteChapters.length,
+            badgeSubmitted: progress.badgeSubmitted ?? false,
           },
           relationships: {
             completedChapters: {

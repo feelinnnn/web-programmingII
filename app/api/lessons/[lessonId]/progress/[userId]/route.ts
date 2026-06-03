@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import connect from "@/lib/mongodb";
 import Progress, { IProgress } from "@/models/Progress";
 import Chapter from "@/models/Chapter";
+import Lesson from "@/models/Lesson";
+import Badge from "@/models/Badge";
 
 
 export async function POST(
@@ -22,6 +24,7 @@ export async function POST(
         attributes: {
           userID: progress.userID,
           lessonId: progress.lessonId,
+          badgeSubmitted: progress.badgeSubmitted,
         },
         relationships: {
           completedChapters: {
@@ -71,6 +74,20 @@ export async function PATCH(
     }
 
     progress.completedChapter.push(nextChapter._id)
+
+    // Check if all chapters are now complete
+    const allChapters = await Chapter.find({ lessonId })
+    if (progress.completedChapter.length === allChapters.length) {
+      // All chapters are complete - check if badge type is "lesson"
+      const lesson = await Lesson.findById(lessonId)
+      if (lesson && lesson.badge) {
+        const badge = await Badge.findOne({ _id: lesson.badge })
+        if (badge && badge.badge_type === "lesson") {
+          progress.badgeSubmitted = true
+        }
+      }
+    }
+
     await progress.save()
 
     return NextResponse.json({
@@ -81,6 +98,7 @@ export async function PATCH(
         attributes: {
           userID: progress.userID,
           lessonId: progress.lessonId,
+          badgeSubmitted: progress.badgeSubmitted,
         },
         relationships: {
           completedChapters: {
@@ -99,13 +117,12 @@ export async function PATCH(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ lessonId: string; userId: string }> }  // ← type params as Promise
+  { params }: { params: Promise<{ lessonId: string; userId: string }> }
 ) {
   await connect()
-    const { lessonId, userId } = await params
+  const { lessonId, userId } = await params
 
-
-    const progress = await Progress.findOne({ userID: userId, lessonId })  // ← fixed
+  const progress = await Progress.findOne({ userID: userId, lessonId })
 
   return NextResponse.json({
     jsonapi: { version: "1.0" },
@@ -116,14 +133,14 @@ export async function GET(
       attributes: {
         userID: progress.userID,
         lessonId: progress.lessonId,
-        completedChapter:   progress.completedChapter,
+        completedChapter: progress.completedChapter,
+        badgeSubmitted: progress.badgeSubmitted,
       },
-      // relationships: {
-      //   lesson: {
-      //     links: { related: `/api/lessons/${chapter.lessonId}` },
-      //     data: {id : chapter.lessonId , type:"lesson"}
-      //   }
-      // }
+      relationships: {
+        completedChapters: {
+          data: progress.completedChapter.map((id: string) => ({ id, type: "chapter" }))
+        }
+      }
     }
   })
 }
