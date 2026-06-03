@@ -22,6 +22,18 @@ export default function CreatePost({ currentUserId, userAvatar, onPostCreated }:
   const [loading, setLoading] = useState(false); // เช็คสถานะการโหลด
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Auto-detect #hashtags from text
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setText(value);
+    const detected = [...value.matchAll(/#([\w฀-๿]+)/g)].map(m => m[1]);
+    setTags(prev => {
+      const existing = new Set(prev);
+      detected.forEach(t => existing.add(t));
+      return [...existing];
+    });
+  };
+
   const handleClose = () => {
     setOpen(false);
     setText('');
@@ -151,7 +163,7 @@ export default function CreatePost({ currentUserId, userAvatar, onPostCreated }:
             className={styles.textarea}
             placeholder="Share your recipe here..."
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={handleTextChange}
             rows={3}
             disabled={loading}
           />

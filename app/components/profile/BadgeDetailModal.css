@@ -112,6 +112,7 @@
   transition: all 0.15s;
 }
 .bd-dot.active { background: #D8AE7E; width: 24px; border-radius: 4px; }
+.bd-dot.badge-dot { border: 2px solid rgba(255,255,255,0.5); }
 
 .bd-stageCount { color: rgba(255,255,255,0.5); font-size: 13px; min-width: 34px; text-align: center; }
 
@@ -156,6 +157,7 @@
 }
 .bd-statusTag.verified { background: #A0D585; color: #1e5c1e; }
 .bd-statusTag.pending { background: #FFF0C0; color: #7a6500; }
+.bd-statusTag.non-request { background: #e8e8e8; color: #666; }
 .bd-statusTag.declined { background: #FFD0D0; color: #a00; }
 
 .bd-name {
@@ -203,6 +205,12 @@
   margin-bottom: 8px;
 }
 
+.bd-actionRow {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
 .bd-editBtn {
   flex: 1;
   padding: 10px 0;
@@ -229,6 +237,42 @@
 }
 .bd-deleteBtn:hover { background: #fff0f0; }
 .bd-deleteBtn:disabled { opacity: 0.5; }
+
+.bd-cancelReqBtn {
+  width: 100%;
+  padding: 10px 0;
+  background: #fff;
+  color: #c0392b;
+  border: 1px solid #c0392b;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  transition: all 0.15s;
+}
+.bd-cancelReqBtn:hover:not(:disabled) { background: #fff0f0; }
+.bd-cancelReqBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.bd-waiting {
+  text-align: center;
+  font-size: 13px;
+  color: #b8860b;
+  background: #fff8e7;
+  padding: 8px 14px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.bd-certified-note {
+  text-align: center;
+  font-size: 12px;
+  color: #2e7d32;
+  background: #e8f5e9;
+  padding: 8px 14px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
 
 .bd-closeBtn {
   width: 100%;

@@ -18,6 +18,7 @@ interface Props {
       user_note?: string;
       badge_type_snapshot?: string;
       showcased?: boolean;
+      certification_requested?: boolean;
     };
     relationships?: {
       badge?: {
@@ -39,6 +40,7 @@ interface Props {
   onVerify?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  onCancelRequest?: () => void;
 }
 
 function parseEvidenceItems(urls: string[] = [], note: string = ""): EvidenceItem[] {
@@ -61,34 +63,55 @@ const TYPE_LABELS: Record<string, string> = {
   "lesson": "Lesson",
 };
 
-export default function BadgeDetailModal({ badge, color, onClose, onVerify, onEdit, onDelete }: Props) {
+export default function BadgeDetailModal({ badge, color, onClose, onVerify, onEdit, onDelete, onCancelRequest }: Props) {
   const [mounted, setMounted] = useState(false);
   const [stage, setStage] = useState(0);
   const [verifying, setVerifying] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
   const badgeInfo = badge.relationships?.badge?.data;
   const name = badgeInfo?.attributes?.name || "Badge";
   const desc = badgeInfo?.attributes?.description || "";
-  const badgeType = badge.attributes?.badge_type_snapshot || badgeInfo?.attributes?.badge_type || "";
+  const badgeType = badge.attributes?.badge_type_snapshot || badge.attributes?.badgeTypeSnapshot || badgeInfo?.attributes?.badge_type || "";
   const status = badge.attributes?.status || "";
+  const certRequested = badge.attributes?.certification_requested || badge.attributes?.certificationRequested || false;
   const isSelfDeclared = badgeType === "self-declared";
   const thumbnail = badgeInfo?.attributes?.thumbnail_url;
   const icon = badgeInfo?.attributes?.icon_url;
-  const evidenceUrls = badge.attributes?.evidence_urls || [];
-  const userNote = badge.attributes?.user_note || "";
+  const evidenceUrls = badge.attributes?.evidence_urls || badge.attributes?.evidenceUrls || [];
+  const userNote = badge.attributes?.user_note || badge.attributes?.userNote || "";
 
-  const items = isSelfDeclared ? parseEvidenceItems(evidenceUrls, userNote) : [];
-  const currentItem = items[stage];
-  const currentMedia = isSelfDeclared
-    ? (currentItem?.url || icon || evidenceUrls[0] || null)
-    : (icon || thumbnail || evidenceUrls[0] || null);
-  const currentDesc = currentItem?.description || userNote || desc;
+  // Show evidence for any badge that has user-submitted evidence
+  // (self-declared, evidence-backed, expert-certified — not lesson)
+  const hasEvidence = (evidenceUrls.length > 0 || !!userNote) && badgeType !== "lesson";
+  const evidenceItems = hasEvidence ? parseEvidenceItems(evidenceUrls, userNote) : [];
+
+  // Build stages: badge image first (stage 0), then evidence items (stage 1+)
+  const items = hasEvidence
+    ? [{ url: icon || '', description: desc || 'Badge image' }, ...evidenceItems]
+    : [];
   const totalStages = items.length;
+  const currentItem = items[stage];
+  const isBadgeStage = hasEvidence && stage === 0;
 
-  const statusLabel = status === "verified" ? "Verified" : status === "pending" ? "Not Verified" : status === "declined" ? "Declined" : "";
+  // Media: badge icon is the default / primary view
+  const currentMedia = hasEvidence
+    ? (currentItem?.url || icon || thumbnail || null)
+    : (icon || thumbnail || null);
+  const currentDesc = isBadgeStage
+    ? desc
+    : (currentItem?.description || userNote || desc);
+
+  const statusLabel = status === "verified" ? "Verified" : status === "pending" ? "Pending" : status === "non-request" ? "Not Requested" : status === "declined" ? "Declined" : "";
   const typeLabel = TYPE_LABELS[badgeType] || badgeType;
+
+  // Actions
+  const canEdit = isSelfDeclared && status === "non-request";
+  const canRequestCertify = isSelfDeclared && status === "non-request";
+  const canCancelRequest = isSelfDeclared && status === "pending";
+  const canDelete = status === "non-request" && badgeType !== "lesson";
 
   const modal = (
     <div className="bd-overlay" onClick={onClose}>
@@ -112,16 +135,21 @@ export default function BadgeDetailModal({ badge, color, onClose, onVerify, onEd
               )}
             </div>
 
-            {/* Stage nav - outside video */}
-            {isSelfDeclared && totalStages > 1 && (
+            {/* Stage nav — badge icon + evidence items */}
+            {hasEvidence && totalStages > 1 && (
               <div className="bd-stageNav">
                 <button className="bd-navBtn" disabled={stage <= 0} onClick={() => setStage(stage - 1)}>‹</button>
                 <div className="bd-dots">
                   {items.map((_, i) => (
-                    <span key={i} className={`bd-dot ${i === stage ? "active" : ""}`} onClick={() => setStage(i)} />
+                    <span
+                      key={i}
+                      className={`bd-dot ${i === stage ? "active" : ""} ${i === 0 ? "badge-dot" : ""}`}
+                      title={i === 0 ? "Badge" : `Evidence ${i}`}
+                      onClick={() => setStage(i)}
+                    />
                   ))}
                 </div>
-                <span className="bd-stageCount">{stage + 1}/{totalStages}</span>
+                <span className="bd-stageCount">{stage === 0 ? "Badge" : `${stage}/${totalStages - 1}`}</span>
                 <button className="bd-navBtn" disabled={stage >= totalStages - 1} onClick={() => setStage(stage + 1)}>›</button>
               </div>
             )}
@@ -139,27 +167,57 @@ export default function BadgeDetailModal({ badge, color, onClose, onVerify, onEd
             </div>
 
             <div className="bd-rightBottom">
-              {isSelfDeclared && (
+              {/* Evidence meta — show for any badge with evidence */}
+              {hasEvidence && (
                 <div className="bd-meta">
                   {evidenceUrls.length > 0 && <span>{evidenceUrls.length} evidence {evidenceUrls.length > 1 ? "items" : "item"}</span>}
                   <span>Status: <strong>{statusLabel}</strong></span>
                 </div>
               )}
-              {isSelfDeclared && status === "pending" && onVerify && (
+
+              {/* Waiting for expert to certify */}
+              {badgeType === "expert-certified" && status === "pending" && (
+                <p className="bd-waiting">⏳ Waiting for expert to certify your badge</p>
+              )}
+
+              {/* Request Expert Certification — self-declared + pending, not yet requested */}
+              {canRequestCertify && onVerify && (
                 <button className="bd-verifyBtn" disabled={verifying} onClick={async () => { setVerifying(true); await onVerify(); setVerifying(false); }}>
-                  {verifying ? "Sending..." : "Request Verification"}
+                  {verifying ? "Sending..." : "Request Expert Certification"}
                 </button>
               )}
+
+              {/* Already requested — waiting for expert */}
               {isSelfDeclared && status === "pending" && (
-                <div className="bd-editRow">
-                  {onEdit && <button className="bd-editBtn" onClick={onEdit}>Edit</button>}
-                  {onDelete && (
+                <p className="bd-waiting">✓ Certification requested — waiting for expert</p>
+              )}
+
+              {/* Cancel Request — pending self-declared (already requested) */}
+              {canCancelRequest && onCancelRequest && (
+                <button className="bd-cancelReqBtn" disabled={cancelling} onClick={async () => { setCancelling(true); onCancelRequest && await onCancelRequest(); setCancelling(false); }}>
+                  {cancelling ? "Cancelling..." : "Cancel Request"}
+                </button>
+              )}
+
+              {/* Edit + Delete same row — only for non-request */}
+              {(canEdit || canDelete) && (
+                <div className="bd-actionRow">
+                  {canEdit && onEdit && (
+                    <button className="bd-editBtn" onClick={onEdit}>Edit</button>
+                  )}
+                  {canDelete && onDelete && (
                     <button className="bd-deleteBtn" disabled={deleting} onClick={async () => { setDeleting(true); onDelete && await onDelete(); setDeleting(false); }}>
                       {deleting ? "Deleting..." : "Delete"}
                     </button>
                   )}
                 </div>
               )}
+
+              {/* Expert certified — evidence locked */}
+              {badgeType === "expert-certified" && status === "verified" && hasEvidence && (
+                <p className="bd-certified-note">✓ Certified by expert — evidence locked</p>
+              )}
+
               <button className="bd-closeBtn" onClick={onClose}>Close</button>
             </div>
           </div>

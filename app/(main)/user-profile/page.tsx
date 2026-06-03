@@ -34,7 +34,7 @@ interface UserData {
 }
 
 function getBadgeColor(b: any): string {
-  const type = b.attributes?.badge_type_snapshot || "";
+  const type = b.attributes?.badge_type_snapshot || b.attributes?.badgeTypeSnapshot || "";
   if (type === "self-declared") return "#A0D585";
   if (type === "evidence-backed") return "#FFA95A";
   if (type === "expert-certified") return "#FF5A5A";
@@ -73,14 +73,35 @@ export default function UserProfilePage() {
     if (!userId) return;
     fetch(`/api/users/${userId}`)
       .then((res) => res.json())
-      .then((json) => setUser(json.data))
+      .then((json) => { setUser(json.data); return json.data; })
+      .then((userData) => {
+        // Check follow status
+        return fetch(`/api/users/${userId}/follow`)
+          .then((res) => res.json())
+          .then((data) => {
+            setFollowing(data.following);
+            // Store user_id for event matching
+            if (userData?.attributes?.user_id && typeof window !== "undefined") {
+              (window as any).__profileUserId = userData.attributes.user_id;
+            }
+          });
+      })
+      .catch(() => {})
       .finally(() => setLoading(false));
-    // Check follow status
-    fetch(`/api/users/${userId}/follow`)
-      .then((res) => res.json())
-      .then((data) => setFollowing(data.following))
-      .catch(() => {});
   }, [userId]);
+
+  // Listen for follow-changed from community feed PostCards
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      const profileUid = (window as any).__profileUserId;
+      if (detail.authorUserId && profileUid && detail.authorUserId === profileUid) {
+        setFollowing(detail.isFollowing);
+      }
+    };
+    window.addEventListener("follow-changed", handler);
+    return () => window.removeEventListener("follow-changed", handler);
+  }, []);
 
   const toggleFollow = async () => {
     setFollowLoading(true);
@@ -312,12 +333,17 @@ export default function UserProfilePage() {
             {filteredBadges.slice((page - 1) * PER_PAGE, page * PER_PAGE).map((b: any, i: number) => {
               const badge = b.relationships?.badge?.data;
               const color = getBadgeColor(b);
+              const badgeType = b.attributes?.badge_type_snapshot || badge?.attributes?.badge_type || "";
+              const isLesson = badgeType === "lesson";
+              const cardImg = isLesson
+                ? (badge?.attributes?.thumbnail_url || badge?.attributes?.icon_url)
+                : (badge?.attributes?.icon_url || badge?.attributes?.thumbnail_url);
               return (
                 <div key={b.id || i} className="card" onClick={() => setDetailBadge({ badge: b, color })}>
                   <div className="card-image-area">
-                    {(badge?.attributes?.thumbnail_url || badge?.attributes?.icon_url) ? (
+                    {cardImg ? (
                       <img
-                        src={badge?.attributes?.thumbnail_url || badge?.attributes?.icon_url}
+                        src={cardImg}
                         alt={badge?.attributes?.name || "Badge"}
                         className="card-badge-icon"
                         onError={(e) => {

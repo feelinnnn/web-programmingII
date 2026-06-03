@@ -80,6 +80,7 @@ export async function GET(
       data: {
         id: user._id,
         attributes: {
+          user_id: user.user_id || user._id.toString(),
           email: user.email,
           display_name: user.display_name,
           sub_namebio: user.sub_namebio || "",

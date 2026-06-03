@@ -176,16 +176,20 @@
 .imageContainer {
   position: relative;
   width: 100%;
-  max-height: 450px;
+  max-height: 500px;
   overflow: hidden;
   cursor: zoom-in;
   z-index: 5;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .image {
   width: 100%;
-  height: 350px;
-  object-fit: cover;
+  max-height: 500px;
+  object-fit: contain;
   display: block;
 }
 
@@ -331,7 +335,8 @@
 .imageThumb img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  background: #f0f0f0;
 }
 
 .removeImg {
@@ -760,4 +765,75 @@
 
 .commentsError {
   color: #c0392b;
+}
+
+/* Comment edit/delete actions */
+.commentActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.commentActionBtn {
+  background: none;
+  border: none;
+  font-size: 11px;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s;
+}
+
+.commentActionBtn:hover {
+  color: #555;
+}
+
+.commentDeleteBtn {
+  color: #c0392b;
+}
+
+.commentDeleteBtn:hover {
+  color: #ff0000;
+}
+
+.commentEditRow {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.commentEditInput {
+  flex: 1;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 13px;
+  font-family: var(--font-body);
+  outline: none;
+}
+
+.commentEditInput:focus {
+  border-color: var(--orange);
+}
+
+.commentSaveBtn {
+  background: #A0D585;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.commentCancelBtn {
+  background: #eee;
+  color: #666;
+  border: none;
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+  cursor: pointer;
 }

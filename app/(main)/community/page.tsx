@@ -71,6 +71,8 @@ export default function CommunityFeedPage() {
   const [loading, setLoading] = useState(true);
   const [currentUserAvatar, setCurrentUserAvatar] = useState<string>("/avatar/Avatar.png");
   const [hashtags, setHashtags] = useState<Hashtag[]>([]);
+  const [creators, setCreators] = useState<Creator[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const currentUserId = useUserId() || ""; 
 
@@ -110,10 +112,11 @@ export default function CommunityFeedPage() {
     }
   };
 
-  const fetchFeed = async () => {
+  const fetchFeed = async (search?: string) => {
     try {
       setLoading(true);
-      const url = currentUserId ? `/api/posts?currentUserId=${currentUserId}` : '/api/posts';
+      let url = currentUserId ? `/api/posts?currentUserId=${currentUserId}` : '/api/posts';
+      if (search) url += `&search=${encodeURIComponent(search)}`;
       const res = await fetch(url);
       if (res.ok) {
         const json = await res.json();
@@ -124,6 +127,16 @@ export default function CommunityFeedPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchCreators = async () => {
+    try {
+      const res = await fetch('/api/popular-creations');
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success) setCreators(json.creators);
+      }
+    } catch (err) { console.error("Failed to load creators:", err); }
   };
 
   const fetchUserProfile = async () => {
@@ -145,6 +158,7 @@ export default function CommunityFeedPage() {
     fetchFeed();
     fetchUserProfile();
     fetchHashtags();
+    fetchCreators();
   }, [currentUserId]);
 
   const handleLike = async (postId: string) => {
@@ -227,21 +241,22 @@ export default function CommunityFeedPage() {
     }
   };
 
-  const handleEdit = async (postId: string, newContent: string, newImages: string[]) => {
+  const handleEdit = async (postId: string, newContent: string, newImages: string[], newHashtags: string[]) => {
     const postToEdit = posts.find((p) => p.id === postId);
     if (!postToEdit) return;
 
     setPosts((prevPosts) =>
       prevPosts.map((p) =>
-        p.id === postId 
-          ? { 
-              ...p, 
-              attributes: { 
-                ...p.attributes, 
-                content: newContent, 
-                imageUrls: newImages 
-              } 
-            } 
+        p.id === postId
+          ? {
+              ...p,
+              attributes: {
+                ...p.attributes,
+                content: newContent,
+                imageUrls: newImages,
+                hashtags: newHashtags
+              }
+            }
           : p
       )
     );
@@ -254,7 +269,8 @@ export default function CommunityFeedPage() {
           id: postId,
           content: newContent,
           userId: currentUserId,
-          imageUrls: newImages 
+          imageUrls: newImages,
+          hashtags: newHashtags
         })
       });
 
@@ -274,13 +290,13 @@ export default function CommunityFeedPage() {
       <div className={styles.main}>
         <div className={styles.topBar}>
           <h1 className={styles.pageTitle}>Community Feed</h1>
-          <SearchBar/>
+          <SearchBar onSearch={(q) => { setSearchQuery(q); fetchFeed(q); }} />
         </div>
 
-        <CreatePost 
-          currentUserId={currentUserId} 
-          userAvatar={currentUserAvatar} 
-          onPostCreated={fetchFeed} 
+        <CreatePost
+          currentUserId={currentUserId}
+          userAvatar={currentUserAvatar}
+          onPostCreated={() => { fetchFeed(); fetchHashtags(); fetchCreators(); }}
         />
 
         {loading ? (
@@ -306,8 +322,9 @@ export default function CommunityFeedPage() {
                   isLiked={post.attributes.isLiked}   
                   hashtags={post.attributes.hashtags}
                   bookmarks ={bookmarked}
-                  onLike={handleLike}                 
-                  //onEdit ={isOwner ? (id, content, images) => handleEdit(id, content, images) : undefined}
+                  authorUserId={post.attributes.userId}
+                  onLike={handleLike}
+                  onEdit={isOwner ? (id, content, images, hashtags) => handleEdit(id, content, images, hashtags) : undefined}
                   onDelete={isOwner ? handleDelete : undefined}
                 />
               );
@@ -317,8 +334,19 @@ export default function CommunityFeedPage() {
       </div>
 
       <aside className={styles.sidebar}>
-        <PopularHashtags hashtags={hashtags} />
-        <PopularCreations creators={MOCK_CREATORS} />
+        <PopularHashtags
+          hashtags={hashtags.length > 0 ? hashtags : MOCK_HASHTAGS}
+          onTagClick={(tag) => {
+            if (searchQuery === tag) {
+              setSearchQuery('');
+              fetchFeed();
+            } else {
+              setSearchQuery(tag);
+              fetchFeed(tag);
+            }
+          }}
+        />
+        <PopularCreations creators={creators.length > 0 ? creators : MOCK_CREATORS} currentUserId={currentUserId || undefined} />
       </aside>
     </div>
   );

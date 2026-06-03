@@ -99,6 +99,7 @@ export async function GET(req: NextRequest) {
           user_note: ub.userNote,
           badge_type_snapshot: ub.badgeTypeSnapshot,
           showcased: ub.showcased || false,
+          certification_requested: ub.certificationRequested || false,
           submitted_at: ub.submittedAt,
           verified_at: ub.verifiedAt,
         },

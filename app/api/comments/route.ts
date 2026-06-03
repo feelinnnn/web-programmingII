@@ -87,3 +87,56 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: "Failed to post" }, { status: 500 });
   }
 }
+
+// PATCH: แก้ไขคอมเมนต์
+export async function PATCH(request: Request) {
+  try {
+    await dbConnect();
+    const { commentId, userId, content } = await request.json();
+
+    if (!commentId || !userId || !content) {
+      return NextResponse.json({ success: false, error: "Missing fields" }, { status: 400 });
+    }
+
+    const updated = await Comment.findOneAndUpdate(
+      { "comment.comment_id": commentId, "comment.user_id": userId },
+      { $set: { "comment.content": content } },
+      { new: true }
+    ).lean();
+
+    if (!updated) {
+      return NextResponse.json({ success: false, error: "Not found or not owner" }, { status: 403 });
+    }
+
+    return NextResponse.json({ success: true, comment: updated });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: "Failed to edit" }, { status: 500 });
+  }
+}
+
+// DELETE: ลบคอมเมนต์
+export async function DELETE(request: Request) {
+  try {
+    await dbConnect();
+    const { searchParams } = new URL(request.url);
+    const commentId = searchParams.get("commentId");
+    const userId = searchParams.get("userId");
+
+    if (!commentId || !userId) {
+      return NextResponse.json({ success: false, error: "Missing commentId or userId" }, { status: 400 });
+    }
+
+    const deleted = await Comment.findOneAndDelete({
+      "comment.comment_id": commentId,
+      "comment.user_id": userId
+    });
+
+    if (!deleted) {
+      return NextResponse.json({ success: false, error: "Not found or not owner" }, { status: 403 });
+    }
+
+    return NextResponse.json({ success: true, message: "Deleted" });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: "Failed to delete" }, { status: 500 });
+  }
+}

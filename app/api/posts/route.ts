@@ -18,10 +18,11 @@ export async function GET(req: NextRequest) {
 
     // (Search)
     if (searchQuery) {
+      const cleanQuery = searchQuery.replace(/^#/, '');
       rawPosts = await Post.find({
         $or: [
-          { "post.content": { $regex: searchQuery, $options: "i" } },
-          { "post.hashtags": { $regex: searchQuery, $options: "i" } }
+          { "post.content": { $regex: cleanQuery, $options: "i" } },
+          { "post.hashtags": cleanQuery }
         ]
       }).sort({ "post.created_at": -1 });
 
@@ -35,8 +36,8 @@ export async function GET(req: NextRequest) {
         
       const matchedUserId = currentUserDoc ? currentUserDoc.user_id : currentUserId;
 
-      const followingList = await Follow.find({ "follow.follow_user_id": matchedUserId })
-        .distinct("follow.following_user_id");
+      const followingList = await Follow.find({ "comment.follower_user_id": matchedUserId })
+        .distinct("comment.following_user_id");
 
       const followedPosts = await Post.find({ "post.user_id": { $in: followingList } })
         .sort({ "post.created_at": -1 })
@@ -94,7 +95,7 @@ export async function GET(req: NextRequest) {
             creator: {
               displayName: creator?.display_name || "Unknown User",
               profileImageUrl: creator?.profile_image_url || "/avatar/default.png",
-              sub_namebio: creator?.bio || creator?.sub_namebio || "Member" 
+              sub_namebio: creator?.sub_namebio || "Home Cook"
             }
           }
         };
@@ -229,6 +230,7 @@ export async function PATCH(req: NextRequest) {
     const content = body?.content || body?.data?.attributes?.content;
     const userId = body?.userId || body?.data?.attributes?.userId;
     const imageUrls = body?.imageUrls || body?.data?.attributes?.imageUrls;
+    const hashtags = body?.hashtags || body?.data?.attributes?.hashtags;
 
     // ตรวจสอบเช็คความครบถ้วนของข้อมูล
     if (!postId || !content || !userId) {
@@ -250,7 +252,7 @@ export async function PATCH(req: NextRequest) {
         $set: {
           "post.content": content,
           "post.image_url": imageUrls || [], 
-          "post.hashtags": content.match(/#[\wก-๙]+/g) || [] // ดักจับแฮชแท็กใหม่อัตโนมัติถ้ามีการแก้
+          "post.hashtags": (hashtags && hashtags.length > 0) ? hashtags : (content.match(/#[\wก-๙]+/g) || [])
         }
       },
       { new: true } 

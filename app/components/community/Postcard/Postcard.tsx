@@ -67,10 +67,11 @@ export interface PostCardProps {
   onLike?: (id: string) => void;
   onBookmark?: (id: string) => void;
   onFollow?: (id: string) => void;
-  onEdit?: (id: string, newContent: string, newImages: string[], newHashtags: string[]) => Promise<boolean> | void;
+  onEdit?: (id: string, newContent: string, newImages: string[], newHashtags: string[]) => Promise<void> | void;
   onDelete?: (id: string) => void;
   onComment?: (id: string) =>void;
   hashtags?: string[];
+  authorUserId?: string;
 }
 
 
@@ -79,6 +80,7 @@ export default function PostCard({
   imageUrls = [], imageUrl = [], image_url = [],
   avatarUrl, likes, comments: initialCommentsCount, isLiked = false, bookmarks , isFollowing = false,
   onLike, onBookmark, onFollow, onEdit, onDelete, onComment, hashtags = [],
+  authorUserId = "",
 }: PostCardProps) {
 
   const userId = useUserId();
@@ -106,6 +108,18 @@ export default function PostCard({
   const [isLoadingComments, setIsLoadingComments] = useState(false);
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [commentError, setCommentError] = useState<string | null>(null);
+  const [followState, setFollowState] = useState(isFollowing);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editCommentText, setEditCommentText] = useState('');
+
+  // Check follow status on mount
+  useEffect(() => {
+    if (!userId || !authorUserId || onDelete) return;
+    fetch(`/api/follow?followerUserId=${userId}&followingUserId=${authorUserId}`)
+      .then(res => res.json())
+      .then(data => setFollowState(data.data?.isFollowing ?? false))
+      .catch(() => {});
+  }, [userId, authorUserId, onDelete]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -215,6 +229,18 @@ export default function PostCard({
     setMenuOpen(false);
   };
 
+  // Auto-detect #hashtags from edit text
+  const handleEditTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setEditContent(value);
+    const detected = [...value.matchAll(/#([\w฀-๿]+)/g)].map(m => m[1]);
+    setEditTags(prev => {
+      const existing = new Set(prev);
+      detected.forEach(t => existing.add(t));
+      return [...existing];
+    });
+  };
+
   const handleSaveEdit = async () => {
     if (!onEdit || editContent.trim() === "") return;
     setIsSaving(true);
@@ -287,6 +313,68 @@ export default function PostCard({
     setPreviewImgIndex(currentImgIndex);
     setIsPreviewOpen(true);
   };
+
+  const handleFollow = async () => {
+    if (!userId) { alert("Please login first!"); return; }
+    if (!authorUserId) return;
+    try {
+      const res = await fetch("/api/follow", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ followerUserId: userId, followingUserId: authorUserId })
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const newState = json.data?.isFollowing ?? !followState;
+        setFollowState(newState);
+        // Sync all other PostCards + user-profile via custom event
+        window.dispatchEvent(new CustomEvent("follow-changed", {
+          detail: { authorUserId, isFollowing: newState }
+        }));
+      }
+    } catch (err) { console.error("Follow error:", err); }
+  };
+
+  // Listen for follow-changed events from other PostCards
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { authorUserId: changedUserId, isFollowing: newState } = (e as CustomEvent).detail;
+      if (changedUserId === authorUserId) {
+        setFollowState(newState);
+      }
+    };
+    window.addEventListener("follow-changed", handler);
+    return () => window.removeEventListener("follow-changed", handler);
+  }, [authorUserId]);
+
+  const handleEditComment = async (commentId: string) => {
+    if (!editCommentText.trim() || !userId) return;
+    try {
+      const res = await fetch("/api/comments", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ commentId, userId, content: editCommentText.trim() })
+      });
+      if (res.ok) {
+        setCommentsList(prev => prev.map(c => c.id === commentId ? { ...c, content: editCommentText.trim() } : c));
+        setEditingCommentId(null);
+        setEditCommentText('');
+      }
+    } catch (err) { console.error("Edit comment error:", err); }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!userId) return;
+    if (!window.confirm("Delete this comment?")) return;
+    try {
+      const res = await fetch(`/api/comments?commentId=${commentId}&userId=${userId}`, { method: "DELETE" });
+      if (res.ok) {
+        setCommentsList(prev => prev.filter(c => c.id !== commentId));
+        setCommentCount(prev => Math.max(0, prev - 1));
+      }
+    } catch (err) { console.error("Delete comment error:", err); }
+  };
+
 const handleBookmark = async (id : string) =>{
 
     const foundTarget = myBookmarks?.find(item => item.bookmark.post_id === id);
@@ -327,23 +415,29 @@ const handleBookmark = async (id : string) =>{
 
   const finalAvatarUrl = avatarUrl && avatarUrl !== "/avatar/default.png" ? avatarUrl : "/avatar/Avatar.png";
 
+  const handleProfileClick = () => {
+    if (authorUserId) {
+      window.open(`/user-profile?user_id=${authorUserId}`, '_blank');
+    }
+  };
+
   return (
     <div className={styles.card}>
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.userInfo}>
-          <div className={styles.avatar}>
+          <div className={styles.avatar} onClick={handleProfileClick} style={{ cursor: 'pointer' }}>
             <img src={finalAvatarUrl} alt={author} className={styles.avatarImg} onError={(e) => { e.currentTarget.src = "/avatar/Avatar.png"; }} />
           </div>
           <div className={styles.userDetails}>
-            <span className={styles.authorName}>{author}</span>
+            <span className={styles.authorName} onClick={handleProfileClick} style={{ cursor: 'pointer' }}>{author}</span>
             <span className={styles.postMeta}>{sub_namebio ? `${sub_namebio} - ` : ''}{formatTimeAgo(time)}</span>
           </div>
         </div>
         <div className={styles.headerActions}>
           {!onDelete && (
-            <button className={`${styles.followBtn} ${isFollowing ? styles.followingBtn : ''}`} onClick={() => onFollow?.(id)}>
-              {isFollowing ? 'Following' : '+ Follow'}
+            <button className={`${styles.followBtn} ${followState ? styles.followingBtn : ''}`} onClick={handleFollow}>
+              {followState ? 'Following' : '+ Follow'}
             </button>
           )}
           {(onEdit || onDelete) && !isEditing && (
@@ -368,7 +462,7 @@ const handleBookmark = async (id : string) =>{
               autoFocus
               className={styles.textarea}
               value={editContent}
-              onChange={(e) => setEditContent(e.target.value)}
+              onChange={handleEditTextChange}
               disabled={isSaving}
               rows={3}
               placeholder="Share your recipe here..."
@@ -536,7 +630,26 @@ const handleBookmark = async (id : string) =>{
                       <span className={styles.commenterName}>{cmt.author}</span>
                       <span className={styles.commentTimeMeta}>{formatTimeAgo(cmt.createdAt)}</span>
                     </div>
-                    <p className={styles.commentBodyText}>{cmt.content}</p>
+                    {editingCommentId === cmt.id ? (
+                      <div className={styles.commentEditRow}>
+                        <input
+                          value={editCommentText}
+                          onChange={(e) => setEditCommentText(e.target.value)}
+                          className={styles.commentEditInput}
+                          onKeyDown={(e) => e.key === 'Enter' && handleEditComment(cmt.id)}
+                        />
+                        <button onClick={() => handleEditComment(cmt.id)} className={styles.commentSaveBtn}>✓</button>
+                        <button onClick={() => { setEditingCommentId(null); setEditCommentText(''); }} className={styles.commentCancelBtn}>✕</button>
+                      </div>
+                    ) : (
+                      <p className={styles.commentBodyText}>{cmt.content}</p>
+                    )}
+                    {userId === cmt.userId && editingCommentId !== cmt.id && (
+                      <div className={styles.commentActions}>
+                        <button onClick={() => { setEditingCommentId(cmt.id); setEditCommentText(cmt.content); }} className={styles.commentActionBtn}>Edit</button>
+                        <button onClick={() => handleDeleteComment(cmt.id)} className={styles.commentActionBtn + ' ' + styles.commentDeleteBtn}>Delete</button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

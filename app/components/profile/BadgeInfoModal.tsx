@@ -10,7 +10,7 @@ interface Props {
 
 const INFO = [
   { color: "#A0D585", label: "Self Declared" },
-  { color: "#FFA95A", label: "Evidence Backed" },
+  { color: "#FFA95A", label: "Lesson Evidence Backed" },
   { color: "#FF5A5A", label: "Expert Certified" },
   { color: "#FFD45A", label: "Lesson" },
 ];

@@ -137,7 +137,7 @@ export default function ProfilePage() {
 
   // Count badges by status
   const verifiedBadges = badges.filter((b: any) => b.attributes?.status === "verified");
-  const pendingBadges = badges.filter((b: any) => b.attributes?.status === "pending");
+  const pendingBadges = badges.filter((b: any) => b.attributes?.status === "pending" || b.attributes?.status === "non-request");
 
   // Assign color based on badge_type_snapshot
   const getBadgeColor = (b: any): string => {
@@ -149,8 +149,12 @@ export default function ProfilePage() {
     return "#A0D585"; // fallback green
   };
 
+  // Color counts — respect showcaseMode (select = only showcased)
   const colorCounts: Record<string, number> = {};
-  badges.forEach((b: any) => {
+  const colorSource = showcaseMode === "select"
+    ? badges.filter((b: any) => showcaseBadges.has(b.id))
+    : badges;
+  colorSource.forEach((b: any) => {
     const c = getBadgeColor(b);
     colorCounts[c] = (colorCounts[c] || 0) + 1;
   });
@@ -356,7 +360,7 @@ export default function ProfilePage() {
               className={`tag tag-all ${!colorFilter ? "active" : ""}`}
               onClick={() => setColorFilter(null)}
             >
-              All <span className="count">{badges.length}</span>
+              All <span className="count">{colorSource.length}</span>
             </span>
             <span
               className={`tag tag-green ${colorFilter === "#A0D585" ? "active" : ""}`}
@@ -394,12 +398,16 @@ export default function ProfilePage() {
             {pagedBadges.map((userBadge: any, i: number) => {
               const badge = userBadge.relationships?.badge?.data;
               const color = getBadgeColor(userBadge);
+              const isLesson = (userBadge.attributes?.badge_type_snapshot || badge?.attributes?.badge_type || "") === "lesson";
+              const cardImg = isLesson
+                ? (badge?.attributes?.thumbnail_url || badge?.attributes?.icon_url)
+                : (badge?.attributes?.icon_url || badge?.attributes?.thumbnail_url);
               return (
                 <div key={userBadge.id || i} className="card" onClick={() => setDetailBadge({ badge: userBadge, color })}>
                   <div className="card-image-area">
-                    {(badge?.attributes?.thumbnail_url || badge?.attributes?.icon_url) ? (
+                    {cardImg ? (
                       <img
-                        src={badge?.attributes?.thumbnail_url || badge?.attributes?.icon_url}
+                        src={cardImg}
                         alt={badge?.attributes?.name || "Badge"}
                         className="card-badge-icon"
                         onError={(e) => {
@@ -517,13 +525,18 @@ export default function ProfilePage() {
           onClose={() => setDetailBadge(null)}
           onVerify={async () => {
             const token = localStorage.getItem("token");
-            await fetch(`/api/user-badges/${detailBadge.badge.id}/verify`, {
+            const res = await fetch(`/api/user-badges/${detailBadge.badge.id}/verify`, {
               method: "PATCH",
               headers: {
                 "Content-Type": "application/json",
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
               },
             });
+            if (!res.ok) {
+              const err = await res.json();
+              alert(err.errors?.[0]?.detail || "Cannot request certification");
+              return;
+            }
             setDetailBadge(null);
             fetchProfile();
           }}
@@ -531,6 +544,15 @@ export default function ProfilePage() {
             const b = detailBadge.badge;
             setDetailBadge(null);
             setEditBadge(b);
+          }}
+          onCancelRequest={async () => {
+            const token = localStorage.getItem("token");
+            await fetch(`/api/user-badges/${detailBadge.badge.id}/cancel`, {
+              method: "PATCH",
+              headers: token ? { Authorization: `Bearer ${token}` } : {},
+            });
+            setDetailBadge(null);
+            fetchProfile();
           }}
           onDelete={async () => {
             const token = localStorage.getItem("token");
