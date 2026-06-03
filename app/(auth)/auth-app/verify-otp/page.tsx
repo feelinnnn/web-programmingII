@@ -9,13 +9,30 @@ function OtpFrom() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    const email = searchParams.get("email") || "";
-    const username = searchParams.get("username") || "";
-    const purpose = searchParams.get("purpose") || "register";
-
+    const [email, setEmail] = useState("");
+    const [purpose, setPurpose] = useState("");
     const [otpCode, setOtpCode] = useState("");
     const [loading, setLoading] = useState(false);
     const [timeLeft, setTimeLeft] = useState(60); // Countdown timer state
+
+    useEffect(() => {
+        // Try to get from sessionStorage first
+        const storedEmail = sessionStorage.getItem("auth_email");
+        const storedPurpose = sessionStorage.getItem("auth_purpose");
+
+        if (storedEmail) {
+            setEmail(storedEmail);
+        } else {
+            // Fallback to searchParams if needed (optional)
+            setEmail(searchParams.get("email") || "");
+        }
+
+        if (storedPurpose) {
+            setPurpose(storedPurpose);
+        } else {
+            setPurpose(searchParams.get("purpose") || "register");
+        }
+    }, [searchParams]);
 
     // Countdown effect
     useEffect(() => {
@@ -35,12 +52,15 @@ function OtpFrom() {
         setLoading(true);
 
         try {
-            const apiUrl = purpose === "login" ? "/api/auth/login-step2" : "/api/auth/verify-register";
+            let apiUrl = "";
+            if (purpose === "login") apiUrl = "/api/auth/login-step2";
+            else if (purpose === "register") apiUrl = "/api/auth/verify-register";
+            else if (purpose === "forgot_password") apiUrl = "/api/auth/verify-forgot-password";
 
             const res = await fetch(apiUrl, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, otpCode, username }),
+                body: JSON.stringify({ email, otpCode }),
             });
 
             const data = await res.json();
@@ -56,7 +76,21 @@ function OtpFrom() {
                     showConfirmButton: false,
                 });
                 localStorage.setItem("token", data.token);
+                // Clean up sessionStorage
+                sessionStorage.removeItem("auth_email");
+                sessionStorage.removeItem("auth_purpose");
                 router.push("/community");
+            } else if (purpose === "forgot_password") {
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'OTP Verified!',
+                    text: 'Please set your new password.',
+                    timer: 1500,
+                    showConfirmButton: false,
+                });
+                sessionStorage.setItem("auth_email", email);
+                sessionStorage.setItem("auth_token", data.resetToken);
+                router.push("/auth-app/reset-password");
             } else {
                 await Swal.fire({
                     icon: 'success',
@@ -65,6 +99,9 @@ function OtpFrom() {
                     confirmButtonText: 'Go to Login',
                     confirmButtonColor: '#3b1f1f',
                 });
+                // Clean up sessionStorage
+                sessionStorage.removeItem("auth_email");
+                sessionStorage.removeItem("auth_purpose");
                 router.push("/auth-app/login");
             }
         } catch (err: any) {

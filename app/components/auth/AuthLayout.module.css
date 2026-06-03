@@ -3,6 +3,7 @@
   min-height: 100vh;
   background-color: var(--cream);
   overflow: hidden;
+  position: relative;
 }
 
 .left {
@@ -21,24 +22,28 @@
   justify-content: center;
   overflow: hidden;
   background-color: var(--cream);
+  z-index: 2;
 }
 
 .panel .circle {
   position: absolute;
-  width: 140vh; /* ใช้ vh เพื่อให้สัมพันธ์กับความสูงหน้าจอ */
+  width: 140vh;
   height: 140vh;
   background-color: var(--brown-dark);
   border-radius: 50%;
   top: 50%;
   transform: translateY(-50%);
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .left .circle {
-  left: -40vh; /* ขยับให้กินพื้นที่เข้ามาเกินครึ่งจอนิดนึง */
+  left: -40vh;
+  animation: slideInLeft 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .right .circle {
   right: -40vh;
+  animation: slideInRight 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .panelInner {
@@ -49,6 +54,7 @@
   align-items: center;
   text-align: center;
   padding: 2rem;
+  animation: fadeInDown 0.8s ease-out 0.2s both;
 }
 
 .formSection {
@@ -57,4 +63,72 @@
   align-items: center;
   justify-content: center;
   padding: 3rem 4rem;
+  z-index: 1;
+  animation: fadeIn 1s ease-out 0.3s both;
+}
+
+/* Animations */
+@keyframes slideInLeft {
+  from { transform: translateY(-50%) translateX(-100%); opacity: 0; }
+  to { transform: translateY(-50%) translateX(0); opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { transform: translateY(-50%) translateX(100%); opacity: 0; }
+  to { transform: translateY(-50%) translateX(0); opacity: 1; }
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .formSection {
+    padding: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column !important;
+  }
+
+  .panel {
+    width: 100%;
+    min-height: 35vh;
+    padding: 2rem 1rem;
+  }
+
+  .left .circle, .right .circle {
+    width: 150vw;
+    height: 150vw;
+    left: 50%;
+    right: auto;
+    top: -100vw;
+    transform: translateX(-50%);
+    animation: slideInTop 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  .formSection {
+    width: 100%;
+    min-height: 65vh;
+    padding: 2rem 1.5rem;
+    align-items: flex-start;
+  }
+
+  .panelInner {
+    padding: 1rem;
+  }
+}
+
+@keyframes slideInTop {
+  from { transform: translateX(-50%) translateY(-20%); opacity: 0; }
+  to { transform: translateX(-50%) translateY(0); opacity: 1; }
 }

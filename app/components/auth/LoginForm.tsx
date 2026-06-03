@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import SocialButtons from './SocialButtons';
 import styles from './LoginForm.module.css';
 import { validateEmail } from '@/lib/validation';
+import Swal from 'sweetalert2';
 
 export default function LoginForm() {
   const router = useRouter();
@@ -14,27 +15,39 @@ export default function LoginForm() {
 
   // เก็บ errors แยกตาม field
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
+  const [touched, setTouched] = useState<{ email?: boolean; password?: boolean }>({});
   const [loading, setLoading] = useState(false);
+
+  const validateField = (name: string, value: string) => {
+    if (name === 'email') {
+      return validateEmail(value);
+    }
+    if (name === 'password') {
+      return value ? null : "Password is required.";
+    }
+    return null;
+  };
 
   const doLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrors({}); // ล้าง error เก่าก่อนเริ่มใหม่
+    
+    // Mark all fields as touched on submit
+    setTouched({ email: true, password: true });
 
     // Client-side validation
-    const newErrors: any = {};
-    
     const emailErr = validateEmail(email);
-    if (emailErr) newErrors.email = emailErr;
+    const passwordErr = password ? null : "Password is required.";
     
-    if (!password) {
-      newErrors.password = "Password is required.";
-    }
+    const newErrors: any = {};
+    if (emailErr) newErrors.email = emailErr;
+    if (passwordErr) newErrors.password = passwordErr;
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
+    setErrors({}); // ล้าง error เก่าก่อนเริ่มใหม่
     // ถ้าผ่านการตรวจ เริ่มยิง API
     setLoading(true);
     try {
@@ -50,21 +63,35 @@ export default function LoginForm() {
         if (data.errors) {
           setErrors(data.errors);
         } else {
-          // Handle specific known messages from backend
-          if (data.message?.toLowerCase().includes('email')) {
-            setErrors({ email: data.message });
-          } else if (data.message?.toLowerCase().includes('password')) {
-            setErrors({ password: data.message });
-          } else {
-            setErrors({ general: data.message || 'Invalid email or password' });
+          // Map general error message to both fields
+          const errMsg = data.message || 'Invalid email or password';
+          setErrors({ 
+            email: errMsg.toLowerCase().includes('password') ? undefined : errMsg,
+            password: errMsg.toLowerCase().includes('email') ? undefined : errMsg,
+            general: undefined 
+          });
+          
+          // If it's a truly general error (doesn't mention either), show on both
+          if (!errMsg.toLowerCase().includes('email') && !errMsg.toLowerCase().includes('password')) {
+            setErrors({ email: errMsg, password: errMsg });
           }
         }
         return;
       }
 
-      router.push(`/auth-app/verify-otp?email=${encodeURIComponent(email)}&purpose=login`);
+      await Swal.fire({
+        icon: 'success',
+        title: 'OTP Sent!',
+        text: 'Please check your email for the verification code.',
+        timer: 2000,
+        showConfirmButton: false,
+      });
+
+      sessionStorage.setItem('auth_email', email);
+      sessionStorage.setItem('auth_purpose', 'login');
+      router.push('/auth-app/verify-otp');
     } catch (err: any) {
-      setErrors({ general: err.message });
+      setErrors({ email: err.message, password: err.message });
     } finally {
       setLoading(false);
     }
@@ -72,23 +99,29 @@ export default function LoginForm() {
 
   const handleEmailChange = (val: string) => {
     setEmail(val);
-    const err = validateEmail(val);
-    setErrors(prev => ({ ...prev, email: err || undefined, general: undefined }));
+    if (errors.email || errors.general) {
+      setErrors(prev => ({ ...prev, email: undefined, general: undefined }));
+    }
   };
 
   const handlePasswordChange = (val: string) => {
     setPassword(val);
-    const err = val ? undefined : "Password is required.";
-    setErrors(prev => ({ ...prev, password: err, general: undefined }));
+    if (errors.password || errors.general) {
+      setErrors(prev => ({ ...prev, password: undefined, general: undefined }));
+    }
+  };
+
+  const handleBlur = (field: 'email' | 'password') => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    const val = field === 'email' ? email : password;
+    const err = validateField(field, val);
+    setErrors(prev => ({ ...prev, [field]: err || undefined }));
   };
 
   return (
-    <form onSubmit={doLogin} className={styles.form}>
+    <form onSubmit={doLogin} className={styles.form} noValidate>
       <h1 className={styles.title}>Login</h1>
       
-      {/* แจ้งเตือนข้อผิดพลาดจาก Server (General Error) */}
-      {errors.general && <div className={styles.errorMessage} style={{textAlign: 'center', marginBottom: '10px'}}>{errors.general}</div>}
-
       <div className={styles.field}>
         <label className={styles.label}>Email</label>
         <input
@@ -96,10 +129,12 @@ export default function LoginForm() {
           placeholder="Example@email.com"
           value={email}
           onChange={(e) => handleEmailChange(e.target.value)}
-          className={`${styles.input} ${errors.email ? styles.inputError : ''}`}
+          onBlur={() => handleBlur('email')}
+          className={`${styles.input} ${touched.email && errors.email ? styles.inputError : ''}`}
           disabled={loading}
+          autoComplete="off"
         />
-        {errors.email && <div className={styles.errorMessage}>{errors.email}</div>}
+        {touched.email && errors.email && <div className={styles.errorMessage}>{errors.email}</div>}
       </div>
 
       <div className={styles.field}>
@@ -109,13 +144,15 @@ export default function LoginForm() {
           placeholder="Enter your password"
           value={password}
           onChange={(e) => handlePasswordChange(e.target.value)}
-          className={`${styles.input} ${errors.password ? styles.inputError : ''}`}
+          onBlur={() => handleBlur('password')}
+          className={`${styles.input} ${touched.password && errors.password ? styles.inputError : ''}`}
           disabled={loading}
+          autoComplete="off"
         />
-        {errors.password && <div className={styles.errorMessage}>{errors.password}</div>}
+        {touched.password && errors.password && <div className={styles.errorMessage}>{errors.password}</div>}
         
         <div className={styles.forgotBlock}>
-          <Link href="/forgot-password" className={styles.forgotLink}>Forgot Password?</Link>
+          <Link href="/auth-app/forgot-password" className={styles.forgotLink}>Forgot Password?</Link>
         </div>
       </div>
 

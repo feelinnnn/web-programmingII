@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import SocialButtons from './SocialButtons';
 import styles from './RegisterForm.module.css';
 import { validateEmail, validatePassword, validateUsername } from '@/lib/validation';
+import Swal from 'sweetalert2';
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -20,33 +21,58 @@ export default function RegisterForm() {
     confirmPassword?: string;
     general?: string;
   }>({});
+  const [touched, setTouched] = useState<{
+    username?: boolean;
+    email?: boolean;
+    password?: boolean;
+    confirmPassword?: boolean;
+  }>({});
   const [loading, setLoading] = useState(false);
+
+  const validateField = (name: string, value: string) => {
+    switch (name) {
+      case 'username':
+        return validateUsername(value);
+      case 'email':
+        return validateEmail(value);
+      case 'password':
+        return validatePassword(value);
+      case 'confirmPassword':
+        return (value && value !== password) ? "Passwords don't match!" : null;
+      default:
+        return null;
+    }
+  };
 
   const doRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setErrors({});
+    
+    // Mark all as touched
+    setTouched({
+      username: true,
+      email: true,
+      password: true,
+      confirmPassword: true
+    });
 
     // Client-side validation
     const newErrors: any = {};
-    
     const emailErr = validateEmail(email);
-    if (emailErr) newErrors.email = emailErr;
-
     const usernameErr = validateUsername(username);
-    if (usernameErr) newErrors.username = usernameErr;
-
     const passwordErr = validatePassword(password);
-    if (passwordErr) newErrors.password = passwordErr;
+    const confirmErr = (password !== confirmPassword) ? "Passwords don't match!" : null;
 
-    if (password !== confirmPassword) {
-      newErrors.confirmPassword = "Passwords don't match!";
-    }
+    if (emailErr) newErrors.email = emailErr;
+    if (usernameErr) newErrors.username = usernameErr;
+    if (passwordErr) newErrors.password = passwordErr;
+    if (confirmErr) newErrors.confirmPassword = confirmErr;
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
+    setErrors({});
     setLoading(true);
 
     try {
@@ -63,22 +89,38 @@ export default function RegisterForm() {
         if (data.errors) {
           setErrors(data.errors);
         } else {
-          // Handle specific known messages from backend
-          if (data.message?.toLowerCase().includes('email')) {
-            setErrors({ email: data.message });
-          } else if (data.message?.toLowerCase().includes('username')) {
-            setErrors({ username: data.message });
-          } else {
-            setErrors({ general: data.message || 'Something went wrong' });
+          // Map general error to all relevant fields
+          const errMsg = data.message || 'Something went wrong';
+          setErrors({
+            username: errMsg.toLowerCase().includes('username') ? errMsg : undefined,
+            email: errMsg.toLowerCase().includes('email') ? errMsg : undefined,
+            password: errMsg.toLowerCase().includes('password') ? errMsg : undefined,
+          });
+
+          // If it's truly general (doesn't mention any specific field), show on all
+          if (!errMsg.toLowerCase().includes('email') && 
+              !errMsg.toLowerCase().includes('username') && 
+              !errMsg.toLowerCase().includes('password')) {
+            setErrors({ email: errMsg, username: errMsg, password: errMsg });
           }
         }
         return;
       }
 
-      router.push(`/auth-app/verify-otp?email=${encodeURIComponent(email)}&username=${encodeURIComponent(username)}&purpose=register`);
+      await Swal.fire({
+        icon: 'success',
+        title: 'OTP Sent!',
+        text: 'Please check your email for the verification code.',
+        timer: 2000,
+        showConfirmButton: false,
+      });
+
+      sessionStorage.setItem('auth_email', email);
+      sessionStorage.setItem('auth_purpose', 'register');
+      router.push('/auth-app/verify-otp');
 
     } catch (err: any) {
-      setErrors({ general: err.message });
+      setErrors({ email: err.message, username: err.message, password: err.message });
     } finally {
       setLoading(false);
     }
@@ -86,40 +128,47 @@ export default function RegisterForm() {
 
   const handleUsernameChange = (val: string) => {
     setUsername(val);
-    const err = validateUsername(val);
-    setErrors(prev => ({ ...prev, username: err || undefined, general: undefined }));
+    if (errors.username) {
+      setErrors(prev => ({ ...prev, username: undefined, general: undefined }));
+    }
   };
 
   const handleEmailChange = (val: string) => {
     setEmail(val);
-    const err = validateEmail(val);
-    setErrors(prev => ({ ...prev, email: err || undefined, general: undefined }));
+    if (errors.email) {
+      setErrors(prev => ({ ...prev, email: undefined, general: undefined }));
+    }
   };
 
   const handlePasswordChange = (val: string) => {
     setPassword(val);
-    const err = validatePassword(val);
-    // Only show mismatch error if confirm field has been touched/filled
-    const confirmErr = (confirmPassword && val !== confirmPassword) ? "Passwords don't match!" : undefined;
-    setErrors(prev => ({ 
-      ...prev, 
-      password: err || undefined, 
-      confirmPassword: confirmErr,
-      general: undefined 
-    }));
+    if (errors.password || errors.confirmPassword) {
+      setErrors(prev => ({ ...prev, password: undefined, confirmPassword: undefined, general: undefined }));
+    }
   };
 
   const handleConfirmPasswordChange = (val: string) => {
     setConfirmPassword(val);
-    const err = (val && val !== password) ? "Passwords don't match!" : undefined;
-    setErrors(prev => ({ ...prev, confirmPassword: err, general: undefined }));
+    if (errors.confirmPassword) {
+      setErrors(prev => ({ ...prev, confirmPassword: undefined, general: undefined }));
+    }
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    let val = '';
+    if (field === 'username') val = username;
+    else if (field === 'email') val = email;
+    else if (field === 'password') val = password;
+    else if (field === 'confirmPassword') val = confirmPassword;
+
+    const err = validateField(field, val);
+    setErrors(prev => ({ ...prev, [field]: err || undefined }));
   };
 
   return (
-    <form onSubmit={doRegister} className={styles.form}>
+    <form onSubmit={doRegister} className={styles.form} noValidate>
       <h1 className={styles.title}>Create Account</h1>
-
-      {errors.general && <div className={styles.errorMessage} style={{ textAlign: 'center', marginBottom: '10px' }}>{errors.general}</div>}
 
       <div className={styles.field}>
         <label className={styles.label}>Username</label>
@@ -128,10 +177,12 @@ export default function RegisterForm() {
           placeholder="Enter your username"
           value={username}
           onChange={(e) => handleUsernameChange(e.target.value)}
-          className={`${styles.input} ${errors.username ? styles.inputError : ''}`}
+          onBlur={() => handleBlur('username')}
+          className={`${styles.input} ${touched.username && errors.username ? styles.inputError : ''}`}
           disabled={loading}
+          autoComplete="off"
         />
-        {errors.username && <div className={styles.errorMessage}>{errors.username}</div>}
+        {touched.username && errors.username && <div className={styles.errorMessage}>{errors.username}</div>}
       </div>
 
       <div className={styles.field}>
@@ -141,10 +192,12 @@ export default function RegisterForm() {
           placeholder="Example@email.com"
           value={email}
           onChange={(e) => handleEmailChange(e.target.value)}
-          className={`${styles.input} ${errors.email ? styles.inputError : ''}`}
+          onBlur={() => handleBlur('email')}
+          className={`${styles.input} ${touched.email && errors.email ? styles.inputError : ''}`}
           disabled={loading}
+          autoComplete="off"
         />
-        {errors.email && <div className={styles.errorMessage}>{errors.email}</div>}
+        {touched.email && errors.email && <div className={styles.errorMessage}>{errors.email}</div>}
       </div>
 
       <div className={styles.field}>
@@ -154,10 +207,12 @@ export default function RegisterForm() {
           placeholder="At least 8 characters"
           value={password}
           onChange={(e) => handlePasswordChange(e.target.value)}
-          className={`${styles.input} ${errors.password ? styles.inputError : ''}`}
+          onBlur={() => handleBlur('password')}
+          className={`${styles.input} ${touched.password && errors.password ? styles.inputError : ''}`}
           disabled={loading}
+          autoComplete="off"
         />
-        {errors.password && <div className={styles.errorMessage}>{errors.password}</div>}
+        {touched.password && errors.password && <div className={styles.errorMessage}>{errors.password}</div>}
       </div>
 
       <div className={styles.field}>
@@ -167,10 +222,12 @@ export default function RegisterForm() {
           placeholder="At least 8 characters"
           value={confirmPassword}
           onChange={(e) => handleConfirmPasswordChange(e.target.value)}
-          className={`${styles.input} ${errors.confirmPassword ? styles.inputError : ''}`}
+          onBlur={() => handleBlur('confirmPassword')}
+          className={`${styles.input} ${touched.confirmPassword && errors.confirmPassword ? styles.inputError : ''}`}
           disabled={loading}
+          autoComplete="off"
         />
-        {errors.confirmPassword && <div className={styles.errorMessage}>{errors.confirmPassword}</div>}
+        {touched.confirmPassword && errors.confirmPassword && <div className={styles.errorMessage}>{errors.confirmPassword}</div>}
       </div>
 
       <button type="submit" className={styles.submitBtn} disabled={loading}>
