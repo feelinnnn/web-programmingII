@@ -9,9 +9,10 @@ export interface Hashtag {
 
 interface Props {
   hashtags: Hashtag[];
+  onTagClick?: (tag: string) => void;
 }
 
-export default function PopularHashtags({ hashtags }: Props) {
+export default function PopularHashtags({ hashtags, onTagClick }: Props) {
   return (
     <div className={styles.card}>
       <h3 className={styles.title}>
@@ -19,7 +20,7 @@ export default function PopularHashtags({ hashtags }: Props) {
       </h3>
       <ul className={styles.list}>
         {hashtags.map((item) => (
-          <li key={item.rank} className={styles.item}>
+          <li key={item.rank} className={styles.item} onClick={() => onTagClick?.(item.tag)} style={{ cursor: 'pointer' }}>
             <span className={styles.rank}>{item.rank}</span>
             <div className={styles.info}>
               <span className={styles.tag}>{item.tag}</span>

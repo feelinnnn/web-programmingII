@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose'
 export interface IUserBadge extends Document {
   userId: string
   badgeId: string
-  status: 'pending' | 'verified' | 'declined'
+  status: 'non-request' | 'pending' | 'verified' | 'declined'
   evidenceUrls: string[]
   userNote: string
   adminId: string | null
@@ -12,15 +12,16 @@ export interface IUserBadge extends Document {
   verifiedAt: Date | null
   badgeTypeSnapshot: "self-declared" | "evidence-backed" | "expert-certified" | "lesson"
   showcased: boolean
+  certificationRequested: boolean
 }
 
 const UserBadgeSchema = new Schema<IUserBadge>({
   userId: { type: String, required: true },
   badgeId: { type: String, required: true },
-  status: { 
-    type: String, 
-    enum: ['pending', 'verified', 'declined'], 
-    default: 'pending' 
+  status: {
+    type: String,
+    enum: ['non-request', 'pending', 'verified', 'declined'],
+    default: 'non-request'
   },
   evidenceUrls: [String],
   userNote: { type: String },
@@ -32,7 +33,10 @@ const UserBadgeSchema = new Schema<IUserBadge>({
     type: String,
     enum: ["self-declared", "evidence-backed", "expert-certified", "lesson"]
   },
-  showcased: { type: Boolean, default: false }
+  showcased: { type: Boolean, default: false },
+  certificationRequested: { type: Boolean, default: false }
 })
+
+UserBadgeSchema.index({ userId: 1, badgeId: 1 }, { unique: true })
 
 export default mongoose.models.UserBadge || mongoose.model<IUserBadge>('UserBadge', UserBadgeSchema)

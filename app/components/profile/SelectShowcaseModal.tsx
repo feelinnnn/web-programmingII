@@ -10,8 +10,15 @@ interface BadgeData {
   attributes: {
     status: string;
     evidence_url?: string;
+    evidence_urls?: string[];
+    evidenceUrls?: string[];
     user_note?: string;
+    userNote?: string;
     badge_type_snapshot?: string;
+    badgeTypeSnapshot?: string;
+    certification_requested?: boolean;
+    certificationRequested?: boolean;
+    showcased?: boolean;
     submitted_at?: string;
     verified_at?: string;
   };
@@ -43,7 +50,7 @@ const MAX_PER_TYPE = 10;
 
 const BADGE_TYPES = [
   { key: "self-declared", label: "Self Declared", color: "#A0D585" },
-  { key: "evidence-backed", label: "Evidence Backed", color: "#FFA95A" },
+  { key: "evidence-backed", label: "Lesson Evidence Backed", color: "#FFA95A" },
   { key: "expert-certified", label: "Expert Certified", color: "#FF5A5A" },
   { key: "lesson", label: "Lesson", color: "#FFD45A" },
 ];
@@ -51,7 +58,7 @@ const BADGE_TYPES = [
 const FILTER_COLORS = ["#A0D585", "#FFA95A", "#FF5A5A", "#FFD45A"];
 
 function getBadgeType(b: BadgeData): string {
-  return b.attributes?.badge_type_snapshot || "self-declared";
+  return (b.attributes?.badge_type_snapshot || (b.attributes as any)?.badgeTypeSnapshot || "self-declared");
 }
 
 function getBadgeColor(b: BadgeData): string {
@@ -115,7 +122,10 @@ export default function SelectShowcaseModal({ badges, initialSelected, onSave, o
     const badgeInfo = badge.relationships?.badge?.data;
     const name = badgeInfo?.attributes?.name || "Badge";
     const color = getBadgeColor(badge);
-    const imgUrl = badgeInfo?.attributes?.thumbnail_url || badgeInfo?.attributes?.icon_url || null;
+    const isLesson = getBadgeType(badge) === "lesson";
+    const imgUrl = isLesson
+      ? (badgeInfo?.attributes?.thumbnail_url || badgeInfo?.attributes?.icon_url || null)
+      : (badgeInfo?.attributes?.icon_url || badgeInfo?.attributes?.thumbnail_url || null);
 
     return (
       <div
