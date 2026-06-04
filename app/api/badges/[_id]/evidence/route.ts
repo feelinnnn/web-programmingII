@@ -4,9 +4,9 @@ import EvidenceRequirement from '@/models/EvidenceRequirement'
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ _id: string }> }
 ) {
-  const { id } = await params
+  const { _id: id } = await params
   try {
     await connect()
     const doc = await EvidenceRequirement.findOne({ badgeId: id }).lean()

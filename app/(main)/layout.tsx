@@ -34,7 +34,7 @@ export default function MainGroupLayout({ children }: { children: React.ReactNod
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#FFF2D7' }}>
-      
+
       <Navbar />
       <div className="main-content-wrapper">
         {children}
@@ -47,8 +47,7 @@ export default function MainGroupLayout({ children }: { children: React.ReactNod
           display: flex;
           flex-direction: column;
           transition: margin-left 0.3s ease;
-          /* ตั้งค่าเริ่มต้นเผื่อไว้ */
-          margin-left: 80px; 
+          margin-left: 80px;
         }
 
         .navbar.expanded + .main-content-wrapper {
@@ -57,6 +56,13 @@ export default function MainGroupLayout({ children }: { children: React.ReactNod
 
         .navbar.collapsed + .main-content-wrapper {
           margin-left: 80px;
+        }
+
+        @media (max-width: 768px) {
+          .main-content-wrapper {
+            margin-left: 80px !important;
+            min-height: 100vh;
+          }
         }
       `}</style>
 

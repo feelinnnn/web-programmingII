@@ -44,22 +44,31 @@ export default function AllLessons() {
   const userId = useUserId();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => { setMounted(true); setPage(1); }, []);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [totalLessons, setTotalLessons] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   const [progressMap, setProgressMap] = useState<Map<string, LessonProgress>>(new Map());
   const [searchTerm, setSearchTerm] = useState("");
   const [hideCompleted, setHideCompleted] = useState(false);
+
+  useEffect(() => { setPage(1); }, [searchTerm, hideCompleted]);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const PER_PAGE = 15;
 
   useEffect(() => {
     async function fetchLessons() {
+      setLoading(true);
       try {
-        const res = await fetch("/api/lessons/with-badges");
+        const res = await fetch(`/api/lessons/with-badges?page=${page}&limit=${PER_PAGE}`);
         if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
         const json = await res.json();
-        setLessons(json.data);
+        setLessons(json.data || []);
+        setTotalLessons(json.meta?.total || 0);
+        setTotalPages(json.meta?.totalPages || 0);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unknown error");
       } finally {
@@ -67,7 +76,7 @@ export default function AllLessons() {
       }
     }
     fetchLessons();
-  }, []);
+  }, [page]);
 
 
   useEffect(() => {
@@ -150,7 +159,7 @@ export default function AllLessons() {
         {/* Result Count */}
         {!loading && !error && (
           <div className="al-resultCount">
-            Showing {filteredLessons.length} lesson{filteredLessons.length !== 1 ? "s" : ""}
+            Showing {totalLessons} lesson{totalLessons !== 1 ? "s" : ""}
             {hideCompleted && <span> (completed hidden)</span>}
           </div>
         )}
@@ -163,7 +172,8 @@ export default function AllLessons() {
         )}
 
         {!loading && !error && filteredLessons.length > 0 && (
-          <div className="al-grid">
+          <>
+            <div className="al-grid">
             {filteredLessons.map((lesson) => {
                 const badgeColor = getBadgeColor(lesson.attributes.badge?.badge_type);
                 return (
@@ -182,6 +192,15 @@ export default function AllLessons() {
                 );
             })}
           </div>
+
+          {totalPages > 1 && (
+            <div className="al-pagination">
+              <button className="al-pageBtn" disabled={page <= 1} onClick={() => setPage(page - 1)}>‹ Prev</button>
+              <span className="al-pageInfo">{page} / {totalPages}</span>
+              <button className="al-pageBtn" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>Next ›</button>
+            </div>
+          )}
+          </>
         )}
       </div>
       <LessonModal lesson={selectedLesson} onClose={() => setSelectedLesson(null)} />

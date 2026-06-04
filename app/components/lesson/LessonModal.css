@@ -144,8 +144,30 @@
 }
 .lm-closeBtn:hover { background: #e0e0e0; }
 
-@media (max-width: 680px) {
+@media (max-width: 768px) {
+  .lm-modal {
+    width: 92vw;
+    max-width: 92vw;
+    border-radius: 16px;
+  }
+
   .lm-layout { flex-direction: column; }
-  .lm-left { width: 100%; min-height: 250px; }
-  .lm-right { width: 100%; padding: 24px 20px; }
+  .lm-left { width: 100%; min-height: 200px; }
+  .lm-right { width: 100%; padding: 20px 16px 18px; }
+
+  .lm-name { font-size: 20px; margin-bottom: 8px; }
+  .lm-desc { font-size: 13px; line-height: 1.5; max-height: 80px; overflow-y: auto; }
+  .lm-badgeTag { font-size: 10px; padding: 3px 10px; margin-bottom: 10px; }
+  .lm-cta { font-size: 14px; padding: 12px 0; }
+  .lm-closeBtn { font-size: 13px; padding: 10px 0; }
+  .lm-image { max-height: 200px; }
+}
+
+@media (max-width: 480px) {
+  .lm-modal { width: 95vw; max-width: 95vw; }
+  .lm-left { min-height: 160px; }
+  .lm-right { padding: 16px 12px 14px; }
+  .lm-name { font-size: 18px; }
+  .lm-desc { font-size: 12px; max-height: 60px; }
+  .lm-rightBottom { padding-top: 14px; gap: 6px; }
 }

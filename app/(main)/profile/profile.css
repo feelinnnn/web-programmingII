@@ -488,86 +488,317 @@
 @media (max-width: 1024px) {
   .card-grid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+    gap: 16px;
   }
   .profile-info-top {
-    padding: 0 30px 20px 30px;
+    padding: 0 24px 20px 24px;
   }
   .showcase-section {
-    padding: 30px;
+    padding: 24px;
   }
 }
 
+/* ===== TABLET (< 768px) ===== */
 @media (max-width: 768px) {
-  .profile-info-top {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 20px;
+  .layout-container {
+    height: 100vh;
+    overflow: hidden;
   }
-  .profile-user-left {
-    flex-direction: column;
-    align-items: flex-start;
-    text-align: left;
-  }
-  .large-avatar {
-    width: 80px;
-    height: 80px;
-  }
-  .user-details h1 {
-    font-size: 26px;
-  }
-  .edit-btn {
-    margin-top: 0;
-  }
-  .stats-row {
-    flex-wrap: wrap;
-  }
-  .stat-box {
-    flex: 1 1 33%;
-    min-width: 100px;
-  }
-  .card-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-  }
-  .showcase-controls {
-    flex-direction: column;
-    gap: 15px;
-    align-items: flex-start;
-  }
-  .showcase-title {
-    font-size: 36px;
-  }
-}
 
-@media (max-width: 480px) {
+  .main-content {
+    height: 100vh;
+    overflow: hidden;
+  }
+
   .profile-header {
     padding-top: 20px;
   }
-  .stats-row {
+
+  .profile-info-top {
     flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 0 16px 16px 16px;
   }
+
+  .profile-user-left {
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .large-avatar {
+    width: 64px;
+    height: 64px;
+    border-width: 3px;
+  }
+
+  .user-details h1 {
+    font-size: 22px;
+  }
+
+  .user-details .subtitle {
+    font-size: 13px;
+    gap: 8px;
+  }
+
+  .social-icons span,
+  .social-icons a {
+    width: 26px;
+    height: 26px;
+  }
+
+  .social-icons img {
+    width: 16px;
+    height: 16px;
+  }
+
+  .profile-top-right {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .user-search-input {
+    width: 100%;
+    font-size: 12px;
+  }
+
+  .edit-btn {
+    font-size: 13px;
+    padding: 6px 20px;
+    white-space: nowrap;
+  }
+
+  .stats-row {
+    flex-wrap: wrap;
+  }
+
   .stat-box {
-    border-right: none;
-    border-bottom: 1px solid #8C5A3C;
+    flex: 1 1 33%;
+    min-width: 80px;
+    padding: 10px 0;
   }
-  .card-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+
+  .stat-box strong {
+    font-size: 16px;
   }
-  .card {
-    height: 140px;
+
+  .stat-box span {
+    font-size: 10px;
   }
+
   .showcase-section {
-    padding: 20px 15px;
+    padding: 20px 16px;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
   }
+
+  .showcase-controls {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .left-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .showcase-title {
+    font-size: 32px;
+  }
+
+  .right-controls {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .right-controls button {
+    font-size: 13px;
+    padding: 6px 14px;
+  }
+
+  .search-input {
+    width: 100%;
+    font-size: 13px;
+  }
+
   .filter-tags {
     flex-wrap: wrap;
     gap: 8px;
+    margin-bottom: 24px;
   }
+
+  .tag {
+    font-size: 12px;
+    padding: 4px 12px;
+  }
+
+  .card-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .card {
+    height: 150px;
+  }
+
+  .card-label {
+    font-size: 10px;
+    padding: 10px 6px 6px;
+  }
+
+  .pagination {
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .page-btn {
+    font-size: 12px;
+    padding: 4px 12px;
+  }
+
+  .page-info {
+    font-size: 12px;
+  }
+}
+
+/* ===== PHONE (< 480px) ===== */
+@media (max-width: 480px) {
+  .profile-header {
+    padding-top: 16px;
+  }
+
+  .profile-info-top {
+    padding: 0 12px 12px 12px;
+  }
+
+  .profile-user-left {
+    gap: 10px;
+  }
+
+  .large-avatar {
+    width: 50px;
+    height: 50px;
+    border-width: 2px;
+  }
+
+  .user-details h1 {
+    font-size: 18px;
+  }
+
+  .user-details .subtitle {
+    font-size: 11px;
+    gap: 6px;
+  }
+
   .social-icons span,
   .social-icons a {
-    width: 28px;
-    height: 28px;
+    width: 22px;
+    height: 22px;
+  }
+
+  .social-icons img {
+    width: 14px;
+    height: 14px;
+  }
+
+  .edit-btn {
+    font-size: 12px;
+    padding: 5px 14px;
+  }
+
+  .stats-row {
+    flex-wrap: wrap;
+  }
+
+  .stat-box {
+    flex: 1 1 50%;
+    min-width: 60px;
+    padding: 8px 0;
+  }
+
+  .stat-box strong {
+    font-size: 14px;
+  }
+
+  .stat-box span {
+    font-size: 9px;
+  }
+
+  .showcase-section {
+    padding: 16px 10px;
+  }
+
+  .showcase-title {
+    font-size: 28px;
+  }
+
+  .left-controls {
+    gap: 8px;
+  }
+
+  .toggle-group button {
+    padding: 4px 12px;
+    font-size: 12px;
+  }
+
+  .right-controls button {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+
+  .filter-tags {
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+
+  .tag {
+    font-size: 11px;
+    padding: 3px 10px;
+  }
+
+  .card-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .card {
+    height: 130px;
+  }
+
+  .card-badge-pill {
+    font-size: 8px;
+    padding: 2px 6px;
+    top: 4px;
+    left: 4px;
+  }
+
+  .card-label {
+    font-size: 9px;
+    padding: 8px 4px 4px;
+  }
+
+  .pagination {
+    gap: 8px;
+  }
+
+  .page-btn {
+    font-size: 11px;
+    padding: 3px 10px;
+  }
+
+  .page-info {
+    font-size: 11px;
+  }
+
+  .filter-info-btn {
+    width: 24px;
+    height: 24px;
   }
 }

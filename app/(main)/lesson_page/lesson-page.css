@@ -183,3 +183,129 @@
   margin-left: 30px;
   opacity: 0.6;
 }
+
+/* ===== IPAD (768px - 1024px) ===== */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .page:has(> .episode-sidebar) > .main {
+    padding: 20px 16px;
+  }
+
+  .page:has(> .episode-sidebar) .content-card {
+    max-width: 100%;
+    padding: 18px 16px 18px;
+  }
+
+  .page:has(> .episode-sidebar) .episode-sidebar {
+    width: 220px;
+    min-width: 200px;
+    max-width: 220px;
+    padding: 20px 14px;
+  }
+
+  .page:has(> .episode-sidebar) .episode-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .page:has(> .episode-sidebar) .episode-icon img {
+    width: 18px;
+    height: 18px;
+  }
+
+  .page:has(> .episode-sidebar) .episode-title {
+    font-size: 0.75rem;
+  }
+
+  .page:has(> .episode-sidebar) .video-title {
+    font-size: 1.25rem;
+  }
+}
+
+/* ===== PHONE (< 768px) ===== */
+@media (max-width: 768px) {
+  .page:has(> .episode-sidebar) {
+    flex-direction: column;
+  }
+
+  .page:has(> .episode-sidebar) > .main {
+    padding: 16px 12px;
+    flex: none;
+  }
+
+  .page:has(> .episode-sidebar) .content-card {
+    max-width: 100%;
+    padding: 14px 12px 16px;
+    border-radius: 12px;
+  }
+
+  .page:has(> .episode-sidebar) .video-title {
+    font-size: 1.15rem;
+    margin-bottom: 8px;
+  }
+
+  .page:has(> .episode-sidebar) .video-description {
+    font-size: 0.82rem;
+    margin-bottom: 14px;
+  }
+
+  .page:has(> .episode-sidebar) .submit-row {
+    justify-content: stretch;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .submit-btn {
+    flex: 1;
+    padding: 10px 16px;
+    font-size: 0.88rem;
+  }
+
+  .page:has(> .episode-sidebar) .submit-row .submit-btn {
+    margin-left: 0 !important;
+  }
+
+  .page:has(> .episode-sidebar) .episode-sidebar {
+    width: 100%;
+    min-width: unset;
+    max-width: unset;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 16px 12px;
+    overflow-y: visible;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .page:has(> .episode-sidebar) .episode-sidebar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .page:has(> .episode-sidebar) .episode-item {
+    flex-shrink: 0;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 6px;
+    align-items: center;
+  }
+
+  .page:has(> .episode-sidebar) .episode-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .page:has(> .episode-sidebar) .episode-icon img {
+    width: 18px;
+    height: 18px;
+  }
+
+  .page:has(> .episode-sidebar) .episode-title {
+    font-size: 0.7rem;
+    text-align: center;
+    max-width: 70px;
+  }
+
+  .page:has(> .episode-sidebar) .connector {
+    display: none;
+  }
+}
