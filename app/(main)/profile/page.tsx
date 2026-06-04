@@ -30,6 +30,7 @@ interface UserProfile {
     created_at: string;
     follower_count?: number;
     following_count?: number;
+    post_count?: number;
   };
   relationships: {
     stats: { data: any };
@@ -310,16 +311,16 @@ export default function ProfilePage() {
               <span>Following</span>
             </div>
             <div className="stat-box">
-              <strong>{badges.length}</strong>
+              <strong>{badges.filter((b: any) => b.attributes?.status === "verified").length}</strong>
               <span>Badge</span>
             </div>
             <div className="stat-box">
-              <strong>{progress?.total_completed_chapters ?? 0}</strong>
+              <strong>{stats?.total_lesson_badge_count ?? 0}</strong>
               <span>Lesson Complete</span>
             </div>
             <div className="stat-box">
-              <strong>{stats?.total_lesson_badge_count ?? 0}</strong>
-              <span>Cooking Recipe</span>
+              <strong>{attributes.post_count ?? 0}</strong>
+              <span>Post</span>
             </div>
           </div>
         </header>

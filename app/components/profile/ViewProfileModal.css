@@ -45,6 +45,13 @@
   word-break: break-word;
 }
 
+.vm-viewSubName {
+  margin: 6px 0 0 0;
+  font-size: 15px;
+  color: #8f796a;
+  font-style: italic;
+}
+
 .vm-viewBio {
   margin: 14px 0 0 0;
   font-size: 14px;

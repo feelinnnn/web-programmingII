@@ -22,9 +22,11 @@ export default function CreatePost({ currentUserId, userAvatar, onPostCreated }:
   const [loading, setLoading] = useState(false); // เช็คสถานะการโหลด
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const MAX_CHARS = 500;
+
   // Auto-detect #hashtags from text
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
+    const value = e.target.value.slice(0, MAX_CHARS);
     setText(value);
     const detected = [...value.matchAll(/#([\w฀-๿]+)/g)].map(m => m[1]);
     setTags(prev => {
@@ -90,7 +92,8 @@ export default function CreatePost({ currentUserId, userAvatar, onPostCreated }:
 
       if (res.ok) {
         handleClose();
-        onPostCreated?.(); 
+        window.dispatchEvent(new Event("post-created"));
+        onPostCreated?.();
       } else {
         const errData = await res.json();
         alert(errData.errors?.[0]?.detail || 'Failed to create post.');
@@ -166,7 +169,9 @@ export default function CreatePost({ currentUserId, userAvatar, onPostCreated }:
             onChange={handleTextChange}
             rows={3}
             disabled={loading}
+            maxLength={MAX_CHARS}
           />
+          <span className={styles.charCount}>{text.length}/{MAX_CHARS}</span>
 
           {previews.length > 0 && (
             <div className={styles.imageGrid}>

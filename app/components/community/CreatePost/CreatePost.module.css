@@ -258,3 +258,10 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+.charCount {
+  font-size: 11px;
+  color: #999;
+  text-align: right;
+  margin-top: -6px;
+}

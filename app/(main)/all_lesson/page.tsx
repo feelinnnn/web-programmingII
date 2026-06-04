@@ -2,6 +2,7 @@
 
 import "./all-lessons.css";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import LessonModal from "../../components/lesson/LessonModal";
 import { useUserId } from "@/lib/useauth";
 
@@ -34,6 +35,7 @@ type LessonProgress = {
 
 export default function AllLessons() {
   const userId = useUserId();
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
@@ -41,8 +43,6 @@ export default function AllLessons() {
   const [progressMap, setProgressMap] = useState<Map<string, LessonProgress>>(new Map());
   const [searchTerm, setSearchTerm] = useState("");
   const [hideCompleted, setHideCompleted] = useState(false);
-  // const [filterBadgeType, setFilterBadgeType] = useState<string | null>(null);
-  // const [showFilterModal, setShowFilterModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -59,13 +59,11 @@ export default function AllLessons() {
         setLoading(false);
       }
     }
-
     fetchLessons();
   }, []);
 
   useEffect(() => {
     if (!userId) return;
-
     async function fetchProgress() {
       try {
         const res = await fetch(`/api/lessons/continue/${userId}`);
@@ -81,12 +79,10 @@ export default function AllLessons() {
         console.error("Failed to fetch progress:", err);
       }
     }
-
     fetchProgress();
   }, [userId]);
 
   const filteredLessons = lessons.filter(lesson => {
-    // Search filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch =
@@ -94,8 +90,6 @@ export default function AllLessons() {
         lesson.attributes.description.toLowerCase().includes(searchLower);
       if (!matchesSearch) return false;
     }
-
-    // Hide completed filter
     if (hideCompleted) {
       const progress = progressMap.get(lesson.id);
       if (progress) {
@@ -103,115 +97,65 @@ export default function AllLessons() {
         if (remaining === 0) return false;
       }
     }
-
-    // // Badge type filter
-    // if (filterBadgeType) {
-    //   if (lesson.attributes.badge !== filterBadgeType) return false;
-    // }
-
     return true;
   });
-
-  // const badgeTypes = ["self-declared", "evidence-backed", "expert-certified", "lesson"];
 
   if (!mounted) return null;
 
   return (
-    <div className="page">
-      {/* Sidebar */}
+    <div className="al-page">
+      <div className="al-main">
+        {/* Back + Title */}
+        <div className="al-header">
+          <button className="al-backBtn" onClick={() => router.back()}>← Back</button>
+        </div>
+        <h1 className="al-title">All Lessons</h1>
 
-      {/* Main Content */}
-      <div className="main">
         {/* Top Bar */}
-        <div className="topbar">
+        <div className="al-topbar">
           <input
             type="text"
-            placeholder="Search"
-            id="search"
+            placeholder="Search lessons..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            className="al-search"
           />
-
-          <div className="toggle">
-            <span>Hide completed lesson</span>
+          <div className="al-toggle">
+            <span>Hide completed</span>
             <div
-              className={`switch ${hideCompleted ? "active" : ""}`}
+              className={`al-switch ${hideCompleted ? "active" : ""}`}
               onClick={() => setHideCompleted(!hideCompleted)}
             />
           </div>
-
-          {/* Filter commented out
-          <div style={{ position: "relative" }} className="filtercontainer">
-            <img
-              src="/icon/filter.png"
-              className={`filter ${filterBadgeType ? "active" : ""}`}
-              onClick={() => setShowFilterModal(!showFilterModal)}
-              style={{ cursor: "pointer",
-                      maxHeight : 55
-              }}
-            />
-            {showFilterModal && (
-              <div className="filter-modal">
-                <div
-                  className="filter-option"
-                  onClick={() => {
-                    setFilterBadgeType(null);
-                    setShowFilterModal(false);
-                  }}
-                >
-                  Clear filter
-                </div>
-                {badgeTypes.map(type => (
-                  <div
-                    key={type}
-                    className={`filter-option ${filterBadgeType === type ? "selected" : ""}`}
-                    onClick={() => {
-                      setFilterBadgeType(type);
-                      setShowFilterModal(false);
-                    }}
-                  >
-                    {type}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          */}
         </div>
 
         {/* Result Count */}
         {!loading && !error && (
-          <div className="result-count">
+          <div className="al-resultCount">
             Showing {filteredLessons.length} lesson{filteredLessons.length !== 1 ? "s" : ""}
-            {hideCompleted && progressMap.size > 0 && (
-              <span> (learned lessons hidden)</span>
-            )}
+            {hideCompleted && <span> (completed hidden)</span>}
           </div>
         )}
 
         {/* Cards */}
-        {loading && <p>Loading lessons...</p>}
-        {error && <p className="error">Error: {error}</p>}
-
+        {loading && <p className="al-status">Loading lessons...</p>}
+        {error && <p className="al-error">Error: {error}</p>}
         {!loading && !error && filteredLessons.length === 0 && (
-          <p className="no-results">No lessons found</p>
+          <p className="al-status">No lessons found</p>
         )}
 
         {!loading && !error && filteredLessons.length > 0 && (
-          <div className="grid">
+          <div className="al-grid">
             {filteredLessons.map((lesson) => (
-              <div className="card" key={lesson.id} onClick={() => setSelectedLesson(lesson)}>
-                <div
-                    className="card-top"
+              <div className="al-card" key={lesson.id} onClick={() => setSelectedLesson(lesson)}>
+                <div className="al-cardImage">
+                  <div
+                    className="al-cardThumb"
                     style={{
-                      backgroundImage: `url(${lesson.attributes.thumbnail_url})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
+                      backgroundImage: lesson.attributes.thumbnail_url ? `url(${lesson.attributes.thumbnail_url})` : undefined,
                     }}
                   />
-                <div className="card-bottom">
-                  <p>{lesson.attributes.title}</p>
-                  <span>→</span>
+                  <div className="al-cardLabel">{lesson.attributes.title}</div>
                 </div>
               </div>
             ))}
@@ -220,6 +164,5 @@ export default function AllLessons() {
       </div>
       <LessonModal lesson={selectedLesson} onClose={() => setSelectedLesson(null)} />
     </div>
-
   );
 }

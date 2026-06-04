@@ -72,6 +72,7 @@ export interface PostCardProps {
   onComment?: (id: string) =>void;
   hashtags?: string[];
   authorUserId?: string;
+  likingActive?: boolean;
 }
 
 
@@ -81,6 +82,7 @@ export default function PostCard({
   avatarUrl, likes, comments: initialCommentsCount, isLiked = false, bookmarks , isFollowing = false,
   onLike, onBookmark, onFollow, onEdit, onDelete, onComment, hashtags = [],
   authorUserId = "",
+  likingActive = false,
 }: PostCardProps) {
 
   const userId = useUserId();
@@ -108,6 +110,8 @@ export default function PostCard({
   const [isLoadingComments, setIsLoadingComments] = useState(false);
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [commentError, setCommentError] = useState<string | null>(null);
+  const [avatarError, setAvatarError] = useState(false);
+  const [contentImgErrors, setContentImgErrors] = useState<Record<number, boolean>>({});
   const [followState, setFollowState] = useState(isFollowing);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editCommentText, setEditCommentText] = useState('');
@@ -134,6 +138,21 @@ export default function PostCard({
       setMyBookmarks(bookmarks);
     }
   }, [bookmarks]);
+
+  // Listen for bookmark changes from bookmark page
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { postId } = (e as CustomEvent).detail;
+      if (postId === id && userId) {
+        fetch(`/api/bookmark?userId=${userId}`)
+          .then(res => res.json())
+          .then(data => { if (data.data) setMyBookmarks(data.data); })
+          .catch(() => {});
+      }
+    };
+    window.addEventListener("bookmark-changed", handler);
+    return () => window.removeEventListener("bookmark-changed", handler);
+  }, [id, userId]);
   useEffect(() =>{
     const fetchInitComment =  async ()=>{
         try {
@@ -229,9 +248,11 @@ export default function PostCard({
     setMenuOpen(false);
   };
 
+  const MAX_CHARS = 500;
+
   // Auto-detect #hashtags from edit text
   const handleEditTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
+    const value = e.target.value.slice(0, MAX_CHARS);
     setEditContent(value);
     const detected = [...value.matchAll(/#([\w฀-๿]+)/g)].map(m => m[1]);
     setEditTags(prev => {
@@ -245,7 +266,21 @@ export default function PostCard({
     if (!onEdit || editContent.trim() === "") return;
     setIsSaving(true);
     try {
-      await onEdit(id, editContent.trim(), editImages, editTags);
+      // Upload new images (blob URLs) to Cloudinary first
+      const blobUrls = editImages.filter(u => u.startsWith("blob:"));
+      let finalImages = editImages.filter(u => !u.startsWith("blob:"));
+      for (const blobUrl of blobUrls) {
+        try {
+          const response = await fetch(blobUrl);
+          const blob = await response.blob();
+          const formData = new FormData();
+          formData.append("file", blob, "edit-upload.jpg");
+          const uploadRes = await fetch("/api/upload", { method: "POST", body: formData });
+          const uploadData = await uploadRes.json();
+          if (uploadData.url) finalImages.push(uploadData.url);
+        } catch {}
+      }
+      await onEdit(id, editContent.trim(), finalImages, editTags);
       setIsEditing(false);
     } catch (err) {
       console.error(err);
@@ -395,6 +430,7 @@ const handleBookmark = async (id : string) =>{
 
       if (data.insertBookmark) {
         setMyBookmarks((prev) => [...prev, data.insertBookmark]);
+        window.dispatchEvent(new CustomEvent("bookmark-changed", { detail: { postId: id } }));
       }
     } else {
       
@@ -410,10 +446,11 @@ const handleBookmark = async (id : string) =>{
       }
 
       setMyBookmarks((prev) => prev.filter(item => item.bookmark.bookmark_id !== bookmarkIdToDelete));
+      window.dispatchEvent(new CustomEvent("bookmark-changed", { detail: { postId: id } }));
     }
 }
 
-  const finalAvatarUrl = avatarUrl && avatarUrl !== "/avatar/default.png" ? avatarUrl : "/avatar/Avatar.png";
+  const finalAvatarUrl = avatarUrl && !avatarError ? avatarUrl : "/avatar/Avatar.png";
 
   const handleProfileClick = () => {
     if (authorUserId) {
@@ -427,7 +464,7 @@ const handleBookmark = async (id : string) =>{
       <div className={styles.header}>
         <div className={styles.userInfo}>
           <div className={styles.avatar} onClick={handleProfileClick} style={{ cursor: 'pointer' }}>
-            <img src={finalAvatarUrl} alt={author} className={styles.avatarImg} onError={(e) => { e.currentTarget.src = "/avatar/Avatar.png"; }} />
+            <img src={finalAvatarUrl} alt={author} className={styles.avatarImg} onError={() => setAvatarError(true)} />
           </div>
           <div className={styles.userDetails}>
             <span className={styles.authorName} onClick={handleProfileClick} style={{ cursor: 'pointer' }}>{author}</span>
@@ -466,6 +503,7 @@ const handleBookmark = async (id : string) =>{
               disabled={isSaving}
               rows={3}
               placeholder="Share your recipe here..."
+              maxLength={MAX_CHARS}
             />
 
             {/* Grid รูปภาพพรีวิวแก้โพสต์ */}
@@ -550,9 +588,10 @@ const handleBookmark = async (id : string) =>{
       </div>
 
       {/* โซนแสดงรูปภาพบนหน้าฟีดปกติ */}
-      {!isEditing && finalImages && finalImages.length > 0 && finalImages[currentImgIndex] ? (
+      {!isEditing && finalImages && finalImages.length > 0 && finalImages[currentImgIndex] && !contentImgErrors[currentImgIndex] ? (
         <div className={styles.imageContainer} onClick={handleOpenPreview}>
-          <img src={finalImages[currentImgIndex]} alt="post content" className={styles.image} />
+          <img src={finalImages[currentImgIndex]} alt="post content" className={styles.image}
+            onError={() => setContentImgErrors(prev => ({ ...prev, [currentImgIndex]: true }))} />
           {finalImages.length > 1 && <div className={styles.imageBadge}>{currentImgIndex + 1}/{finalImages.length}</div>}
           {finalImages.length > 1 && (
             <>
@@ -566,7 +605,7 @@ const handleBookmark = async (id : string) =>{
       {/* Actions Bar ปุ่มกดไลก์ คอมเมนต์ บุ๊กมาร์ก */}
       {!isEditing && (
         <div className={styles.actions}>
-          <button className={`${styles.actionBtn} ${isLiked ? styles.liked : ''}`} onClick={() => onLike?.(id)}>
+          <button className={`${styles.actionBtn} ${isLiked ? styles.liked : ''}`} onClick={() => onLike?.(id)} disabled={likingActive}>
             <span>{isLiked ? '❤️' : '♡'}</span> {likes}
           </button>
           <span className={styles.divider}>|</span>
@@ -577,7 +616,14 @@ const handleBookmark = async (id : string) =>{
 
           <span className={styles.divider}>|</span>
           <button className={`${styles.actionBtn} ${myBookmarks?.some(item => item.bookmark.post_id === id) ? styles.bookmarked : ''}`} onClick={() => handleBookmark(id)}>
-            <img src="/picture-navbar/bookmark.png" alt="bookmark" className={styles.bookmarkIcon} /> Bookmark
+            <svg width="16" height="16" viewBox="0 0 24 24" className={styles.bookmarkSvg}>
+              <path d="M5 5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16l-7-3.5L5 21V5z"
+                fill={myBookmarks?.some(item => item.bookmark.post_id === id) ? "#D88A3C" : "none"}
+                stroke={myBookmarks?.some(item => item.bookmark.post_id === id) ? "#D88A3C" : "#999"}
+                strokeWidth="2"
+              />
+            </svg>
+            Bookmark
           </button>
         </div>
       )}
@@ -663,7 +709,10 @@ const handleBookmark = async (id : string) =>{
         <div className={styles.lightboxOverlay} onClick={() => setIsPreviewOpen(false)}>
           <div className={styles.lightboxContent} onClick={(e) => e.stopPropagation()}>
             <button className={styles.closeLightboxBtn} onClick={() => setIsPreviewOpen(false)}>×</button>
-            <img src={finalImages[previewImgIndex]} alt="Fullscreen Preview" className={styles.lightboxImage} />
+            {!contentImgErrors[previewImgIndex] ? (
+              <img src={finalImages[previewImgIndex]} alt="Fullscreen Preview" className={styles.lightboxImage}
+                onError={() => setContentImgErrors(prev => ({ ...prev, [previewImgIndex]: true }))} />
+            ) : null}
             {finalImages.length > 1 && (
               <>
                 <button className={styles.lightboxArrowLeft} onClick={handleLightboxPrev}>‹</button>

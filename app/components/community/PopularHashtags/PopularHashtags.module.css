@@ -1,32 +1,33 @@
 .card {
-  background: var(--white);
-  border: 1.5px solid var(--border);
+  background: #fff;
+  border: 1.5px solid #ebe4d5;
   border-radius: 14px;
   padding: 18px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+  width: 320px;
+  min-width: 320px;
+  max-width: 320px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .title {
-  font-family: var(--font-body);
   font-size: 15px;
   font-weight: 700;
-  color: var(--dark);
+  color: #333;
   display: flex;
   align-items: center;
   gap: 6px;
+  margin-bottom: 14px;
 }
 
 .hash {
-  color: var(--orange);
+  color: #D88A3C;
 }
 
 .list {
   list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  margin: 0;
+  padding: 0;
 }
 
 .item {
@@ -34,18 +35,18 @@
   align-items: center;
   gap: 12px;
   cursor: pointer;
+  padding: 8px 0;
 }
 
 .item:hover .tag {
-  color: var(--orange);
+  color: #D88A3C;
 }
 
 .rank {
-  font-family: var(--font-body);
   font-size: 14px;
   font-weight: 700;
-  color: var(--text-muted);
-  width: 16px;
+  color: #999;
+  width: 20px;
   text-align: center;
   flex-shrink: 0;
 }
@@ -54,22 +55,21 @@
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-width: 0;
 }
 
 .tag {
-  font-family: var(--font-body);
   font-size: 14px;
   font-weight: 700;
-  color: var(--dark);
-  transition: color 0.2s;
+  color: #333;
 }
 
 .count {
-  font-family: var(--font-body);
   font-size: 12px;
-  color: var(--text-muted);
+  color: #999;
 }
 
 .fire {
   font-size: 16px;
+  flex-shrink: 0;
 }

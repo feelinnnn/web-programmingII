@@ -50,6 +50,8 @@ export default function ViewProfileModal({ profile, onClose }: Props) {
 
         <h2 className="vm-viewName">{profile.display_name}</h2>
 
+        {profile.sub_namebio && <p className="vm-viewSubName">{profile.sub_namebio}</p>}
+
         {profile.bio && <p className="vm-viewBio">{profile.bio}</p>}
 
         <hr className="vm-viewDivider" />

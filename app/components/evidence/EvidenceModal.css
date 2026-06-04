@@ -1,145 +1,186 @@
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.3);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 200;
+  z-index: 9999;
+  backdrop-filter: blur(4px);
 }
 
 .modal-overlay .modal {
   display: flex;
-  width: 90vw;
-  max-width: 1200px;
-  height: 85vh;
-  max-height: 750px;
-  background: #FFF2D7;
-  border-radius: 10px;
+  width: 900px;
+  max-width: 95vw;
+  background: #fff;
+  border-radius: 20px;
   overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
 
+/* Left: Upload area */
 .modal .left {
   flex: 1;
-  padding: 0 2% 0 2%;
+  padding: 32px;
   display: flex;
   flex-direction: column;
-  justify-content: space-evenly;
-}
-
-.modal .right {
-  width: 35%;
-  min-width: 200px;
-  max-width: 420px;
-  background: #4a2c2a;
-  color: white;
-  padding: 2%;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-evenly;
-}
-
-.modal .right > img {
-  margin-top: 40px;
-}
-
-.modal .right > button {
-  color: black;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.modal .right > h2 {
-  font-size: 2rem;
-  text-align: center;
-}
-
-.modal .right > p {
-  font-size: 1.5rem;
+  gap: 16px;
 }
 
 .modal .upload-box {
-  height: 50%;
+  flex: 1;
 }
 
 .modal .upload-content {
-  height: 90%;
-  border: 2px dashed #4a2c2a;
-  border-bottom: 0px;
-  background: #FFE0B5;
+  height: 180px;
+  border: 2px dashed #D8AE7E;
+  background: #fdf6ec;
   border-radius: 12px 12px 0 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #8C5A3C;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.modal .upload-content:hover {
+  background: #fdf0d8;
 }
 
 .modal .upload-bar {
-  background: #4B2E2B;
+  background: #4a342e;
   height: 40px;
   display: flex;
+  align-items: center;
   justify-content: flex-end;
-  padding: 0px 10px;
+  padding: 0 10px;
   border-radius: 0 0 12px 12px;
 }
 
 .modal .upload-bar > .icon {
   background: #D8AE7E;
   padding: 5px 10px;
-  margin-right: 5%;
+  border-radius: 6px;
 }
 
 .modal .upload-bar > .icon > img {
-  height: 100%;
+  height: 20px;
 }
 
 .modal .note-box {
-  border: 2px dashed #8b6b4f;
-  background: #FFE0B5;
-  border-radius: 10px;
-  padding: 3%;
-  height: 17%;
+  border: 2px solid #ebe4d5;
+  background: #faf8f5;
+  border-radius: 12px;
+  padding: 12px;
+  height: 100px;
+}
+
+.modal .note-box textarea {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  resize: none;
+  font-size: 14px;
+  color: #333;
+  outline: none;
+  font-family: inherit;
+}
+
+.modal .note-box textarea::placeholder {
+  color: #bbb;
+}
+
+/* Right: Info */
+.modal .right {
+  width: 320px;
+  min-width: 280px;
+  background: #3f2d29;
+  color: #fff;
+  padding: 40px 28px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.modal .right > img {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  margin-top: 20px;
+}
+
+.modal .right > h2 {
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+  color: #D8AE7E;
+  margin: 0;
+}
+
+.modal .right > p {
+  font-size: 14px;
+  text-align: center;
+  color: #c4a484;
+  margin: 0;
+  line-height: 1.5;
 }
 
 .modal .close {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 12px;
+  right: 12px;
   border-radius: 50%;
-  height: 40px;
-  width: 40px;
-  font-size: 30px;
+  height: 32px;
+  width: 32px;
+  font-size: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #FFE0B5;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
   border: none;
   cursor: pointer;
+  transition: background 0.15s;
+}
+
+.modal .close:hover {
+  background: rgba(255,255,255,0.3);
 }
 
 .modal .submit-btn {
-  margin-top: 1.25rem;
-  background: #8C5A3C;
+  margin-top: auto;
+  width: 100%;
+  background: #D8AE7E;
   border: none;
-  border-radius: 1.25rem;
-  color: white;
-  font-size: clamp(1rem, 1.5vw, 1.5rem);
-  padding: 0.6em 1.2em;
-  width: clamp(120px, 60%, 240px);
-  min-height: 2.5rem;
+  border-radius: 10px;
+  color: #4a342e;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 14px 0;
   cursor: pointer;
+  transition: background 0.2s;
 }
 
+.modal .submit-btn:hover {
+  background: #c49a6c;
+}
+
+.modal .submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* File list */
 .modal .files-list-content {
-  height: 90%;
-  border: 2px dashed #4a2c2a;
-  border-bottom: 0px;
-  background: #FFE0B5;
+  height: 180px;
+  border: 2px dashed #D8AE7E;
+  background: #fdf6ec;
   border-radius: 12px 12px 0 0;
   display: flex;
   flex-direction: column;
@@ -149,8 +190,8 @@
 
 .modal .files-list-content > h3 {
   margin: 0 0 10px 0;
-  font-size: 0.95rem;
-  color: #4a2c2a;
+  font-size: 14px;
+  color: #4a342e;
 }
 
 .modal .files-list-content > ul {
@@ -165,11 +206,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px;
-  background: white;
+  padding: 8px 12px;
+  background: #fff;
   margin-bottom: 6px;
-  border-radius: 6px;
+  border-radius: 8px;
   gap: 10px;
+  border: 1px solid #ebe4d5;
 }
 
 .modal .file-info {
@@ -180,7 +222,7 @@
 }
 
 .modal .file-name {
-  font-size: 0.85rem;
+  font-size: 13px;
   color: #333;
   white-space: nowrap;
   overflow: hidden;
@@ -189,27 +231,42 @@
 }
 
 .modal .file-size {
-  font-size: 0.75rem;
-  color: #888;
+  font-size: 11px;
+  color: #999;
   white-space: nowrap;
 }
 
 .modal .delete-btn {
-  background: #ff6b6b;
-  border: none;
-  border-radius: 4px;
-  color: white;
+  background: #fff;
+  color: #c0392b;
+  border: 1px solid #c0392b;
+  border-radius: 6px;
   width: 28px;
   height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 14px;
   flex-shrink: 0;
-  transition: background 0.2s;
+  transition: all 0.2s;
 }
 
 .modal .delete-btn:hover {
-  background: #ff5252;
+  background: #fff0f0;
+}
+
+@media (max-width: 700px) {
+  .modal-overlay .modal {
+    flex-direction: column-reverse;
+    width: 95vw;
+  }
+  .modal .right {
+    width: 100%;
+    min-width: unset;
+    padding: 24px 20px;
+  }
+  .modal .left {
+    padding: 20px;
+  }
 }

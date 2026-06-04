@@ -2,7 +2,8 @@
 
 import './EvidenceModal.css';
 import { useUserId } from "@/lib/useauth";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function EvidenceModal({
   isOpen,
@@ -20,9 +21,23 @@ export default function EvidenceModal({
   badgeName?: string;
 }) {
   const userId = useUserId();
+  const router = useRouter();
   const [files, setFiles] = useState<File[]>([]);
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
+  const [badgeIcon, setBadgeIcon] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!badgeId) return;
+    fetch(`/api/badges/${badgeId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data?.data?.attributes?.icon_url) {
+          setBadgeIcon(data.data.attributes.icon_url);
+        }
+      })
+      .catch(() => {});
+  }, [badgeId]);
 
   const handleAddFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newFiles = Array.from(e.target.files ?? []);
@@ -69,6 +84,7 @@ export default function EvidenceModal({
       });
 
       onClose();
+      router.push('/profile');
     } catch (err) {
       console.error(err);
     } finally {
@@ -133,7 +149,7 @@ export default function EvidenceModal({
 
         <div className="right">
           <button className="close" onClick={onClose}>✕</button>
-          <img src="icon/medal.png" width={221} height={221} style={{ width: "100%", height: "auto", maxWidth: "221px" }} />
+          <img src={badgeIcon || "icon/medal.png"} alt={badgeName || "badge"} style={{ width: "auto", height: "auto", maxWidth: "140px", maxHeight: "140px", objectFit: "contain" }} />
           <h2>Submit evidence for {lessonName || "[lesson name]"}</h2>
           <p>You will receive<br />{badgeName || "this badge"} badge</p>
           <button className="submit-btn" onClick={handleSubmit} disabled={loading}>

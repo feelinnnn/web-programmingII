@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useUserId } from "@/lib/useauth"; 
 
 import SearchBar from '../../components/community/SearchBar/SearchBar';
@@ -69,10 +69,22 @@ export default function CommunityFeedPage() {
   const [posts, setPosts] = useState<PostApiStructure[]>([]);
   const [bookmarked, setBookmarked] = useState<BookmarkDocument[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [currentUserAvatar, setCurrentUserAvatar] = useState<string>("/avatar/Avatar.png");
   const [hashtags, setHashtags] = useState<Hashtag[]>([]);
   const [creators, setCreators] = useState<Creator[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [likingPosts, setLikingPosts] = useState<Set<string>>(new Set());
+  const hashtagFilterRef = useRef<string | null>(null);
+  const creatorFilterRef = useRef<string | null>(null);
+  const imageFilterRef = useRef<string | null>(null);
+  const fetchCreatorsRef = useRef<() => void>(() => {});
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const pageRef = useRef(0);
+  const activePostIdRef = useRef<string | null>(null);
+  const activeCreatorIdRef = useRef<string | null>(null);
+  const activeSearchRef = useRef<string | null>(null);
 
   const currentUserId = useUserId() || ""; 
 
@@ -112,20 +124,50 @@ export default function CommunityFeedPage() {
     }
   };
 
-  const fetchFeed = async (search?: string) => {
+  // Load more when scrolled to bottom
+  const loadMore = useCallback(() => {
+    if (loadingMore || !hasMore) return;
+    fetchFeed(activeSearchRef.current || undefined, activeCreatorIdRef.current || undefined, activePostIdRef.current || undefined, true);
+  }, [loadingMore, hasMore]);
+
+  const fetchFeed = async (search?: string, creatorId?: string, postId?: string, append = false) => {
     try {
-      setLoading(true);
-      let url = currentUserId ? `/api/posts?currentUserId=${currentUserId}` : '/api/posts';
-      if (search) url += `&search=${encodeURIComponent(search)}`;
+      if (!append) {
+        setLoading(true);
+        pageRef.current = 0;
+      } else {
+        setLoadingMore(true);
+      }
+      const skip = append ? pageRef.current * 10 : 0;
+      const params = new URLSearchParams();
+      if (currentUserId) params.set("currentUserId", currentUserId);
+      params.set("skip", String(skip));
+      params.set("limit", "10");
+      if (postId) params.set("postId", postId);
+      else if (creatorId) params.set("creatorId", creatorId);
+      else if (search) params.set("search", search);
+      const url = `/api/posts?${params.toString()}`;
       const res = await fetch(url);
       if (res.ok) {
         const json = await res.json();
-        setPosts(json.data || []);
+        if (append) {
+          setPosts(prev => {
+            const existingIds = new Set(prev.map(p => p.id));
+            const newPosts = (json.data || []).filter((p: any) => !existingIds.has(p.id));
+            return [...prev, ...newPosts];
+          });
+        } else {
+          setPosts(json.data || []);
+        }
+        setHasMore(json.meta?.hasMore ?? false);
+        if (!append) pageRef.current = 1;
+        else pageRef.current++;
       }
     } catch (error) {
       console.error("Failed to load community feed:", error);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
@@ -138,6 +180,7 @@ export default function CommunityFeedPage() {
       }
     } catch (err) { console.error("Failed to load creators:", err); }
   };
+  fetchCreatorsRef.current = fetchCreators;
 
   const fetchUserProfile = async () => {
     if (!currentUserId) return;
@@ -161,11 +204,43 @@ export default function CommunityFeedPage() {
     fetchCreators();
   }, [currentUserId]);
 
+  // Refresh creators + hashtags when follow/like/post changes
+  useEffect(() => {
+    const refresh = () => { fetchCreatorsRef.current(); fetchHashtags(); };
+    window.addEventListener("follow-changed", refresh);
+    window.addEventListener("post-created", refresh);
+    window.addEventListener("like-changed", refresh);
+    return () => {
+      window.removeEventListener("follow-changed", refresh);
+      window.removeEventListener("post-created", refresh);
+      window.removeEventListener("like-changed", refresh);
+    };
+  }, []);
+
+  // IntersectionObserver for infinite scroll
+  useEffect(() => {
+    const el = loadMoreRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore) {
+          loadMore();
+        }
+      },
+      { rootMargin: "200px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, loadMore]);
+
   const handleLike = async (postId: string) => {
     if (!currentUserId) {
       alert("กรุณาล็อกอินก่อนกดไลค์นะคั้บ!");
       return;
     }
+    // Prevent double-click
+    if (likingPosts.has(postId)) return;
+    setLikingPosts(prev => new Set(prev).add(postId));
 
     setPosts((prevPosts) =>
       prevPosts.map((p) => {
@@ -192,7 +267,7 @@ export default function CommunityFeedPage() {
       });
 
       if (!res.ok) {
-        fetchFeed(); 
+        fetchFeed();
       } else {
         const result = await res.json();
         setPosts((prevPosts) =>
@@ -214,6 +289,9 @@ export default function CommunityFeedPage() {
     } catch (error) {
       console.error("Error toggling like:", error);
       fetchFeed();
+    } finally {
+      setLikingPosts(prev => { const next = new Set(prev); next.delete(postId); return next; });
+      window.dispatchEvent(new Event("like-changed"));
     }
   };
 
@@ -233,7 +311,9 @@ export default function CommunityFeedPage() {
       if (!res.ok) {
         const errJson = await res.json();
         alert(errJson.errors?.[0]?.detail || "Failed to delete post.");
-        fetchFeed(); 
+        fetchFeed();
+      } else {
+        fetchHashtags();
       }
     } catch (error) {
       console.error("Error deleting post:", error);
@@ -276,7 +356,9 @@ export default function CommunityFeedPage() {
 
       if (!res.ok) {
         alert("แก้ไขโพสต์และรูปภาพไม่สำเร็จ");
-        fetchFeed(); 
+        fetchFeed();
+      } else {
+        fetchHashtags();
       }
     } catch (error) {
       console.error("Error editing post content and images:", error);
@@ -311,18 +393,19 @@ export default function CommunityFeedPage() {
                   key={post.id}
                   id={post.id}
                   author={post.attributes.creator.displayName}
-                  sub_namebio={post.attributes.creator.sub_namebio} 
+                  sub_namebio={post.attributes.creator.sub_namebio}
                   time={post.attributes.createdAt}
                   content={post.attributes.content}
                   imageUrls={post.attributes.imageUrls}
-                  imageUrl={post.attributes.imageUrls} 
+                  imageUrl={post.attributes.imageUrls}
                   avatarUrl={post.attributes.creator.profileImageUrl}
                   likes={post.attributes.likesCount}
                   comments={post.attributes.commentsCount}
-                  isLiked={post.attributes.isLiked}   
+                  isLiked={post.attributes.isLiked}
                   hashtags={post.attributes.hashtags}
                   bookmarks ={bookmarked}
                   authorUserId={post.attributes.userId}
+                  likingActive={likingPosts.has(post.id)}
                   onLike={handleLike}
                   onEdit={isOwner ? (id, content, images, hashtags) => handleEdit(id, content, images, hashtags) : undefined}
                   onDelete={isOwner ? handleDelete : undefined}
@@ -331,22 +414,79 @@ export default function CommunityFeedPage() {
             }}
           />
         )}
+
+        {/* Infinite scroll trigger + loading spinner */}
+        <div ref={loadMoreRef} className={styles.loadMore}>
+          {loadingMore && <div className={styles.spinner} />}
+          {!hasMore && posts.length > 0 && (
+            <p className={styles.noMore}>— You're all caught up —</p>
+          )}
+        </div>
       </div>
 
       <aside className={styles.sidebar}>
         <PopularHashtags
           hashtags={hashtags.length > 0 ? hashtags : MOCK_HASHTAGS}
           onTagClick={(tag) => {
-            if (searchQuery === tag) {
+            if (hashtagFilterRef.current === tag) {
+              hashtagFilterRef.current = null;
+              activeSearchRef.current = null;
               setSearchQuery('');
               fetchFeed();
             } else {
+              hashtagFilterRef.current = tag;
+              creatorFilterRef.current = null;
+              imageFilterRef.current = null;
+              activeSearchRef.current = tag;
+              activeCreatorIdRef.current = null;
+              activePostIdRef.current = null;
               setSearchQuery(tag);
               fetchFeed(tag);
             }
           }}
         />
-        <PopularCreations creators={creators.length > 0 ? creators : MOCK_CREATORS} currentUserId={currentUserId || undefined} />
+        <PopularCreations
+          creators={creators.length > 0 ? creators : MOCK_CREATORS}
+          currentUserId={currentUserId || undefined}
+          onCreatorClick={(creator) => {
+            if (creator.userId) {
+              if (creatorFilterRef.current === creator.userId) {
+                creatorFilterRef.current = null;
+                activeCreatorIdRef.current = null;
+                setSearchQuery('');
+                fetchFeed();
+              } else {
+                creatorFilterRef.current = creator.userId;
+                hashtagFilterRef.current = null;
+                imageFilterRef.current = null;
+                activeCreatorIdRef.current = creator.userId;
+                activeSearchRef.current = null;
+                activePostIdRef.current = null;
+                setSearchQuery(creator.name);
+                fetchFeed(undefined, creator.userId);
+              }
+            }
+          }}
+          onImageClick={(creator, postId) => {
+            if (postId) {
+              if (imageFilterRef.current === postId) {
+                imageFilterRef.current = null;
+                activePostIdRef.current = null;
+                setSearchQuery('');
+                fetchFeed();
+              } else {
+                imageFilterRef.current = postId;
+                creatorFilterRef.current = null;
+                hashtagFilterRef.current = null;
+                activePostIdRef.current = postId;
+                activeCreatorIdRef.current = null;
+                activeSearchRef.current = null;
+                setSearchQuery('');
+                fetchFeed(undefined, undefined, postId);
+              }
+            }
+          }}
+        />
       </aside>
     </div>
   );

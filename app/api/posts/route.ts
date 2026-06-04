@@ -13,48 +13,92 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const searchQuery = searchParams.get("search");
     const currentUserId = searchParams.get("currentUserId");
+    const creatorId = searchParams.get("creatorId");
+    const postId = searchParams.get("postId");
+    const skip = parseInt(searchParams.get("skip") || "0");
+    const limit = parseInt(searchParams.get("limit") || "10");
 
-    let rawPosts = [];
+    let rawPosts: any[] = [];
+    let total = 0;
 
+    // Filter by specific post
+    if (postId) {
+      const post = await Post.findById(postId).lean();
+      rawPosts = post ? [post] : [];
+      total = rawPosts.length;
+    }
+    // Filter by creator
+    else if (creatorId) {
+      total = await Post.countDocuments({ "post.user_id": creatorId });
+      rawPosts = await Post.find({ "post.user_id": creatorId })
+        .sort({ "post.created_at": -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean();
+    }
     // (Search)
-    if (searchQuery) {
+    else if (searchQuery) {
       const cleanQuery = searchQuery.replace(/^#/, '');
-      rawPosts = await Post.find({
+      const filter = {
         $or: [
           { "post.content": { $regex: cleanQuery, $options: "i" } },
           { "post.hashtags": cleanQuery }
         ]
-      }).sort({ "post.created_at": -1 });
-
-    } 
+      };
+      total = await Post.countDocuments(filter);
+      rawPosts = await Post.find(filter)
+        .sort({ "post.created_at": -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean();
+    }
     // ฟีดหน้าแรกปกติ + มียูสเซอร์ล็อกอินอยู่
     else if (currentUserId) {
-      // เช็คไอดีก่อนค้นหา
       const isCurrentValidObjectId = /^[0-9a-fA-F]{24}$/.test(currentUserId);
-      const currentUserDoc = await User.findOne({ user_id: currentUserId }) || 
-        (isCurrentValidObjectId ? await User.findById(currentUserId) : null);
-        
+      let currentUserDoc = await User.findOne({ user_id: currentUserId });
+      if (!currentUserDoc && isCurrentValidObjectId) {
+        currentUserDoc = await User.findById(currentUserId);
+      }
+      if (!currentUserDoc) {
+        try { currentUserDoc = await User.findById(currentUserId); } catch {}
+      }
+
       const matchedUserId = currentUserDoc ? currentUserDoc.user_id : currentUserId;
 
       const followingList = await Follow.find({ "comment.follower_user_id": matchedUserId })
         .distinct("comment.following_user_id");
 
-      const followedPosts = await Post.find({ "post.user_id": { $in: followingList } })
+      // Total: all posts
+      total = await Post.countDocuments({});
+
+      // Followed posts first, then others — apply skip/limit across combined results
+      const allPosts = await Post.find({})
         .sort({ "post.created_at": -1 })
-        .limit(15);
+        .lean();
 
-      const otherPosts = await Post.find({ 
-        "post.user_id": { $nin: followingList } 
-      })
-      .sort({ "post.created_at": -1 })
-      .limit(15);
-
-      rawPosts = [...followedPosts, ...otherPosts];
-
-    } 
+      // Sort manually: followed first, then others
+      const seen = new Set();
+      const combined: any[] = [];
+      for (const p of allPosts) {
+        const pid = p._id.toString();
+        if (seen.has(pid)) continue;
+        seen.add(pid);
+        if (followingList.includes(p.post?.user_id)) {
+          combined.unshift(p); // followed first
+        } else {
+          combined.push(p);
+        }
+      }
+      rawPosts = combined.slice(skip, skip + limit);
+    }
     // ไม่ล็อกอิน
     else {
-      rawPosts = await Post.find({}).sort({ "post.created_at": -1 }).limit(30);
+      total = await Post.countDocuments({});
+      rawPosts = await Post.find({})
+        .sort({ "post.created_at": -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean();
     }
 
     const formattedPosts = await Promise.all(
@@ -73,10 +117,19 @@ export async function GET(req: NextRequest) {
           }
         }
 
-        const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(p.post?.user_id || "");
-        
-        const creator = await User.findOne({ user_id: p.post?.user_id }) || 
-          (isValidObjectId ? await User.findById(p.post?.user_id) : null);
+        const postUserId = p.post?.user_id || "";
+        const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(postUserId);
+
+        // Try finding creator by user_id field first, then by MongoDB _id as fallback
+        let creator = await User.findOne({ user_id: postUserId });
+        if (!creator && isValidObjectId) {
+          // post.user_id is a MongoDB ObjectId string → try _id lookup (matches local auth users)
+          creator = await User.findById(postUserId);
+        }
+        if (!creator) {
+          // Last resort: try _id lookup for any format (may throw for non-ObjectId strings)
+          try { creator = await User.findById(postUserId); } catch {}
+        }
 
         return {
           id: postIdStr,
@@ -94,7 +147,7 @@ export async function GET(req: NextRequest) {
             isLiked: isLiked, 
             creator: {
               displayName: creator?.display_name || "Unknown User",
-              profileImageUrl: creator?.profile_image_url || "/avatar/default.png",
+              profileImageUrl: creator?.profile_image_url || "/avatar/Avatar.png",
               sub_namebio: creator?.sub_namebio || "Home Cook"
             }
           }
@@ -104,7 +157,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       jsonapi: { version: "1.0" },
-      data: formattedPosts
+      data: formattedPosts,
+      meta: { skip, limit, total, hasMore: skip + limit < total }
     });
 
   } catch (error: any) {
@@ -130,10 +184,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const isInputObjectId = /^[0-9a-fA-F]{24}$/.test(attributes.userId);
     let finalUserId = attributes.userId;
-    const userDoc = await User.findOne({ user_id: attributes.userId }) || 
-      (isInputObjectId ? await User.findById(attributes.userId) : null);
+    let userDoc = await User.findOne({ user_id: attributes.userId });
+    if (!userDoc && /^[0-9a-fA-F]{24}$/.test(attributes.userId)) {
+      userDoc = await User.findById(attributes.userId);
+    }
+    if (!userDoc) {
+      try { userDoc = await User.findById(attributes.userId); } catch {}
+    }
     
     if (userDoc) {
       finalUserId = userDoc.user_id || userDoc._id.toString();
