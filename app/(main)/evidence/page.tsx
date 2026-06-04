@@ -129,6 +129,7 @@ export default function Home() {
               marginTop: "10px"
             }}>
               For: <strong>{lesson.data.attributes.title}</strong>
+              
               {badge && ` • Badge: ${badge.data.attributes.name}`}
             </p>
           )}
