@@ -19,6 +19,8 @@ interface Props {
       badge_type_snapshot?: string;
       showcased?: boolean;
       certification_requested?: boolean;
+      adminComment?: string;
+      admin_comment?: string;
     };
     relationships?: {
       badge?: {
@@ -162,6 +164,16 @@ export default function BadgeDetailModal({ badge, color, onClose, onVerify, onEd
               </div>
               <h2 className="bd-name">{name}</h2>
               {currentDesc && <p className="bd-desc">{currentDesc}</p>}
+
+              {/* Admin Feedback Section */}
+              {(badge.attributes?.adminComment || badge.attributes?.admin_comment) && (
+                <div className="bd-admin-feedback">
+                  <span className="bd-admin-label">Admin Feedback</span>
+                  <div className="bd-admin-text">
+                    {badge.attributes.adminComment || badge.attributes.admin_comment}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="bd-rightBottom">
