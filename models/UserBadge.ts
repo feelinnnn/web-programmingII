@@ -35,6 +35,8 @@ const UserBadgeSchema = new Schema<IUserBadge>({
   },
   showcased: { type: Boolean, default: false },
   certificationRequested: { type: Boolean, default: false }
+}, {
+  collection: 'userbadges'
 })
 
 UserBadgeSchema.index({ userId: 1, badgeId: 1 }, { unique: true })
