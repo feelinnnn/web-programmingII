@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
+import Swal from 'sweetalert2';
 import "../profile/profile.css";
 import BadgeInfoModal from "../../components/profile/BadgeInfoModal";
 import BadgeDetailModal from "../../components/profile/BadgeDetailModal";
@@ -205,7 +206,7 @@ export default function UserProfilePage() {
                       </a>
                     )}
                     {attributes.email && (
-                      <span onClick={() => { navigator.clipboard.writeText(attributes.email); alert("Email copied: " + attributes.email); }} title="Copy email" style={{ cursor: "pointer" }}>
+                      <span onClick={() => { navigator.clipboard.writeText(attributes.email); Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Email copied!', showConfirmButton: false, timer: 2000 }); }} title="Copy email" style={{ cursor: "pointer" }}>
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
                       </span>
                     )}
@@ -217,43 +218,45 @@ export default function UserProfilePage() {
               </div>
             </div>
             <div className="profile-top-right">
-              <input
-                className="user-search-input"
-                type="text"
-                placeholder="Search user..."
-                value={userSearch}
-                onChange={async (e) => {
-                  setUserSearch(e.target.value);
-                  const q = e.target.value.trim();
-                  if (!q) { setUserResults([]); setShowDropdown(false); return; }
-                  try {
-                    const res = await fetch(`/api/users/search?q=${encodeURIComponent(q)}`);
-                    const json = await res.json();
-                    setUserResults(json.data || []);
-                    setShowDropdown(true);
-                  } catch { setUserResults([]); }
-                }}
-                onFocus={() => { if (userResults.length > 0) setShowDropdown(true); }}
-                onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-              />
-              {showDropdown && userResults.length > 0 && (
-                <ul className="user-dropdown">
-                  {userResults.map((u: any) => (
-                    <li key={u.id} className="user-dropdown-item"
-                      onClick={() => {
-                        setShowDropdown(false);
-                        setUserSearch("");
-                        window.location.href = `/user-profile?user_id=${u.id}`;
-                      }}>
-                      <img src={(u.profile_image_url || "/avatar/Avatar.png").replace(/=s\d+-c/, "=s400")} alt={u.display_name} className="user-dropdown-avatar" />
-                      <div className="user-dropdown-info">
-                        <span className="user-dropdown-name">{u.display_name}</span>
-                        {u.sub_namebio && <span className="user-dropdown-bio">{u.sub_namebio}</span>}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <div className="user-search-wrapper">
+                <input
+                  className="user-search-input"
+                  type="text"
+                  placeholder="Search user..."
+                  value={userSearch}
+                  onChange={async (e) => {
+                    setUserSearch(e.target.value);
+                    const q = e.target.value.trim();
+                    if (!q) { setUserResults([]); setShowDropdown(false); return; }
+                    try {
+                      const res = await fetch(`/api/users/search?q=${encodeURIComponent(q)}`);
+                      const json = await res.json();
+                      setUserResults(json.data || []);
+                      setShowDropdown(true);
+                    } catch { setUserResults([]); }
+                  }}
+                  onFocus={() => { if (userResults.length > 0) setShowDropdown(true); }}
+                  onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+                />
+                {showDropdown && userResults.length > 0 && (
+                  <ul className="user-dropdown">
+                    {userResults.map((u: any) => (
+                      <li key={u.id} className="user-dropdown-item"
+                        onClick={() => {
+                          setShowDropdown(false);
+                          setUserSearch("");
+                          window.location.href = `/user-profile?user_id=${u.id}`;
+                        }}>
+                        <img src={(u.profile_image_url || "/avatar/Avatar.png").replace(/=s\d+-c/, "=s400")} alt={u.display_name} className="user-dropdown-avatar" />
+                        <div className="user-dropdown-info">
+                          <span className="user-dropdown-name">{u.display_name}</span>
+                          {u.sub_namebio && <span className="user-dropdown-bio">{u.sub_namebio}</span>}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
           </div>
 

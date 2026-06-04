@@ -21,6 +21,7 @@ export interface PostApiStructure {
   attributes: {
     postId: string;
     userId: string;
+    creatorId?: string;
     content: string;
     hashtags: string[];
     imageUrls: string[];
@@ -176,7 +177,7 @@ export default function CommunityFeedPage() {
       const res = await fetch('/api/popular-creations');
       if (res.ok) {
         const json = await res.json();
-        if (json.success) setCreators(json.creators);
+        if (json.success) setCreators(json.creators || []);
       }
     } catch (err) { console.error("Failed to load creators:", err); }
   };
@@ -185,11 +186,15 @@ export default function CommunityFeedPage() {
   const fetchUserProfile = async () => {
     if (!currentUserId) return;
     try {
-      const res = await fetch('/api/profile');
+      const token = localStorage.getItem("token");
+      const headers: Record<string, string> = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+      const res = await fetch('/api/profile', { headers });
       if (res.ok) {
         const json = await res.json();
-        if (json?.data?.attributes?.profile_image_url) {
-          setCurrentUserAvatar(json.data.attributes.profile_image_url);
+        const url = json?.data?.attributes?.profile_image_url;
+        if (url) {
+          setCurrentUserAvatar(url.replace(/=s\d+-c/, "=s400"));
         }
       }
     } catch (error) {
@@ -375,6 +380,32 @@ export default function CommunityFeedPage() {
           <SearchBar onSearch={(q) => { setSearchQuery(q); fetchFeed(q); }} />
         </div>
 
+        {/* Mobile-only: sidebar above CreatePost */}
+        <div className={styles.mobileSidebar}>
+          <PopularHashtags
+            hashtags={hashtags.length > 0 ? hashtags : MOCK_HASHTAGS}
+            onTagClick={(tag) => {
+              if (searchQuery === tag) {
+                setSearchQuery('');
+                activeSearchRef.current = null;
+                hashtagFilterRef.current = null;
+                fetchFeed();
+              } else {
+                setSearchQuery(tag);
+                hashtagFilterRef.current = tag;
+                activeSearchRef.current = tag;
+                fetchFeed(tag);
+              }
+            }}
+            selectedHashtag={searchQuery}
+          />
+          <PopularCreations
+            creators={(creators?.length ?? 0) > 0 ? creators : MOCK_CREATORS}
+            currentUserId={currentUserId}
+            onPostCreated={() => fetchFeed()}
+          />
+        </div>
+
         <CreatePost
           currentUserId={currentUserId}
           userAvatar={currentUserAvatar}
@@ -404,7 +435,7 @@ export default function CommunityFeedPage() {
                   isLiked={post.attributes.isLiked}
                   hashtags={post.attributes.hashtags}
                   bookmarks ={bookmarked}
-                  authorUserId={post.attributes.userId}
+                  authorUserId={post.attributes.creatorId || post.attributes.userId}
                   likingActive={likingPosts.has(post.id)}
                   onLike={handleLike}
                   onEdit={isOwner ? (id, content, images, hashtags) => handleEdit(id, content, images, hashtags) : undefined}
@@ -446,7 +477,7 @@ export default function CommunityFeedPage() {
           }}
         />
         <PopularCreations
-          creators={creators.length > 0 ? creators : MOCK_CREATORS}
+          creators={(creators?.length ?? 0) > 0 ? creators : MOCK_CREATORS}
           currentUserId={currentUserId || undefined}
           onCreatorClick={(creator) => {
             if (creator.userId) {

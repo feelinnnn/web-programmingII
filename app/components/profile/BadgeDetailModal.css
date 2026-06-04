@@ -184,6 +184,21 @@
   justify-content: center;
 }
 
+.bd-resubmitBtn {
+  width: 100%;
+  padding: 13px 0;
+  background: #c0392b;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  transition: background 0.15s;
+}
+.bd-resubmitBtn:hover { background: #a93226; }
+
 .bd-verifyBtn {
   width: 100%;
   padding: 13px 0;
@@ -253,6 +268,37 @@
 }
 .bd-cancelReqBtn:hover:not(:disabled) { background: #fff0f0; }
 .bd-cancelReqBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.bd-adminFeedback {
+  background: #fff8e7;
+  border-left: 3px solid #f0ad4e;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+}
+.bd-adminFeedback.declined {
+  background: #fff0f0;
+  border-left-color: #c0392b;
+}
+
+.bd-adminFeedbackLabel {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #7a6500;
+  margin-bottom: 4px;
+}
+.bd-adminFeedback.declined .bd-adminFeedbackLabel {
+  color: #a00;
+}
+
+.bd-adminFeedbackText {
+  margin: 0;
+  font-size: 13px;
+  color: #444;
+  line-height: 1.6;
+  white-space: pre-line;
+}
 
 .bd-waiting {
   text-align: center;

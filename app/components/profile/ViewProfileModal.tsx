@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import "./ViewProfileModal.css";
+import Swal from 'sweetalert2';
 
 interface Props {
   profile: {
@@ -67,7 +68,7 @@ export default function ViewProfileModal({ profile, onClose }: Props) {
             className="vm-viewEmail"
             onClick={() => {
               navigator.clipboard.writeText(profile.email);
-              alert("Email copied: " + profile.email);
+              Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Email copied!', showConfirmButton: false, timer: 2000 });
             }}
             title="Click to copy email"
           >

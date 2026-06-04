@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import styles from './Postcard.module.css';
 import { useUserId } from '@/lib/useauth';
+import Swal from 'sweetalert2';
 import { json } from 'stream/consumers';
 
 function formatTimeAgo(dateString: string | Date): string {
@@ -200,7 +201,7 @@ export default function PostCard({
     if (!newCommentText.trim() || isSubmittingComment) return;
 
     if (!userId) {
-      alert("please login first!");
+      Swal.fire({ icon: 'warning', title: 'Login required', text: 'Please login first!' });
       return;
     }
 
@@ -220,7 +221,7 @@ export default function PostCard({
       const data = await res.json();
 
       if (res.status === 401) {
-        alert("Session expired. Please login again.");
+        Swal.fire({ icon: 'warning', title: 'Session expired', text: 'Please login again.' });
         return;
       }
 
@@ -229,11 +230,11 @@ export default function PostCard({
         setCommentCount((prev) => prev + 1);
         setNewCommentText('');
       } else {
-        alert(data.error || "An error occurred while submitting the comment.");
+        Swal.fire({ icon: 'error', title: 'Error', text: data.error || 'An error occurred while submitting the comment.' });
       }
     } catch (err) {
       console.error("Submit Comment Error:", err);
-      alert("Cannot connect to the server.");
+      Swal.fire({ icon: 'error', title: 'Connection error', text: 'Cannot connect to the server.' });
     } finally {
       setIsSubmittingComment(false);
     }
@@ -350,7 +351,7 @@ export default function PostCard({
   };
 
   const handleFollow = async () => {
-    if (!userId) { alert("Please login first!"); return; }
+    if (!userId) { Swal.fire({ icon: 'warning', title: 'Login required', text: 'Please login first!' }); return; }
     if (!authorUserId) return;
     try {
       const res = await fetch("/api/follow", {
@@ -400,7 +401,8 @@ export default function PostCard({
 
   const handleDeleteComment = async (commentId: string) => {
     if (!userId) return;
-    if (!window.confirm("Delete this comment?")) return;
+    const result = await Swal.fire({ icon: 'warning', title: 'Delete comment?', showCancelButton: true, confirmButtonText: 'Delete', confirmButtonColor: '#e74c3c' });
+    if (!result.isConfirmed) return;
     try {
       const res = await fetch(`/api/comments?commentId=${commentId}&userId=${userId}`, { method: "DELETE" });
       if (res.ok) {
@@ -423,7 +425,7 @@ const handleBookmark = async (id : string) =>{
         body : JSON.stringify({postId : id, userId : userId, targetType :  "post"})
       })
       if(!res.ok){
-        alert("Cannot add bookmark something wrong in handleBookmark Function (POST Bookmark)" );
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to add bookmark.' });
         return;
       }
       const data = await res.json();
@@ -441,7 +443,7 @@ const handleBookmark = async (id : string) =>{
       });
 
       if (!res.ok) {
-        alert("Cannot remove bookmark something wrong in handleBookmark Function (DELETE Bookmark)");
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to remove bookmark.' });
         return;
       }
 
@@ -450,11 +452,11 @@ const handleBookmark = async (id : string) =>{
     }
 }
 
-  const finalAvatarUrl = avatarUrl && !avatarError ? avatarUrl : "/avatar/Avatar.png";
+  const finalAvatarUrl = avatarUrl && !avatarError ? avatarUrl.replace(/=s\d+-c/, "=s400") : "/avatar/Avatar.png";
 
   const handleProfileClick = () => {
     if (authorUserId) {
-      window.open(`/user-profile?user_id=${authorUserId}`, '_blank');
+      window.location.href = `/user-profile?user_id=${authorUserId}`;
     }
   };
 
@@ -666,7 +668,7 @@ const handleBookmark = async (id : string) =>{
               {commentsList.map((cmt) => (
                 <div key={cmt.id} className={styles.commentCardRow}>
                   <img
-                    src={cmt.avatarUrl || "/avatar/Avatar.png"}
+                    src={(cmt.avatarUrl || "/avatar/Avatar.png").replace(/=s\d+-c/, "=s400")}
                     alt={cmt.author}
                     className={styles.commenterAvatar}
                     onError={(e) => { e.currentTarget.src = "/avatar/Avatar.png"; }}

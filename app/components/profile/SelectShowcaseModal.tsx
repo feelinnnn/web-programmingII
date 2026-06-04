@@ -81,6 +81,7 @@ export default function SelectShowcaseModal({ badges, initialSelected, onSave, o
         next.delete(id);
       } else {
         const b = badges.find((x) => x.id === id);
+        if (b?.attributes?.status !== "verified") return prev;
         const type = b ? getBadgeType(b) : "";
         const count = [...next].filter((bid) => {
           const bb = badges.find((x) => x.id === bid);
@@ -96,6 +97,7 @@ export default function SelectShowcaseModal({ badges, initialSelected, onSave, o
   // Filter unselected badges
   const availableBadges = useMemo(() => {
     return badges.filter((b) => {
+      if (b.attributes?.status !== "verified") return false;
       if (selected.has(b.id)) return false;
       if (colorFilter && getBadgeColor(b) !== colorFilter) return false;
       if (search.trim()) {

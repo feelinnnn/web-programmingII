@@ -48,15 +48,11 @@ export default function LessonModal({ lesson, onClose }: Props) {
     }
   }
 
-  const gotoLesson = async (id: string) => {
-    try {
-      await fetch(`/api/lessons/${id}/progress/${userId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-    } catch (err) {
-      console.error('Failed to create progress:', err);
-    }
+  const gotoLesson = (id: string) => {
+    fetch(`/api/lessons/${id}/progress/${userId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    }).catch((err) => console.error('Failed to create progress:', err));
     router.push(`/lesson_page/?lesson_id=${id}`);
   };
 

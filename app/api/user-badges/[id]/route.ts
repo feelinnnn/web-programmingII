@@ -13,6 +13,10 @@ export async function PATCH(
     const updates: any = {};
     if (body.evidenceUrls !== undefined) updates.evidenceUrls = body.evidenceUrls;
     if (body.userNote !== undefined) updates.userNote = body.userNote;
+    if (body.resubmit === true) {
+      updates.status = "non-request";
+      updates.adminComment = null;
+    }
     await UserBadge.findByIdAndUpdate(id, { $set: updates });
     return NextResponse.json({ success: true });
   } catch (error: any) {
