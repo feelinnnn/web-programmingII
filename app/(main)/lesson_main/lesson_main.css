@@ -1,27 +1,38 @@
 @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
 
-/* Scoped to lesson-main page only — .main-content is unique to this page */
+/* ============================================
+   PAGE LOCK — ห้าม page scroll แนวนอน
+   ============================================ */
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* ============================================
+   PAGE LAYOUT
+   ============================================ */
 .page:has(> .main-content) {
   display: flex;
   min-height: 100vh;
   overflow-x: hidden;
 }
 
-
-/* MAIN */
-
 .page:has(> .main-content) .main-content {
-  margin-left: 60px;
-  width: calc(100% - 60px);
-  padding: 30px 40px 300px 40px;
+  width: 100%;
+  min-width: 0;
+  padding: 30px 40px 80px 40px;
   box-sizing: border-box;
-  transition: margin-left 0.3s ease, width 0.3s ease;
 }
 
 .page:has(> .main-content) .section {
   margin-bottom: 50px;
+  min-width: 0;
 }
 
+/* ============================================
+   SECTION HEADER
+   ============================================ */
 .page:has(> .main-content) .section-header {
   display: flex;
   flex-direction: column;
@@ -60,66 +71,91 @@
   margin: 0;
 }
 
-.page:has(> .main-content) .normal-title {
-  font-size: 2rem;
-  margin-bottom: 20px;
-}
-
 .page:has(> .main-content) .subtitle {
   margin: 5px 0 25px 0;
   font-size: 1.1rem;
 }
 
-/* HORIZONTAL */
-
+/* ============================================
+   HORIZONTAL SCROLL — Latest Lessons
+   scroll ซ้าย/ขวาด้วย mouse wheel หรือ trackpad
+   scrollbar มีให้เห็น ใช้ scroll ได้
+   ============================================ */
 .page:has(> .main-content) .horizontal-scroll {
   display: flex;
+  flex-wrap: nowrap;
   gap: 30px;
   width: 100%;
   overflow-x: auto;
-  padding-bottom: 10px;
-  scrollbar-width: thin;
+  padding: 0 120px 16px 0;
+  position: relative;
+  scrollbar-width: auto;
   scrollbar-color: #8C5A3C #f0e8d8;
 }
 
 .page:has(> .main-content) .horizontal-scroll::-webkit-scrollbar {
-  height: 8px;
+  height: 10px;
 }
 
 .page:has(> .main-content) .horizontal-scroll::-webkit-scrollbar-track {
   background: #f0e8d8;
-  border-radius: 4px;
+  border-radius: 5px;
 }
 
 .page:has(> .main-content) .horizontal-scroll::-webkit-scrollbar-thumb {
   background: #8C5A3C;
-  border-radius: 4px;
+  border-radius: 5px;
 }
 
 .page:has(> .main-content) .horizontal-scroll::-webkit-scrollbar-thumb:hover {
   background: #6B3E22;
 }
 
-/* CARDS — match profile card design */
+/* solid background ทับขวา (ทับทั้งรูปและ scrollbar) */
+.page:has(> .main-content) .section:has(.horizontal-scroll) {
+  position: relative;
+}
 
+.page:has(> .main-content) .section:has(.horizontal-scroll)::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  background: #FFF2D7;
+  pointer-events: none;
+  z-index: 99;
+}
+
+/* ============================================
+   CARDS
+   ============================================ */
 .page:has(> .main-content) .lesson-card {
+  flex-shrink: 0;
   width: 220px;
   background: transparent;
   border-radius: 12px;
   overflow: hidden;
-  flex-shrink: 0;
   display: flex;
   flex-direction: column;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.page:has(> .main-content) .lesson-card:hover {
+  transform: translateY(-2px);
 }
 
 .page:has(> .main-content) .lesson-card.large {
-  width: 500px;
+  width: 460px;
 }
 
 .page:has(> .main-content) .card-image-area {
   height: 160px;
   position: relative;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .page:has(> .main-content) .large .card-image-area {
@@ -132,6 +168,9 @@
   height: 100%;
   object-fit: cover;
   display: block;
+  /* ป้องกัน browser drag รูป */
+  pointer-events: none;
+  -webkit-user-drag: none;
 }
 
 .page:has(> .main-content) .card-badge-pill {
@@ -159,27 +198,32 @@
 }
 
 .page:has(> .main-content) .lesson-card.large .card-content {
-  padding: 14px;
+  padding: 12px 14px;
   background: #3f2d29;
 }
 
 .page:has(> .main-content) .lesson-card.large .card-content h3 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: #fff;
 }
 
 .page:has(> .main-content) .lesson-card.large .card-content p {
-  margin: 8px 0 0;
+  margin: 4px 0 0;
   color: #ccc;
-  font-size: 0.85rem;
-  line-height: 1.5;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
+/* ============================================
+   PROGRESS BAR
+   ============================================ */
 .progress-bar {
   height: 3px;
-  background: rgba(255,255,255,0.15);
-  position: relative;
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .progress-fill {
@@ -196,37 +240,22 @@
   text-align: center;
 }
 
-/* GRID */
-
+/* ============================================
+   GRID — Continue section
+   ============================================ */
 .page:has(> .main-content) .lesson-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 30px;
 }
 
-/* FOOTER */
-
-.page:has(> .main-content) .footer {
-  margin-top: 80px;
-  padding-bottom: 30px;
+.page:has(> .main-content) .lesson-grid > .lesson-card {
+  width: 100%;
 }
 
-.page:has(> .main-content) .lang-btn {
-  background: transparent;
-  border: 1px solid #5e3a3a;
-  color: #5e3a3a;
-  border-radius: 14px;
-  padding: 12px 24px;
-  cursor: pointer;
-  float: right;
-}
-
-.page:has(> .main-content) .footer-line {
-  clear: both;
-  margin-top: 80px;
-  height: 40px;
-}
-
+/* ============================================
+   PAGINATION
+   ============================================ */
 .page:has(> .main-content) .pagination {
   display: flex;
   align-items: center;
@@ -263,4 +292,132 @@
 
 .page:has(> .main-content) .main-footer {
   height: 5px;
+}
+
+/* ============================================
+   IPAD (768px – 1024px)
+   ============================================ */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .page:has(> .main-content) .main-content {
+    padding: 24px 20px 60px 20px;
+  }
+
+  .page:has(> .main-content) .script-title {
+    font-size: 38px;
+  }
+
+  .page:has(> .main-content) .subtitle {
+    font-size: 1rem;
+  }
+
+  .page:has(> .main-content) .lesson-card {
+    width: 180px;
+  }
+
+  .page:has(> .main-content) .lesson-card.large {
+    width: 340px;
+  }
+
+  .page:has(> .main-content) .card-image-area {
+    height: 140px;
+  }
+
+  .page:has(> .main-content) .large .card-image-area {
+    height: 180px;
+  }
+
+  .page:has(> .main-content) .horizontal-scroll {
+    gap: 20px;
+    padding: 0 80px 14px 0;
+  }
+
+  .page:has(> .main-content) .section:has(.horizontal-scroll)::after {
+    width: 60px;
+  }
+
+  .page:has(> .main-content) .lesson-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
+  }
+}
+
+/* ============================================
+   PHONE (< 768px)
+   ============================================ */
+@media (max-width: 768px) {
+  .page:has(> .main-content) .main-content {
+    padding: 20px 12px 50px 12px;
+  }
+
+  .page:has(> .main-content) .section {
+    margin-bottom: 32px;
+  }
+
+  .page:has(> .main-content) .script-title {
+    font-size: 30px;
+  }
+
+  .page:has(> .main-content) .subtitle {
+    font-size: 0.9rem;
+    margin: 5px 0 16px 0;
+  }
+
+  .page:has(> .main-content) .subtitle-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .page:has(> .main-content) .lesson-card {
+    width: 150px;
+  }
+
+  .page:has(> .main-content) .lesson-card.large {
+    width: 260px;
+  }
+
+  .page:has(> .main-content) .card-image-area {
+    height: 110px;
+  }
+
+  .page:has(> .main-content) .large .card-image-area {
+    height: 140px;
+  }
+
+  .page:has(> .main-content) .card-label {
+    font-size: 11px;
+    padding: 10px 8px 6px;
+  }
+
+  .page:has(> .main-content) .horizontal-scroll {
+    gap: 14px;
+    padding: 0 60px 12px 0;
+  }
+
+  .page:has(> .main-content) .horizontal-scroll::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .page:has(> .main-content) .section:has(.horizontal-scroll)::after {
+    width: 50px;
+  }
+
+  .page:has(> .main-content) .lesson-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 14px;
+  }
+
+  .page:has(> .main-content) .pagination {
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .page:has(> .main-content) .page-btn {
+    padding: 4px 12px;
+    font-size: 12px;
+  }
+
+  .page:has(> .main-content) .page-info {
+    font-size: 12px;
+  }
 }

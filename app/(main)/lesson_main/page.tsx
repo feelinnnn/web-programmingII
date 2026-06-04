@@ -48,20 +48,29 @@ interface LessonCardProps {
 
 function getBadgeColor(badgeType?: string): string {
   switch (badgeType) {
-    case "self-declared":   return "#A0D585";  // green
-    case "evidence-backed": return "#FFA95A";  // orange
-    case "expert-certified": return "#FF5A5A"; // red
+    case "self-declared":    return "#A0D585";
+    case "evidence-backed":  return "#FFA95A";
+    case "expert-certified": return "#FF5A5A";
     case "lesson":
-    default:                return "#FFD45A";  // yellow
+    default:                 return "#FFD45A";
   }
 }
 
-function LessonCard({ lesson, large = false, onClick, progressPercentage, remainingChapters, submissionNeeded, badgeType }: LessonCardProps) {
+function LessonCard({
+  lesson,
+  large = false,
+  onClick,
+  progressPercentage,
+  remainingChapters,
+  submissionNeeded,
+  badgeType,
+}: LessonCardProps) {
   const badgeColor = getBadgeColor(badgeType);
+
   return (
-    <div className={`lesson-card ${large ? "large" : ""}`} onClick={onClick}>
+    <div className={`lesson-card${large ? " large" : ""}`} onClick={onClick}>
       <div className="card-image-area">
-        {lesson.attributes.thumbnail_url ? (
+        {lesson.attributes.thumbnail_url && (
           <img
             src={lesson.attributes.thumbnail_url}
             alt={lesson.attributes.title}
@@ -70,8 +79,10 @@ function LessonCard({ lesson, large = false, onClick, progressPercentage, remain
               (e.target as HTMLImageElement).style.display = "none";
             }}
           />
-        ) : null}
-        <span className="card-badge-pill" style={{ backgroundColor: badgeColor, color: "#333" }}>Badge</span>
+        )}
+        <span className="card-badge-pill" style={{ backgroundColor: badgeColor, color: "#333" }}>
+          Badge
+        </span>
         {!large && <div className="card-label">{lesson.attributes.title}</div>}
       </div>
 
@@ -90,12 +101,13 @@ function LessonCard({ lesson, large = false, onClick, progressPercentage, remain
 
       {submissionNeeded ? (
         <div className="chapters-left">badge submission left</div>
-      ) : remainingChapters !== undefined && (
-        <div className="chapters-left">
-          {remainingChapters} {remainingChapters === 1 ? "chapter" : "chapters"} left
-        </div>
+      ) : (
+        remainingChapters !== undefined && (
+          <div className="chapters-left">
+            {remainingChapters} {remainingChapters === 1 ? "chapter" : "chapters"} left
+          </div>
+        )
       )}
-
     </div>
   );
 }
@@ -103,22 +115,16 @@ function LessonCard({ lesson, large = false, onClick, progressPercentage, remain
 export default function Home() {
   const userId = useUserId();
   const [mounted, setMounted] = useState(false);
-  const [navExpanded, setNavExpanded] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
-  // Detect navbar expansion
-  useEffect(() => {
-    const check = () => setNavExpanded(localStorage.getItem("navbar-expanded") === "true");
-    check();
-    window.addEventListener("navbar-toggle", check);
-    window.addEventListener("storage", check);
-    return () => {
-      window.removeEventListener("navbar-toggle", check);
-      window.removeEventListener("storage", check);
-    };
-  }, [mounted]);
+  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+  const [allLessons, setAllLessons] = useState<Lesson[]>([]);
+  const [progressMap, setProgressMap] = useState<Map<string, Progress>>(new Map());
+  const [badgeTypeMap, setBadgeTypeMap] = useState<Map<string, string>>(new Map());
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mouse wheel horizontal scroll
+  // Mouse wheel → horizontal scroll on .horizontal-scroll
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
       const target = e.target as HTMLElement;
@@ -130,25 +136,16 @@ export default function Home() {
     };
     document.addEventListener("wheel", handleWheel, { passive: false });
     return () => document.removeEventListener("wheel", handleWheel);
-  }, [mounted]);
-
-  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
-  const [allLessons, setAllLessons] = useState<Lesson[]>([]);
-  const [progressMap, setProgressMap] = useState<Map<string, Progress>>(new Map());
-  const [badgeTypeMap, setBadgeTypeMap] = useState<Map<string, string>>(new Map());
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  }, []);
 
   useEffect(() => {
     if (!userId) return;
-
     async function fetchData() {
       try {
         const [lessonsRes, progressRes] = await Promise.all([
           fetch("/api/lessons"),
           fetch(`/api/lessons/continue/${userId}`),
         ]);
-
         if (!lessonsRes.ok) throw new Error("Failed to fetch lessons");
         const lessonsJson = await lessonsRes.json();
         setAllLessons(lessonsJson.data || []);
@@ -167,7 +164,6 @@ export default function Home() {
         setLoading(false);
       }
     }
-
     fetchData();
   }, [userId]);
 
@@ -187,16 +183,16 @@ export default function Home() {
     fetchBadges();
   }, []);
 
-  const latestLessons = [...allLessons].sort((a, b) => {
-    const dateA = new Date(a.attributes.created_at).getTime();
-    const dateB = new Date(b.attributes.created_at).getTime();
-    return dateB - dateA;
-  }).slice(0, 3);
+  const latestLessons = [...allLessons]
+    .sort((a, b) =>
+      new Date(b.attributes.created_at).getTime() -
+      new Date(a.attributes.created_at).getTime()
+    )
+    .slice(0, 5);
 
-  const continueLessons = allLessons.filter(lesson => {
+  const continueLessons = allLessons.filter((lesson) => {
     const progress = progressMap.get(lesson.id);
     if (!progress) return false;
-    // Show lessons with remaining chapters OR unsubmitted badge
     return progress.attributes.remainingCount > 0 || !progress.attributes.badgeSubmitted;
   });
 
@@ -205,9 +201,9 @@ export default function Home() {
 
   return (
     <div className="page">
-      {/* Main */}
-      <main className="main-content" >
-        {/* Latest */}
+      <main className="main-content">
+
+        {/* Latest Lessons — horizontal scroll row */}
         {latestLessons.length > 0 && (
           <section className="section">
             <div className="section-header">
@@ -219,7 +215,7 @@ export default function Home() {
             </div>
 
             <div className="horizontal-scroll">
-              {latestLessons.map(lesson => (
+              {latestLessons.map((lesson) => (
                 <LessonCard
                   key={lesson.id}
                   lesson={lesson}
@@ -232,17 +228,22 @@ export default function Home() {
           </section>
         )}
 
-        {/* Continue */}
+        {/* Continue — horizontal scroll */}
         <section className="section">
           <h2 className="script-title">Continue</h2>
 
           {continueLessons.length > 0 ? (
-            <div className="horizontal-scroll small-cards">
-              {continueLessons.map(lesson => {
+            <div className="horizontal-scroll">
+              {continueLessons.map((lesson) => {
                 const progress = progressMap.get(lesson.id);
-                const percentage = progress ? (progress.attributes.completedCount / progress.attributes.totalChapters) * 100 : 0;
-                const remaining = progress ? progress.attributes.totalChapters - progress.attributes.completedCount : 0;
+                const percentage = progress
+                  ? (progress.attributes.completedCount / progress.attributes.totalChapters) * 100
+                  : 0;
+                const remaining = progress
+                  ? progress.attributes.totalChapters - progress.attributes.completedCount
+                  : 0;
                 const needsSubmission = remaining === 0 && !progress?.attributes.badgeSubmitted;
+
                 return (
                   <LessonCard
                     key={lesson.id}
@@ -261,8 +262,7 @@ export default function Home() {
           )}
         </section>
 
-
-        <footer className="main-footer" />
+        <div className="main-footer" />
       </main>
 
       <LessonModal lesson={selectedLesson} onClose={() => setSelectedLesson(null)} />
