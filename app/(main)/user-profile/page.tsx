@@ -36,7 +36,7 @@ interface UserData {
 }
 
 function getBadgeColor(b: any): string {
-  const type = b.attributes?.badge_type_snapshot || b.attributes?.badgeTypeSnapshot || "";
+  const type = b.attributes?.badge_type_snapshot || "";
   if (type === "self-declared") return "#A0D585";
   if (type === "evidence-backed") return "#FFA95A";
   if (type === "expert-certified") return "#FF5A5A";
