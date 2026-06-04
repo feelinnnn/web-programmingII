@@ -17,11 +17,20 @@ interface Props {
   editData?: any;
 }
 
+type Step = "choose" | "select" | "evidence";
+type BadgeChoice = "self-declared" | "expert-certified";
+
+const BADGE_TYPES: { key: BadgeChoice; label: string; color: string; tag: string }[] = [
+  { key: "self-declared", label: "Self Declared", color: "#A0D585", tag: "Self Declared" },
+  { key: "expert-certified", label: "Expert Certified", color: "#FF5A5A", tag: "Expert Certified" },
+];
+
 export default function AddBadgeModal({ onClose, onCreated, editData }: Props) {
   const userId = useUserId();
   const isEdit = !!editData;
   const [mounted, setMounted] = useState(false);
-  const [step, setStep] = useState<"select" | "evidence">(isEdit ? "evidence" : "select");
+  const [step, setStep] = useState<Step>(isEdit ? "evidence" : "choose");
+  const [badgeType, setBadgeType] = useState<BadgeChoice>("self-declared");
   const [selectedBadge, setSelectedBadge] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [badges, setBadges] = useState<any[]>([]);
@@ -32,6 +41,8 @@ export default function AddBadgeModal({ onClose, onCreated, editData }: Props) {
   const [error, setError] = useState("");
 
   const workerRef = useRef<Worker | null>(null);
+
+  const activeType = BADGE_TYPES.find((t) => t.key === badgeType) || BADGE_TYPES[0];
 
   // Init Web Worker
   useEffect(() => {
@@ -57,7 +68,6 @@ export default function AddBadgeModal({ onClose, onCreated, editData }: Props) {
           setError("Worker error — upload may have failed");
         };
       } catch {
-        // Worker not supported — fallback to direct fetch
         workerRef.current = null;
       }
     }
@@ -66,11 +76,13 @@ export default function AddBadgeModal({ onClose, onCreated, editData }: Props) {
     };
   }, []);
 
-  useEffect(() => { setMounted(true); loadBadges(); }, []);
+  useEffect(() => { setMounted(true); }, []);
 
   // Init from editData
   useEffect(() => {
     if (!editData) return;
+    const snapshot = editData.attributes?.badge_type_snapshot || "self-declared";
+    setBadgeType(snapshot);
     const urls = editData.attributes?.evidence_urls || [];
     const notes = (editData.attributes?.user_note || "").split(" | ").filter(Boolean);
     const initItems = urls.map((url: string, i: number) => ({
@@ -90,26 +102,37 @@ export default function AddBadgeModal({ onClose, onCreated, editData }: Props) {
   const loadBadges = async (q = "") => {
     try {
       const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-      const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+      const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
 
-      // 1. Fetch available badges matching query
-      const searchRes = await fetch(`/api/badges/search?type=expert-certified${q ? `&q=${encodeURIComponent(q)}` : ""}`);
+      const searchRes = await fetch(
+        `/api/badges/search?type=${badgeType}${q ? `&q=${encodeURIComponent(q)}` : ""}`
+      );
       const searchJson = await searchRes.json();
       const allAvailable = searchJson.data || [];
 
-      // 2. Fetch user's current badges to filter out
-      const userBadgesRes = await fetch(`/api/user-badges?userId=${userId}`, { headers: authHeaders });
+      const userBadgesRes = await fetch(`/api/user-badges?userId=${userId}`, { headers });
       const userBadgesJson = await userBadgesRes.json();
       const ownedBadgeIds = (userBadgesJson.data || []).map((ub: any) => ub.attributes.badgeId);
 
-      // 3. Filter: available - owned
       const filtered = allAvailable.filter((b: any) => !ownedBadgeIds.includes(b.id));
-      
       setBadges(filtered);
     } catch (err) {
       console.error("Failed to load/filter badges:", err);
     }
   };
+
+  const chooseType = (type: BadgeChoice) => {
+    setBadgeType(type);
+    setStep("select");
+    setSearch("");
+    setBadges([]);
+  };
+
+  useEffect(() => {
+    if (step === "select" && badgeType) {
+      loadBadges();
+    }
+  }, [step, badgeType]);
 
   const selectBadge = (badge: any) => {
     setSelectedBadge(badge);
@@ -144,7 +167,6 @@ export default function AddBadgeModal({ onClose, onCreated, editData }: Props) {
     if (!file || !activeItem) return;
     setError("");
 
-    // Mark this item as uploading
     setUploadingIds((prev) => {
       const next = new Set(prev);
       next.add(activeItem);
@@ -152,10 +174,8 @@ export default function AddBadgeModal({ onClose, onCreated, editData }: Props) {
     });
 
     if (workerRef.current) {
-      // ── Web Worker path ──
       workerRef.current.postMessage({ file, id: activeItem });
     } else {
-      // ── Fallback: direct fetch ──
       try {
         const formData = new FormData();
         formData.append("file", file);
@@ -195,7 +215,17 @@ export default function AddBadgeModal({ onClose, onCreated, editData }: Props) {
       } else {
         const res = await fetch("/api/user-badges", {
           method: "POST", headers,
-          body: JSON.stringify({ data: { attributes: { userId, badgeId: selectedBadge.id, badgeTypeSnapshot: "self-declared", userNote: userNote || selectedBadge.name, evidenceUrls } } }),
+          body: JSON.stringify({
+            data: {
+              attributes: {
+                userId,
+                badgeId: selectedBadge.id,
+                badgeTypeSnapshot: badgeType,
+                userNote: userNote || selectedBadge.name,
+                evidenceUrls,
+              },
+            },
+          }),
         });
         if (!res.ok) throw new Error("Failed");
       }
@@ -209,23 +239,76 @@ export default function AddBadgeModal({ onClose, onCreated, editData }: Props) {
       <div className="ab-modal" onClick={(e) => e.stopPropagation()}>
         {error && <p className="ab-error">{error}</p>}
 
+        {/* ── Step 1: Choose badge type ── */}
+        {step === "choose" && (
+          <div className="ab-selectPanel">
+            <h2 className="ab-title">Select Badge Type</h2>
+            <p className="ab-subtitle">Choose the type of badge you want to claim</p>
+
+            <div className="ab-typeGrid">
+              {BADGE_TYPES.map((t) => (
+                <div
+                  key={t.key}
+                  className="ab-typeCard"
+                  onClick={() => chooseType(t.key)}
+                  style={{ borderColor: t.color }}
+                >
+                  <div className="ab-typeCardIcon" style={{ backgroundColor: t.color }} />
+                  <div className="ab-typeCardInfo">
+                    <h3>{t.label}</h3>
+                    <p>
+                      {t.key === "self-declared"
+                        ? "Claim a badge with your own evidence. You can request expert verification later."
+                        : "Claim a badge and send evidence for expert certification."}
+                    </p>
+                  </div>
+                  <span className="ab-typeArrow">&rarr;</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="ab-buttons">
+              <button className="ab-cancel" onClick={onClose}>Cancel</button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Step 2: Select badge ── */}
         {step === "select" && (
           <div className="ab-selectPanel">
-            <h2 className="ab-title">{isEdit ? "Edit Badge" : "Select Expert Certified Badge"}</h2>
-            <input className="ab-input ab-searchInput" value={search} onChange={(e) => { setSearch(e.target.value); loadBadges(e.target.value); }} placeholder="Search badges..." />
+            <div className="ab-stepHeader">
+              <button className="ab-back" onClick={() => setStep("choose")}>&larr; Back</button>
+              <span className="ab-typeTag" style={{ backgroundColor: activeType.color, color: "#fff" }}>
+                {activeType.label}
+              </span>
+            </div>
+            <h2 className="ab-title">Select {activeType.label} Badge</h2>
+            <input
+              className="ab-input ab-searchInput"
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); loadBadges(e.target.value); }}
+              placeholder="Search badges..."
+            />
             <div className="ab-badgeGrid">
               {badges.map((b) => (
-                <div key={b.id} className={`card ${selectedBadge?.id === b.id ? "selected" : ""}`} onClick={() => selectBadge(b)} style={{ height: 160, cursor: "pointer" }}>
+                <div
+                  key={b.id}
+                  className={`card ${selectedBadge?.id === b.id ? "selected" : ""}`}
+                  onClick={() => selectBadge(b)}
+                  style={{ height: 160, cursor: "pointer" }}
+                >
                   <div className="card-image-area">
                     {b.icon_url ? (
                       <img src={b.icon_url} alt={b.name} className="card-badge-icon" />
                     ) : null}
-                    <span className="card-badge-pill" style={{ backgroundColor: "#FF5A5A", color: "#fff" }}>Badge</span>
+                    <span className="card-badge-pill" style={{ backgroundColor: activeType.color, color: "#fff" }}>
+                      Badge
+                    </span>
                     <div className="card-label">{b.name}</div>
                   </div>
                 </div>
               ))}
-              {badges.length === 0 && <p className="ab-empty">No badges found</p>}
+              {badges.length === 0 && <p className="ab-empty">No {activeType.label} badges found</p>}
             </div>
             <div className="ab-buttons">
               <button className="ab-cancel" onClick={onClose}>Cancel</button>
@@ -233,14 +316,19 @@ export default function AddBadgeModal({ onClose, onCreated, editData }: Props) {
           </div>
         )}
 
+        {/* ── Step 3: Evidence ── */}
         {step === "evidence" && (
           <div className="ab-editorLayout">
             {/* Col 1: Badge info */}
             <div className="ab-col1">
-              {!isEdit && <button className="ab-back" onClick={() => setStep("select")}>← Back</button>}
+              {!isEdit && (
+                <button className="ab-back" onClick={() => setStep("select")}>&larr; Back</button>
+              )}
               <div className="ab-selectedBadge">
                 <h3>{selectedBadge?.name || "Badge"}</h3>
-                <span className="ab-badgeTypeTag">{isEdit ? "Self Declared" : "Expert Certified"}</span>
+                <span className="ab-badgeTypeTag" style={{ backgroundColor: activeType.color, color: "#fff" }}>
+                  {activeType.tag}
+                </span>
               </div>
             </div>
 
@@ -270,7 +358,12 @@ export default function AddBadgeModal({ onClose, onCreated, editData }: Props) {
                         )}
                       </div>
                       {items.length > 1 && (
-                        <button className="ab-evRemove" onClick={(e) => { e.stopPropagation(); removeEvidence(item.id); }}>✕</button>
+                        <button
+                          className="ab-evRemove"
+                          onClick={(e) => { e.stopPropagation(); removeEvidence(item.id); }}
+                        >
+                          &times;
+                        </button>
                       )}
                     </div>
                   );
@@ -279,11 +372,15 @@ export default function AddBadgeModal({ onClose, onCreated, editData }: Props) {
               <button className="ab-addBtn" onClick={addEvidence}>+ Add evidence</button>
             </div>
 
-            {/* Col 3: Description */}
+            {/* Col 3: Upload + Description */}
             <div className="ab-col3">
               <div className="ab-col3Header">
                 Description
-                {activeEvidence && <span className="ab-col3Num">#{items.findIndex((i) => i.id === activeEvidence.id) + 1}</span>}
+                {activeEvidence && (
+                  <span className="ab-col3Num">
+                    #{items.findIndex((i) => i.id === activeEvidence.id) + 1}
+                  </span>
+                )}
               </div>
 
               <label className={`ab-uploadArea ${isItemUploading ? "uploading" : ""}`}>
@@ -319,12 +416,15 @@ export default function AddBadgeModal({ onClose, onCreated, editData }: Props) {
                 }}
                 placeholder="Describe this evidence..."
                 rows={6}
-                // Never disabled — user can always type!
               />
 
               <div className="ab-buttons">
                 <button className="ab-cancel" onClick={onClose}>Cancel</button>
-                <button className="ab-save" onClick={handleSubmit} disabled={loading || isAnythingUploading}>
+                <button
+                  className="ab-save"
+                  onClick={handleSubmit}
+                  disabled={loading || isAnythingUploading}
+                >
                   {loading ? "Saving..." : isEdit ? "Update Badge" : "Create Badge"}
                 </button>
               </div>
