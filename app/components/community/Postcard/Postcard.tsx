@@ -452,11 +452,11 @@ const handleBookmark = async (id : string) =>{
     }
 }
 
-  const finalAvatarUrl = avatarUrl && !avatarError ? avatarUrl : "/avatar/Avatar.png";
+  const finalAvatarUrl = avatarUrl && !avatarError ? avatarUrl.replace(/=s\d+-c/, "=s400") : "/avatar/Avatar.png";
 
   const handleProfileClick = () => {
     if (authorUserId) {
-      window.open(`/user-profile?user_id=${authorUserId}`, '_blank');
+      window.location.href = `/user-profile?user_id=${authorUserId}`;
     }
   };
 
@@ -668,7 +668,7 @@ const handleBookmark = async (id : string) =>{
               {commentsList.map((cmt) => (
                 <div key={cmt.id} className={styles.commentCardRow}>
                   <img
-                    src={cmt.avatarUrl || "/avatar/Avatar.png"}
+                    src={(cmt.avatarUrl || "/avatar/Avatar.png").replace(/=s\d+-c/, "=s400")}
                     alt={cmt.author}
                     className={styles.commenterAvatar}
                     onError={(e) => { e.currentTarget.src = "/avatar/Avatar.png"; }}

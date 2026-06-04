@@ -21,6 +21,7 @@ export interface PostApiStructure {
   attributes: {
     postId: string;
     userId: string;
+    creatorId?: string;
     content: string;
     hashtags: string[];
     imageUrls: string[];
@@ -176,7 +177,7 @@ export default function CommunityFeedPage() {
       const res = await fetch('/api/popular-creations');
       if (res.ok) {
         const json = await res.json();
-        if (json.success) setCreators(json.creators);
+        if (json.success) setCreators(json.creators || []);
       }
     } catch (err) { console.error("Failed to load creators:", err); }
   };
@@ -185,11 +186,15 @@ export default function CommunityFeedPage() {
   const fetchUserProfile = async () => {
     if (!currentUserId) return;
     try {
-      const res = await fetch('/api/profile');
+      const token = localStorage.getItem("token");
+      const headers: Record<string, string> = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+      const res = await fetch('/api/profile', { headers });
       if (res.ok) {
         const json = await res.json();
-        if (json?.data?.attributes?.profile_image_url) {
-          setCurrentUserAvatar(json.data.attributes.profile_image_url);
+        const url = json?.data?.attributes?.profile_image_url;
+        if (url) {
+          setCurrentUserAvatar(url.replace(/=s\d+-c/, "=s400"));
         }
       }
     } catch (error) {
@@ -369,9 +374,85 @@ export default function CommunityFeedPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.topBar}>
-        <h1 className={styles.pageTitle}>Community Feed</h1>
-        <SearchBar onSearch={(q) => { setSearchQuery(q); fetchFeed(q); }} />
+      <div className={styles.main}>
+        <div className={styles.topBar}>
+          <h1 className={styles.pageTitle}>Community Feed</h1>
+          <SearchBar onSearch={(q) => { setSearchQuery(q); fetchFeed(q); }} />
+        </div>
+
+        {/* Mobile-only: sidebar above CreatePost */}
+        <div className={styles.mobileSidebar}>
+          <PopularHashtags
+            hashtags={hashtags.length > 0 ? hashtags : MOCK_HASHTAGS}
+            onTagClick={(tag) => {
+              if (searchQuery === tag) {
+                setSearchQuery('');
+                activeSearchRef.current = null;
+                hashtagFilterRef.current = null;
+                fetchFeed();
+              } else {
+                setSearchQuery(tag);
+                hashtagFilterRef.current = tag;
+                activeSearchRef.current = tag;
+                fetchFeed(tag);
+              }
+            }}
+            selectedHashtag={searchQuery}
+          />
+          <PopularCreations
+            creators={(creators?.length ?? 0) > 0 ? creators : MOCK_CREATORS}
+            currentUserId={currentUserId}
+            onPostCreated={() => fetchFeed()}
+          />
+        </div>
+
+        <CreatePost
+          currentUserId={currentUserId}
+          userAvatar={currentUserAvatar}
+          onPostCreated={() => { fetchFeed(); fetchHashtags(); fetchCreators(); }}
+        />
+
+        {loading ? (
+          <div className={styles.loading}>กำลังโหลดข้อมูลคอมมูนิตี้...</div>
+        ) : (
+          <TodayFeed
+            posts={posts}
+            renderPost={(post) => {
+              const isOwner = currentUserId && post.attributes.userId === currentUserId;
+              return (
+                <PostCard
+                  key={post.id}
+                  id={post.id}
+                  author={post.attributes.creator.displayName}
+                  sub_namebio={post.attributes.creator.sub_namebio}
+                  time={post.attributes.createdAt}
+                  content={post.attributes.content}
+                  imageUrls={post.attributes.imageUrls}
+                  imageUrl={post.attributes.imageUrls}
+                  avatarUrl={post.attributes.creator.profileImageUrl}
+                  likes={post.attributes.likesCount}
+                  comments={post.attributes.commentsCount}
+                  isLiked={post.attributes.isLiked}
+                  hashtags={post.attributes.hashtags}
+                  bookmarks ={bookmarked}
+                  authorUserId={post.attributes.creatorId || post.attributes.userId}
+                  likingActive={likingPosts.has(post.id)}
+                  onLike={handleLike}
+                  onEdit={isOwner ? (id, content, images, hashtags) => handleEdit(id, content, images, hashtags) : undefined}
+                  onDelete={isOwner ? handleDelete : undefined}
+                />
+              );
+            }}
+          />
+        )}
+
+        {/* Infinite scroll trigger + loading spinner */}
+        <div ref={loadMoreRef} className={styles.loadMore}>
+          {loadingMore && <div className={styles.spinner} />}
+          {!hasMore && posts.length > 0 && (
+            <p className={styles.noMore}>— You're all caught up —</p>
+          )}
+        </div>
       </div>
 
       <aside className={styles.sidebar}>
@@ -396,7 +477,7 @@ export default function CommunityFeedPage() {
           }}
         />
         <PopularCreations
-          creators={creators.length > 0 ? creators : MOCK_CREATORS}
+          creators={(creators?.length ?? 0) > 0 ? creators : MOCK_CREATORS}
           currentUserId={currentUserId || undefined}
           onCreatorClick={(creator) => {
             if (creator.userId) {

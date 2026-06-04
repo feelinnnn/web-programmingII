@@ -36,7 +36,22 @@ export async function GET(req: NextRequest) {
         .limit(limit)
         .lean();
     }
-    // (Search)
+    // (Search by @username)
+    else if (searchQuery && searchQuery.startsWith("@")) {
+      const username = searchQuery.slice(1);
+      const matchedUsers = await User.find({ display_name: { $regex: username, $options: "i" } }).lean();
+      const matchedIds = matchedUsers.map((u: any) => u.user_id || u._id.toString());
+      const filter = matchedIds.length > 0
+        ? { "post.user_id": { $in: matchedIds } }
+        : { "post.user_id": "__no_match__" };
+      total = await Post.countDocuments(filter);
+      rawPosts = await Post.find(filter)
+        .sort({ "post.created_at": -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean();
+    }
+    // (Search by hashtag/content)
     else if (searchQuery) {
       const cleanQuery = searchQuery.replace(/^#/, '');
       const filter = {
@@ -131,20 +146,23 @@ export async function GET(req: NextRequest) {
           try { creator = await User.findById(postUserId); } catch {}
         }
 
+        const creatorId = creator?._id?.toString() || p.post?.user_id || "";
+
         return {
           id: postIdStr,
           type: "post",
           attributes: {
             postId: p.post?.post_id || postIdStr,
             userId: p.post?.user_id || "",
+            creatorId,
             content: p.post?.content || "",
             hashtags: p.post?.hashtags || [],
-            imageUrls: p.post?.image_url || [], 
+            imageUrls: p.post?.image_url || [],
             recipeUrl: p.post?.recipe_url || "",
             likesCount: p.post?.likes_count || 0,
             commentsCount: p.post?.comments_count || 0,
             createdAt: p.post?.created_at || p.createdAt,
-            isLiked: isLiked, 
+            isLiked: isLiked,
             creator: {
               displayName: creator?.display_name || "Unknown User",
               profileImageUrl: creator?.profile_image_url || "/avatar/Avatar.png",

@@ -18,10 +18,14 @@ async function getCurrentUserId(req: NextRequest): Promise<string | null> {
     try {
       const token = authHeader.slice(7);
       const decoded: any = jwt.verify(token, JWT_SECRET);
-      return decoded.user_id || decoded.id || null;
+      return decoded.id || decoded.user_id || null;
     } catch {}
   }
   return null;
+}
+
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 export async function GET(req: NextRequest) {
@@ -31,19 +35,20 @@ export async function GET(req: NextRequest) {
   try {
     await connect();
 
-    // Get current user to exclude
     const currentId = await getCurrentUserId(req);
-    let currentUser = null;
+    let excludeId: string | null = null;
     if (currentId) {
-      currentUser = await User.findOne({ user_id: currentId }).lean()
-        || await User.findById(currentId).lean();
+      try {
+        const u = await User.findById(currentId).lean()
+          || await User.findOne({ user_id: currentId }).lean();
+        excludeId = u?._id?.toString() || null;
+      } catch {}
     }
-    const excludeId = currentUser?._id?.toString();
 
-    const filter: any = { display_name: { $regex: q, $options: "i" } };
-    if (excludeId) filter._id = { $ne: excludeId };
-
-    const users = await User.find(filter)
+    const users = await User.find({
+      display_name: { $regex: escapeRegex(q), $options: "i" },
+      ...(excludeId ? { _id: { $ne: excludeId } } : {}),
+    })
       .select("display_name profile_image_url sub_namebio")
       .limit(5)
       .lean();
@@ -57,6 +62,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ data: results });
   } catch (error: any) {
+    console.error("Search error:", error);
     return NextResponse.json({ errors: [{ detail: error.message }] }, { status: 500 });
   }
 }

@@ -20,7 +20,7 @@ interface Props {
   onImageClick?: (creator: Creator, postId?: string) => void;
 }
 
-export default function PopularCreations({ creators, currentUserId, onCreatorClick, onImageClick }: Props) {
+export default function PopularCreations({ creators = [], currentUserId, onCreatorClick, onImageClick }: Props) {
   const [followingMap, setFollowingMap] = useState<Record<string, boolean>>({});
   const [avatarErrors, setAvatarErrors] = useState<Record<string, boolean>>({});
   const [postImgErrors, setPostImgErrors] = useState<Record<string, boolean>>({});

@@ -35,6 +35,9 @@ const BadgeSchema = new Schema<IBadge>(
       type: String,
       required: true,
     },
+  },
+  {
+    collection: 'badges'
   }
 )
 

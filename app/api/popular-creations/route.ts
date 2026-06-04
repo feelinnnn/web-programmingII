@@ -37,7 +37,7 @@ export async function GET() {
 
         return {
           id: String(i + 1),
-          userId: entry._id,
+          userId: u?._id?.toString() || entry._id,
           name: u?.display_name || "Unknown",
           sub_namebio: u?.sub_namebio || u?.bio || "Home Cook",
           followers: "0",
