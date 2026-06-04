@@ -19,8 +19,8 @@ interface Props {
       badge_type_snapshot?: string;
       showcased?: boolean;
       certification_requested?: boolean;
-      adminComment?: string;
-      admin_comment?: string;
+      admin_comment?: string | null;
+      adminComment?: string | null;
     };
     relationships?: {
       badge?: {
@@ -81,6 +81,7 @@ export default function BadgeDetailModal({ badge, color, onClose, onVerify, onEd
   const icon = badgeInfo?.attributes?.icon_url;
   const evidenceUrls = badge.attributes?.evidence_urls || badge.attributes?.evidenceUrls || [];
   const rawNote = badge.attributes?.user_note || badge.attributes?.userNote || [];
+  const adminComment = badge.attributes?.admin_comment || badge.attributes?.adminComment || null;
   const userNotesArr: string[] = Array.isArray(rawNote) ? rawNote : (rawNote ? [rawNote] : []);
 
   // Show evidence for any badge that has user-submitted evidence
@@ -108,9 +109,10 @@ export default function BadgeDetailModal({ badge, color, onClose, onVerify, onEd
 
   // Actions — both self-declared and expert-certified can edit/request/cancel/delete
   const canEdit = isUserBadge && status === "non-request";
+  const canResubmit = isUserBadge && status === "declined";
   const canRequestCertify = isUserBadge && status === "non-request";
   const canCancelRequest = isUserBadge && status === "pending";
-  const canDelete = status === "non-request" && badgeType !== "lesson";
+  const canDelete = (status === "non-request" || status === "declined") && badgeType !== "lesson";
 
   const modal = (
     <div className="bd-overlay" onClick={onClose}>
@@ -184,9 +186,16 @@ export default function BadgeDetailModal({ badge, color, onClose, onVerify, onEd
                 </div>
               )}
 
+              {/* Admin feedback */}
+              {adminComment && (
+                <div className={`bd-adminFeedback ${status === "declined" ? "declined" : ""}`}>
+                  <p className="bd-adminFeedbackText">{adminComment}</p>
+                </div>
+              )}
+
               {/* Waiting for expert to certify */}
               {isUserBadge && status === "pending" && certRequested && (
-                <p className="bd-waiting">⏳ Waiting for expert to certify your badge</p>
+                <p className="bd-waiting">Waiting for expert to certify your badge</p>
               )}
 
               {/* Request Expert Certification */}
@@ -206,6 +215,11 @@ export default function BadgeDetailModal({ badge, color, onClose, onVerify, onEd
                 <button className="bd-cancelReqBtn" disabled={cancelling} onClick={async () => { setCancelling(true); onCancelRequest && await onCancelRequest(); setCancelling(false); }}>
                   {cancelling ? "Cancelling..." : "Cancel Request"}
                 </button>
+              )}
+
+              {/* Resubmit (declined) */}
+              {canResubmit && onEdit && (
+                <button className="bd-resubmitBtn" onClick={onEdit}>Resubmit Evidence</button>
               )}
 
               {/* Edit + Delete */}

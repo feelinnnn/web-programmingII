@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import styles from './PopularCreations.module.css';
+import Swal from 'sweetalert2';
 
 export interface Creator {
   id: string;
@@ -45,7 +46,7 @@ export default function PopularCreations({ creators = [], currentUserId, onCreat
 
   const handleFollow = async (creator: Creator) => {
     if (!currentUserId || !creator.userId) {
-      alert("Please login first!");
+      Swal.fire({ icon: 'warning', title: 'Login required', text: 'Please login first!' });
       return;
     }
     try {

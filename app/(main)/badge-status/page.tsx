@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useUserId } from "@/lib/useauth";
+import Swal from 'sweetalert2';
 import BadgeDetailModal from "../../components/profile/BadgeDetailModal";
 import BadgeInfoModal from "../../components/profile/BadgeInfoModal";
 import AddBadgeModal from "../../components/profile/AddBadgeModal";
@@ -291,7 +292,7 @@ export default function BadgesPage() {
             });
             if (!res.ok) {
               const err = await res.json();
-              alert(err.errors?.[0]?.detail || "Cannot request certification");
+              Swal.fire({ icon: 'error', title: 'Error', text: err.errors?.[0]?.detail || 'Cannot request certification' });
               return;
             }
             setDetailBadge(null);

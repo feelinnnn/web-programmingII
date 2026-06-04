@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useUserId } from '@/lib/useauth';
+import Swal from 'sweetalert2';
 import PostCard from '../../components/community/Postcard/Postcard';
 import './bookmark.css';
 
@@ -157,7 +158,7 @@ export default function BookmarkPage() {
         body: JSON.stringify({ id: postId, content: newContent, userId: currentUserId, imageUrls: newImages, hashtags: newHashtags })
       });
       if (!res.ok) {
-        alert("Failed to edit post.");
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to edit post.' });
         fetchBookmarks();
       }
     } catch (error) {
@@ -169,15 +170,15 @@ export default function BookmarkPage() {
   // Delete handler (own posts only)
   const handleDelete = async (postId: string) => {
     if (!currentUserId) return;
-    const confirmDelete = window.confirm("Are you sure you want to delete this post?");
-    if (!confirmDelete) return;
+    const result = await Swal.fire({ icon: 'warning', title: 'Delete post?', text: 'This action cannot be undone.', showCancelButton: true, confirmButtonText: 'Delete', confirmButtonColor: '#e74c3c' });
+    if (!result.isConfirmed) return;
 
     setPosts(prev => prev.filter(p => p.id !== postId));
     try {
       const res = await fetch(`/api/posts?id=${postId}&currentUserId=${currentUserId}`, { method: "DELETE" });
       if (!res.ok) {
         const errJson = await res.json();
-        alert(errJson.errors?.[0]?.detail || "Failed to delete post.");
+        Swal.fire({ icon: 'error', title: 'Error', text: errJson.errors?.[0]?.detail || 'Failed to delete post.' });
         fetchBookmarks();
       }
     } catch (error) {

@@ -3,6 +3,7 @@ import "./lesson-page.css";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
+import Swal from 'sweetalert2';
 import { useUserId } from "@/lib/useauth";
 
 
@@ -168,7 +169,7 @@ export default function LessonPage() {
 
   const handleChapterClick = (chapter: Chapter) => {
     if (!allowedChapters.has(chapter.id)) {
-      alert("You can't access this chapter yet. Complete the previous chapters first.");
+      Swal.fire({ icon: 'warning', title: 'Chapter locked', text: "You can't access this chapter yet. Complete the previous chapters first." });
       return;
     }
     setSelectedChapter(chapter);
@@ -177,7 +178,7 @@ export default function LessonPage() {
   const handleChapterSubmit = async () => {
     if (!selectedChapter || !lessonId) return;
     if (completedChapters.has(selectedChapter.id)) {
-      alert("You have already completed this chapter.");
+      Swal.fire({ icon: 'info', title: 'Already completed', text: 'You have already completed this chapter.' });
       return;
     }
 
@@ -219,7 +220,7 @@ export default function LessonPage() {
         }
 
         setAllowedChapters(newAllowed);
-        alert("Chapter completed! Moving to the next chapter...");
+        Swal.fire({ icon: 'success', title: 'Chapter completed!', text: 'Moving to the next chapter...', timer: 1800, showConfirmButton: false });
 
         // Move to next chapter
         const currentIndex = chapters.findIndex(ch => ch.id === selectedChapter.id);
@@ -227,11 +228,11 @@ export default function LessonPage() {
           setSelectedChapter(chapters[currentIndex + 1]);
         }
       } else {
-        alert("Failed to submit chapter. Please try again.");
+        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to submit chapter. Please try again.' });
       }
     } catch (err) {
       console.error("Error submitting chapter:", err);
-      alert("Error submitting chapter. Please try again.");
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Error submitting chapter. Please try again.' });
     } finally {
       setSubmittingChapter(null);
     }
@@ -259,7 +260,7 @@ export default function LessonPage() {
       });
 
       if (!silent) {
-        alert("Badge granted! You have completed this lesson.");
+        Swal.fire({ icon: 'success', title: 'Lesson complete!', text: 'Badge granted! You have completed this lesson.' });
       }
     } catch (err) {
       console.error("Error granting badge:", err);
@@ -268,7 +269,7 @@ export default function LessonPage() {
 
   const handleSubmitClick = () => {
     if (!canAccessSubmission) {
-      alert("You can't submit yet. Complete all chapters first.");
+      Swal.fire({ icon: 'warning', title: 'Not ready', text: "You can't submit yet. Complete all chapters first." });
       return;
     }
     gotoEvidence();
