@@ -251,7 +251,7 @@ export default function LessonPage() {
               userId,
               badgeId,
               badgeTypeSnapshot: badgeType,
-              userNote: null,
+              userNote: [],
               evidenceUrls: [],
             }
           }

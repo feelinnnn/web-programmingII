@@ -11,7 +11,7 @@ interface PendingBadge {
   badgeId: string;
   status: string;
   evidenceUrls: string[];
-  userNote: string;
+  userNote: string[];
   badgeTypeSnapshot: string;
   submittedAt: string;
   user: {
@@ -98,9 +98,10 @@ export default function ManagementHub() {
 
   const getEvidenceItems = (badge: PendingBadge) => {
     const urls = badge.evidenceUrls || [];
-    const notes = (badge.userNote || "").split(" | ").filter(Boolean);
-    if (urls.length === 0) return [{ url: "", description: badge.userNote || "No note provided." }];
-    return urls.map((url, i) => ({ url, description: notes[i] || "" }));
+    const notes = Array.isArray(badge.userNote) ? badge.userNote : [];
+    if (urls.length === 0 && notes.length === 0) return [];
+    const maxLen = Math.max(urls.length, notes.length);
+    return Array.from({ length: maxLen }, (_, i) => ({ url: urls[i] || "", description: notes[i] || "" }));
   };
 
   const handleAction = async (status: "verified" | "declined") => {

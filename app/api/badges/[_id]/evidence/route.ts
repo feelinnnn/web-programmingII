@@ -1,44 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
 import connect from '@/lib/mongodb'
-import Evidence, { IEvidence } from '@/models/Evidence'
+import EvidenceRequirement from '@/models/EvidenceRequirement'
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ _id: string }> }
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
     await connect()
-    const { _id } = await params
+    const doc = await EvidenceRequirement.findOne({ badgeId: id }).lean()
 
-    // 1-to-1 relationship: Evidence ID = Badge ID
-    const evidence: IEvidence | null = await Evidence.findById(_id)
-
-    if (!evidence) {
-      return NextResponse.json({
-        jsonapi: { version: "1.0" },
-        links: { self: `/api/badges/${_id}/evidence` },
-        data: null
-      })
+    if (!doc) {
+      return NextResponse.json({ data: null })
     }
 
     return NextResponse.json({
-      jsonapi: { version: "1.0" },
-      links: { self: `/api/badges/${_id}/evidence` },
       data: {
-        id: evidence._id,
-        type: "evidence",
+        id: doc._id,
+        type: 'evidence-requirement',
         attributes: {
-          description: evidence.description,
-          examples: evidence.examples,
-          requirements: evidence.requirements
-        }
-      }
+          description: doc.description || '',
+          requirements: doc.requirements || [],
+          examples: doc.examples || [],
+        },
+      },
     })
-  } catch (error: any) {
-    console.error(`GET /api/badges/[badgeId]/evidence error:`, error)
-    return NextResponse.json(
-      { errors: [{ detail: error.message }] },
-      { status: 500 }
-    )
+  } catch (err: any) {
+    return NextResponse.json({ errors: [{ detail: err.message }] }, { status: 500 })
   }
 }

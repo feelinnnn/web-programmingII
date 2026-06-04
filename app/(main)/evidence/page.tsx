@@ -180,7 +180,7 @@ export default function Home() {
         <button
           className="add-btn"
           onClick={() => setOpen(true)}
-          disabled={!lesson || loading}
+          disabled={!lesson}
         >
           ➕ Add File
         </button>
@@ -190,9 +190,9 @@ export default function Home() {
         isOpen={open}
         onClose={() => setOpen(false)}
         badgeId={lesson?.data?.attributes?.badge ?? ""}
-        badgeTypeSnapshot={badge?.data?.attributes?.badge_type ?? "lesson"}
-        lessonName={lesson?.data?.attributes?.title}
+        badgeType={badge?.data?.attributes?.badge_type ?? "evidence-backed"}
         badgeName={badge?.data?.attributes?.name}
+        lessonName={lesson?.data?.attributes?.title}
       />
     </div>
   );

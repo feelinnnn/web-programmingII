@@ -50,7 +50,8 @@ export async function GET(
     const badgesData = userBadges.map((ub: any) => {
       const badge = badgeMap.get(ub.badgeId?.toString()) as any;
       const lesson = lessonMap.get(ub.badgeId);
-      const badgeName = badge?.name || ub.userNote || "Self Declared";
+      const userNoteArr = Array.isArray(ub.userNote) ? ub.userNote : (ub.userNote ? [ub.userNote] : []);
+      const badgeName = badge?.name || userNoteArr[0] || "Self Declared";
       const badgeType = badge?.badge_type || ub.badgeTypeSnapshot || "self-declared";
       return {
         id: ub._id,
@@ -58,7 +59,7 @@ export async function GET(
           status: ub.status,
           badge_type_snapshot: ub.badgeTypeSnapshot,
           showcased: ub.showcased || false,
-          user_note: ub.userNote || "",
+          user_note: userNoteArr,
           evidence_urls: ub.evidenceUrls || [],
         },
         relationships: {

@@ -84,11 +84,13 @@ export default function AddBadgeModal({ onClose, onCreated, editData }: Props) {
     const snapshot = editData.attributes?.badge_type_snapshot || "self-declared";
     setBadgeType(snapshot);
     const urls = editData.attributes?.evidence_urls || [];
-    const notes = (editData.attributes?.user_note || "").split(" | ").filter(Boolean);
+    const notesArr = Array.isArray(editData.attributes?.user_note)
+      ? editData.attributes.user_note
+      : (editData.attributes?.user_note ? [editData.attributes.user_note] : []);
     const initItems = urls.map((url: string, i: number) => ({
       id: String(Date.now() + i),
       fileUrl: url,
-      description: notes[i] || "",
+      description: notesArr[i] || "",
     }));
     if (initItems.length === 0) initItems.push({ id: String(Date.now()), fileUrl: "", description: "" });
     setItems(initItems);
@@ -204,12 +206,12 @@ export default function AddBadgeModal({ onClose, onCreated, editData }: Props) {
       const headers: Record<string, string> = { "Content-Type": "application/json" };
       if (token) headers["Authorization"] = `Bearer ${token}`;
       const evidenceUrls = items.filter((i) => i.fileUrl).map((i) => i.fileUrl);
-      const userNote = items.filter((i) => i.description).map((i) => i.description).join(" | ");
+      const userNotes = items.filter((i) => i.description).map((i) => i.description);
 
       if (isEdit) {
         const res = await fetch(`/api/user-badges/${editData.id}`, {
           method: "PATCH", headers,
-          body: JSON.stringify({ evidenceUrls, userNote }),
+          body: JSON.stringify({ evidenceUrls, userNote: userNotes }),
         });
         if (!res.ok) throw new Error("Failed to update");
       } else {
@@ -221,7 +223,7 @@ export default function AddBadgeModal({ onClose, onCreated, editData }: Props) {
                 userId,
                 badgeId: selectedBadge.id,
                 badgeTypeSnapshot: badgeType,
-                userNote: userNote || selectedBadge.name,
+                userNote: userNotes.length > 0 ? userNotes : [selectedBadge.name],
                 evidenceUrls,
               },
             },
