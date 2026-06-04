@@ -5,6 +5,7 @@ import User from "@/models/User";
 import UserStats from "@/models/User_stat";
 import UserBadge from "@/models/UserBadge";
 import Badge from "@/models/Badge";
+import Post from "@/models/Post";
 import Lesson from "@/models/Lesson";
 import Progress from "@/models/Progress";
 import Follow from "@/models/Follow";
@@ -62,13 +63,22 @@ export async function GET(req: NextRequest) {
 
     const authUserId = user.user_id || user._id.toString();
 
-    const [stats, userBadges, progressDocs, followerCount, followingCount] = await Promise.all([
-      UserStats.findOne({ "user_stats.user_id": authUserId }).lean(),
+    const [userBadges, progressDocs, followerCount, followingCount, postCount] = await Promise.all([
       UserBadge.find({ userId: authUserId }).lean(),
       Progress.find({ userID: authUserId }).lean(),
       Follow.countDocuments({ "comment.following_user_id": authUserId }),
       Follow.countDocuments({ "comment.follower_user_id": authUserId }),
+      Post.countDocuments({ "post.user_id": authUserId }),
     ]);
+
+    // Compute stats dynamically from real badge data
+    const statsData = {
+      total_badges_verified: userBadges.filter((b: any) => b.status === "verified").length,
+      total_self_declared_count: userBadges.filter((b: any) => b.badgeTypeSnapshot === "self-declared").length,
+      total_evidence_backed_count: userBadges.filter((b: any) => b.badgeTypeSnapshot === "evidence-backed").length,
+      total_expert_certified_count: userBadges.filter((b: any) => b.badgeTypeSnapshot === "expert-certified").length,
+      total_lesson_badge_count: userBadges.filter((b: any) => b.badgeTypeSnapshot === "lesson" || b.badgeTypeSnapshot === "evidence-backed").length,
+    };
 
     // Resolve badge details for each user_badge
     const badgeIds = userBadges.map((ub: any) => ub.badgeId);
@@ -121,15 +131,7 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    const statsAttributes = stats?.user_stats
-      ? {
-          total_badges_verified: stats.user_stats.total_badges_verified,
-          total_self_declared_count: stats.user_stats.total_self_declared_count,
-          total_evidence_backed_count: stats.user_stats.total_evidence_backed_count,
-          total_expert_certified_count: stats.user_stats.total_expert_certified_count,
-          total_lesson_badge_count: stats.user_stats.total_lesson_badge_count,
-        }
-      : null;
+    const statsAttributes = statsData;
 
     const progressSummary = {
       lessons_started: progressDocs.length,
@@ -158,6 +160,7 @@ export async function GET(req: NextRequest) {
           created_at: user.created_at,
           follower_count: followerCount,
           following_count: followingCount,
+          post_count: postCount,
         },
         relationships: {
           stats: statsAttributes ? { data: statsAttributes } : { data: null },

@@ -1,11 +1,13 @@
 .card {
-  background: var(--white);
-  border: 1.5px solid var(--border);
+  background: #fff;
+  border: 1.5px solid #ebe4d5;
   border-radius: 14px;
   padding: 18px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+  width: 320px;
+  min-width: 320px;
+  max-width: 320px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .title {
@@ -25,12 +27,19 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f0ece4;
+}
+
+.creatorBlock:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 .creatorHeader {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .avatarWrap {
@@ -56,22 +65,27 @@
 
 .creatorInfo {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 1px;
 }
 
 .creatorName {
-  font-family: var(--font-body);
   font-size: 13px;
   font-weight: 700;
-  color: var(--dark);
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .creatorMeta {
-  font-family: var(--font-body);
   font-size: 11px;
-  color: var(--text-muted);
+  color: #999;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .followBtn {
@@ -102,27 +116,46 @@
 .imageGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 12px;
 }
 
 .imageCard {
   position: relative;
   border-radius: 10px;
   overflow: hidden;
-  aspect-ratio: 1;
+  aspect-ratio: 1 / 1;
   background: #e0dada;
+  width: 100%;
+  max-width: 140px;
 }
 
 .image {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
 .imagePlaceholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #d0caca, #b8b0b0);
+  background: #e8e0d5;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.imagePlaceholder.show {
+  display: flex;
+}
+
+.placeholderText {
+  font-size: 11px;
+  color: #8f796a;
+  font-weight: 600;
 }
 
 .likeBadge {

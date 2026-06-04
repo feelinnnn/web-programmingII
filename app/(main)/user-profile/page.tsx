@@ -19,6 +19,8 @@ interface UserData {
     role: string;
     follower_count?: number;
     following_count?: number;
+    post_count?: number;
+    lesson_complete?: number;
     social_links: {
       instagram: string;
       facebook: string;
@@ -265,16 +267,16 @@ export default function UserProfilePage() {
               <span>Following</span>
             </div>
             <div className="stat-box">
-              <strong>{badges.length}</strong>
+              <strong>{badges.filter((b: any) => b.attributes?.status === "verified").length}</strong>
               <span>Badge</span>
             </div>
             <div className="stat-box">
-              <strong>{stats?.total_lesson_badge_count ?? 0}</strong>
+              <strong>{user.attributes.lesson_complete ?? 0}</strong>
               <span>Lesson Complete</span>
             </div>
             <div className="stat-box">
-              <strong>{(stats?.total_badges_verified ?? 0) + (stats?.total_evidence_backed_count ?? 0)}</strong>
-              <span>Cooking Recipe</span>
+              <strong>{user.attributes.post_count ?? 0}</strong>
+              <span>Post</span>
             </div>
           </div>
         </header>

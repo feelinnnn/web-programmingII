@@ -5,8 +5,27 @@ import Badge from '@/models/Badge'
 import Lesson from '@/models/Lesson'
 import { getToken } from 'next-auth/jwt'
 import jwt from 'jsonwebtoken'
-import Lesson from '@/models/Lesson'
 import Progress from '@/models/Progress'
+import UserStats from '@/models/User_stat'
+
+async function syncUserStats(userId: string) {
+  try {
+    const badges = await UserBadge.find({ userId }).lean()
+    await UserStats.findOneAndUpdate(
+      { "user_stats.user_id": userId },
+      { $set: {
+        "user_stats.total_badges_verified": badges.filter((b: any) => b.status === "verified").length,
+        "user_stats.total_self_declared_count": badges.filter((b: any) => b.badgeTypeSnapshot === "self-declared").length,
+        "user_stats.total_evidence_backed_count": badges.filter((b: any) => b.badgeTypeSnapshot === "evidence-backed").length,
+        "user_stats.total_expert_certified_count": badges.filter((b: any) => b.badgeTypeSnapshot === "expert-certified").length,
+        "user_stats.total_lesson_badge_count": badges.filter((b: any) => b.badgeTypeSnapshot === "lesson" || b.badgeTypeSnapshot === "evidence-backed").length,
+      }},
+      { upsert: true }
+    )
+  } catch (e) {
+    console.error("syncUserStats failed:", e)
+  }
+}
 
 const JWT_SECRET = process.env.JWT_SECRET || "COOKCULT_SECRET_KEY"
 const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET || "COOKCULT_SECRET_KEY"
@@ -124,7 +143,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const { userId, badgeId, badgeTypeSnapshot, userNote, evidenceUrls } = body.data.attributes
 
-    const isLesson = badgeTypeSnapshot === "lesson"
+    const isLesson = badgeTypeSnapshot === "lesson" || badgeTypeSnapshot === "evidence-backed"
 
     const userBadge = await UserBadge.create({
       userId,

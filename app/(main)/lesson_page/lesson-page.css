@@ -18,13 +18,18 @@
 .page:has(> .episode-sidebar) .video-player {
   width: 100%;
   aspect-ratio: 16 / 9;
-  border: none;
+  border: 0;
   border-radius: 10px;
   background-color: #111;
+  display: block;
+  margin-bottom: 18px;
+}
+
+/* document-type fallback with play icon */
+.page:has(> .episode-sidebar) .video-player:not(iframe) {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 18px;
   cursor: pointer;
 }
 

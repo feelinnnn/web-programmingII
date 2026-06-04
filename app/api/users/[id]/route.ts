@@ -6,6 +6,7 @@ import UserBadge from "@/models/UserBadge";
 import Badge from "@/models/Badge";
 import Lesson from "@/models/Lesson";
 import Follow from "@/models/Follow";
+import Post from "@/models/Post";
 
 export async function GET(
   _req: NextRequest,
@@ -26,11 +27,12 @@ export async function GET(
 
     const authUserId = user.user_id || user._id.toString();
 
-    const [stats, userBadges, followerCount, followingCount] = await Promise.all([
-      UserStats.findOne({ "user_stats.user_id": authUserId }).lean(),
+    const [userBadges, followerCount, followingCount, postCount, lessonBadgeCount] = await Promise.all([
       UserBadge.find({ userId: authUserId }).lean(),
       Follow.countDocuments({ "comment.following_user_id": authUserId }),
       Follow.countDocuments({ "comment.follower_user_id": authUserId }),
+      Post.countDocuments({ "post.user_id": authUserId }),
+      UserBadge.countDocuments({ userId: authUserId, badgeTypeSnapshot: { $in: ["lesson", "evidence-backed"] } }),
     ]);
 
     const badgeIds = userBadges.map((ub: any) => ub.badgeId);
@@ -90,9 +92,16 @@ export async function GET(
           role: user.role,
           follower_count: followerCount,
           following_count: followingCount,
+          post_count: postCount,
+          lesson_complete: lessonBadgeCount,
         },
         relationships: {
-          stats: stats?.user_stats ? { data: stats.user_stats } : { data: null },
+          stats: { data: {
+            total_badges_verified: userBadges.filter((b: any) => b.status === "verified").length,
+            total_self_declared_count: userBadges.filter((b: any) => b.badgeTypeSnapshot === "self-declared").length,
+            total_expert_certified_count: userBadges.filter((b: any) => b.badgeTypeSnapshot === "expert-certified").length,
+            total_lesson_badge_count: lessonBadgeCount,
+          }},
           badges: { data: badgesData },
         },
       },

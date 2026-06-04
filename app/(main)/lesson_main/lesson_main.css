@@ -1,7 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+
 /* Scoped to lesson-main page only — .main-content is unique to this page */
 .page:has(> .main-content) {
   display: flex;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 
@@ -9,8 +12,9 @@
 
 .page:has(> .main-content) .main-content {
   margin-left: 60px;
-  width: calc(100% - 50px);
-  padding: 30px 60px 300px 0px;
+  width: calc(100% - 60px);
+  padding: 30px 40px 300px 40px;
+  box-sizing: border-box;
 }
 
 .page:has(> .main-content) .section {
@@ -19,8 +23,13 @@
 
 .page:has(> .main-content) .section-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  flex-direction: column;
+}
+
+.page:has(> .main-content) .subtitle-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .page:has(> .main-content) .see-all-link {
@@ -33,9 +42,8 @@
   border-radius: 6px;
   transition: all 0.2s;
   white-space: nowrap;
-  position: fixed;
-  right: 60px;
-  z-index: 10;
+  flex-shrink: 0;
+  align-self: flex-start;
 }
 
 .page:has(> .main-content) .see-all-link:hover {
@@ -44,7 +52,10 @@
 }
 
 .page:has(> .main-content) .script-title {
-  font-size: 2.2rem;
+  font-family: 'Great Vibes', cursive;
+  font-size: 48px;
+  font-weight: normal;
+  color: #4A3525;
   margin: 0;
 }
 
@@ -54,8 +65,7 @@
 }
 
 .page:has(> .main-content) .subtitle {
-  margin-top: 5px;
-  margin-bottom: 25px;
+  margin: 5px 0 25px 0;
   font-size: 1.1rem;
 }
 
@@ -69,9 +79,6 @@
   padding-bottom: 10px;
   scrollbar-width: thin;
   scrollbar-color: #8C5A3C #f0e8d8;
-  transition: width 0.3s ease;
-  position: relative;
-  z-index: 20;
 }
 
 .page:has(> .main-content) .horizontal-scroll::-webkit-scrollbar {
@@ -92,87 +99,101 @@
   background: #6B3E22;
 }
 
-.page:has(> .main-content) .horizontal-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: #8C5A3C #f0e8d8;
-}
-
-/* CARDS */
+/* CARDS — match profile card design */
 
 .page:has(> .main-content) .lesson-card {
-  min-width: 220px;
-  background: #f4f4f4;
-  border-radius: 18px;
+  width: 220px;
+  background: transparent;
+  border-radius: 12px;
   overflow: hidden;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .page:has(> .main-content) .lesson-card.large {
-  min-width: 500px;
+  width: 400px;
 }
 
-.page:has(> .main-content) .card-image {
-  height: 140px;
-  background: linear-gradient(
-    to bottom,
-    #ff4b4b,
-    #ff8b42,
-    #ffe93d
-  );
+.page:has(> .main-content) .card-image-area {
+  height: 160px;
+  position: relative;
+  overflow: hidden;
 }
 
-.page:has(> .main-content) .large .card-image {
-  height: 190px;
+.page:has(> .main-content) .large .card-image-area {
+  height: 220px;
+}
+
+.page:has(> .main-content) .card-thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.page:has(> .main-content) .card-badge-pill {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  opacity: 0.65;
+  background: #FFD45A;
+  color: #6a5c00;
+}
+
+.page:has(> .main-content) .card-label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 14px 10px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  background: linear-gradient(transparent 0%, rgba(0, 0, 0, 0.85) 40%);
+  color: #fff;
+}
+
+.page:has(> .main-content) .lesson-card.large .card-content {
+  padding: 14px;
+  background: #3f2d29;
+}
+
+.page:has(> .main-content) .lesson-card.large .card-content h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #fff;
+}
+
+.page:has(> .main-content) .lesson-card.large .card-content p {
+  margin: 8px 0 0;
+  color: #ccc;
+  font-size: 0.85rem;
+  line-height: 1.5;
 }
 
 .progress-bar {
-  height: 4px;
-  background: #e0e0e0;
+  height: 3px;
+  background: rgba(255,255,255,0.15);
   position: relative;
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(to right, #4caf50, #45a049);
+  background: #A0D585;
   transition: width 0.3s ease;
 }
 
 .chapters-left {
-  padding: 8px 14px;
+  padding: 5px 10px;
   background: #f0f0f0;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   color: #666;
-  border-bottom: 1px solid #e0e0e0;
   text-align: center;
-}
-
-.card-content {
-  padding: 14px;
-  position: relative;
-  min-height: 110px;
-}
-
-.page:has(> .main-content) .card-content h3 {
-  margin: 0;
-  font-size: 1.8rem;
-}
-
-.page:has(> .main-content) .lesson-card:not(.large) .card-content h3 {
-  font-size: 1rem;
-}
-
-.page:has(> .main-content) .card-content p {
-  margin-top: 10px;
-  color: #777;
-  line-height: 1.5;
-  font-size: 0.95rem;
-}
-
-.page:has(> .main-content) .arrow {
-  position: absolute;
-  right: 14px;
-  bottom: 12px;
-  font-size: 1.6rem;
 }
 
 /* GRID */

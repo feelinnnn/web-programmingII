@@ -48,14 +48,27 @@ interface LessonCardProps {
 function LessonCard({ lesson, large = false, onClick, progressPercentage, remainingChapters, submissionNeeded }: LessonCardProps) {
   return (
     <div className={`lesson-card ${large ? "large" : ""}`} onClick={onClick}>
-      <div
-        className="card-image"
-        style={{
-          backgroundImage: lesson.attributes.thumbnail_url ? `url(${lesson.attributes.thumbnail_url})` : undefined,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      />
+      <div className="card-image-area">
+        {lesson.attributes.thumbnail_url ? (
+          <img
+            src={lesson.attributes.thumbnail_url}
+            alt={lesson.attributes.title}
+            className="card-thumbnail"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = "none";
+            }}
+          />
+        ) : null}
+        <span className="card-badge-pill">Lesson</span>
+        {!large && <div className="card-label">{lesson.attributes.title}</div>}
+      </div>
+
+      {large && (
+        <div className="card-content">
+          <h3>{lesson.attributes.title}</h3>
+          <p>{lesson.attributes.description}</p>
+        </div>
+      )}
 
       {progressPercentage !== undefined && (
         <div className="progress-bar">
@@ -64,22 +77,13 @@ function LessonCard({ lesson, large = false, onClick, progressPercentage, remain
       )}
 
       {submissionNeeded ? (
-        <div className="chapters-left">
-          badge submission left
-        </div>
+        <div className="chapters-left">badge submission left</div>
       ) : remainingChapters !== undefined && (
         <div className="chapters-left">
           {remainingChapters} {remainingChapters === 1 ? "chapter" : "chapters"} left
-
         </div>
       )}
 
-      <div className="card-content">
-        <h3>{lesson.attributes.title}</h3>
-
-        {large && <p>{lesson.attributes.description}</p>}
-
-      </div>
     </div>
   );
 }
@@ -121,8 +125,6 @@ export default function Home() {
   const [progressMap, setProgressMap] = useState<Map<string, Progress>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [allPage, setAllPage] = useState(1);
-  const PER_PAGE = 10;
 
   useEffect(() => {
     if (!userId) return;
@@ -180,11 +182,11 @@ export default function Home() {
         {latestLessons.length > 0 && (
           <section className="section">
             <div className="section-header">
-              <div>
-                <h2 className="script-title">Latest lesson</h2>
+              <h2 className="script-title">Latest lesson</h2>
+              <div className="subtitle-row">
                 <p className="subtitle">Freshly made</p>
+                <Link href="/all_lesson" className="see-all-link">See all lessons</Link>
               </div>
-              <Link href="/all_lesson" className="see-all-link">See all lessons</Link>
             </div>
 
             <div className="horizontal-scroll" style={navExpanded ? { width: "calc(100% - 200px)" } : undefined}>
@@ -228,42 +230,6 @@ export default function Home() {
           )}
         </section>
 
-        {/* All lessons */}
-        <section className="section">
-          <h2 className="normal-title">All lessons</h2>
-
-          {allLessons.length === 0 ? (
-            <p className="subtitle">No lessons available.</p>
-          ) : (
-            <>
-              <div className="lesson-grid">
-                {allLessons.slice((allPage - 1) * PER_PAGE, allPage * PER_PAGE).map(lesson => (
-                  <LessonCard
-                    key={lesson.id}
-                    lesson={lesson}
-                    onClick={() => setSelectedLesson(lesson)}
-                  />
-                ))}
-              </div>
-
-              {allLessons.length > PER_PAGE && (
-              <div className="pagination">
-                <button
-                  className="page-btn"
-                  disabled={allPage <= 1}
-                  onClick={() => setAllPage(allPage - 1)}
-                >‹ Prev</button>
-                <span className="page-info">{allPage} / {Math.max(1, Math.ceil(allLessons.length / PER_PAGE))}</span>
-                <button
-                  className="page-btn"
-                  disabled={allPage >= Math.max(1, Math.ceil(allLessons.length / PER_PAGE))}
-                  onClick={() => setAllPage(allPage + 1)}
-                >Next ›</button>
-              </div>
-              )}
-            </>
-          )}
-        </section>
 
         <footer className="main-footer" />
       </main>
