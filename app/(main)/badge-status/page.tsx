@@ -226,10 +226,7 @@ export default function BadgesPage() {
                 || badge?.attributes?.badge_type
                 || "";
               const color = getBadgeColor(badgeType);
-              const isLessonBadge = (userBadge.attributes?.badgeTypeSnapshot || badge?.attributes?.badge_type || "") === "lesson";
-              const iconUrl = isLessonBadge
-                ? (badge?.attributes?.thumbnail_url || badge?.attributes?.icon_url)
-                : (badge?.attributes?.icon_url || badge?.attributes?.thumbnail_url);
+              const iconUrl = badge?.attributes?.thumbnail_url || badge?.attributes?.icon_url || "/icon/medal.png";
               return (
                 <div
                   key={userBadge.id || i}
@@ -242,6 +239,7 @@ export default function BadgesPage() {
                         src={iconUrl}
                         alt={badge?.attributes?.name || "Badge"}
                         className="card-badge-icon"
+                        style={{ objectFit: badge?.attributes?.thumbnail_url ? "cover" : "contain" }}
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = "none";
                         }}

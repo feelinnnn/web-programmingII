@@ -1,9 +1,37 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Navbar from '../components/navbar/Navbar';
+import { usePathname, useRouter } from 'next/navigation';
 
 export default function MainGroupLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const [profile, setProfile] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const headers: any = { "Content-Type": "application/vnd.api+json" };
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
+        const res = await fetch("/api/profile", { headers });
+        if (res.ok) {
+          const json = await res.json();
+          const p = json.data.attributes;
+          setProfile(p);
+
+          // Admin lockdown logic
+          if ((p.role === "admin" || p.email === "admin@cookcult.com") && !pathname.startsWith("/admin")) {
+            router.push("/admin/panel");
+          }
+        }
+      } catch (err) {}
+    };
+    fetchProfile();
+  }, [pathname, router]);
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#FFF2D7' }}>
       

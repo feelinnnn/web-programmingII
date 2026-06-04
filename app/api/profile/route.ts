@@ -15,15 +15,6 @@ const JWT_SECRET = process.env.JWT_SECRET || "COOKCULT_SECRET_KEY";
 const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET || "COOKCULT_SECRET_KEY";
 
 async function getUserId(req: NextRequest): Promise<string | null> {
-
-  try {
-    const session = await getToken({ req, secret: NEXTAUTH_SECRET });
-    if (session?.id) return session.id as string;
-    if (session?.sub) return session.sub;
-  } catch {
-
-  }
-
   const authHeader = req.headers.get("authorization");
   if (authHeader?.startsWith("Bearer ")) {
     try {
@@ -33,6 +24,14 @@ async function getUserId(req: NextRequest): Promise<string | null> {
     } catch {
       // Token invalid or expired
     }
+  }
+
+  try {
+    const session = await getToken({ req, secret: NEXTAUTH_SECRET });
+    if (session?.id) return session.id as string;
+    if (session?.sub) return session.sub;
+  } catch {
+
   }
 
   return null;
@@ -59,6 +58,12 @@ export async function GET(req: NextRequest) {
         { errors: [{ status: "404", title: "Not Found", detail: "User not found" }] },
         { status: 404 }
       );
+    }
+
+    // Force admin status for the specific admin email
+    if (user.email === "admin@cookcult.com") {
+      user.role = "admin";
+      user.sub_namebio = "System Admin";
     }
 
     const authUserId = user.user_id || user._id.toString();
@@ -107,6 +112,7 @@ export async function GET(req: NextRequest) {
           status: ub.status,
           evidence_urls: ub.evidenceUrls,
           user_note: ub.userNote,
+          admin_comment: ub.adminComment,
           badge_type_snapshot: ub.badgeTypeSnapshot,
           showcased: ub.showcased || false,
           certification_requested: ub.certificationRequested || false,

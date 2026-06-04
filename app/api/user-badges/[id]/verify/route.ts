@@ -47,7 +47,7 @@ export async function PATCH(
 
     const badge = await UserBadge.findByIdAndUpdate(
       id,
-      { $set: { certificationRequested: true, status: "pending" } },
+      { $set: { certificationRequested: true, status: "pending", submittedAt: new Date() } },
       { new: true }
     );
 
