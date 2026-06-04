@@ -1,242 +1,393 @@
 openapi: 3.0.0
 info:
-  title: CookCult Authentication API
-  description: API Documentation for CookCult 2-Step Authentication System (OTP & 2FA)
-  version: 1.0.0
+  title: CookCult API Documentation
+  description: |
+    รวบรวมรายละเอียด API ทั้งหมดของโปรเจกต์ CookCult เพื่อให้นักพัฒนาสามารถเข้าใจและใช้งานได้อย่างถูกต้อง
+    การยืนยันตัวตน: ระบบใช้ Bearer Token (JWT) สำหรับ API ส่วนใหญ่ที่เกี่ยวข้องกับข้อมูลส่วนตัวและระบบหลังบ้าน
+  version: 2.1.0
 servers:
   - url: http://localhost:3000
-    description: Local Development Server
+    description: เซิร์ฟเวอร์พัฒนาหลัก
+
+tags:
+  - name: Authentication
+    description: ระบบจัดการบัญชีผู้ใช้และความปลอดภัย
+  - name: Admin Management
+    description: ระบบควบคุมหลังบ้านสำหรับผู้ดูแลระบบ
+  - name: Profile & User Identity
+    description: ข้อมูลส่วนตัว สถิติ และการค้นหาผู้ใช้
+  - name: Community & Feed
+    description: ระบบโพสต์ชุมชน การจัดการเนื้อหา และ Hashtags
+  - name: Social Engagement
+    description: ระบบปฏิสัมพันธ์ กดไลก์ คอมเมนต์ และการติดตาม
+  - name: Culinary Lessons
+    description: ระบบบทเรียนทำอาหารและการบันทึกความคืบหน้า
+  - name: Badge Ecosystem
+    description: คลังเข็มเกียรติยศส่วนกลางและการจัดการความสำเร็จ
+  - name: Assets & Utilities
+    description: ระบบอัปโหลดและเครื่องมือช่วยเหลือ
 
 paths:
+
+  # AUTHENTICATION PATHS
   /api/auth/register:
     post:
-      summary: Register - Step 1 (Send Signup OTP)
-      description: Validates email uniqueness, hashes the password, and creates a temporary session in Temp_auth then sends a 6-digit OTP to the user's email.
+      tags: [Authentication]
+      summary: ลงทะเบียนผู้ใช้ (ขั้นตอนที่ 1)
+      description: ตรวจสอบข้อมูลเบื้องต้นและส่งรหัส OTP 6 หลักไปที่อีเมล
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required:
-                - email
-                - password
-                - username
+              required: [email, password, username]
               properties:
-                email:
-                  type: string
-                  format: email
-                  example: chef@cookcult.com
-                password:
-                  type: string
-                  format: password
-                  example: securepwd123
-                username:
-                  type: string
-                  example: cookcult_chef
+                email: { type: string, format: email, example: "user@example.com" }
+                password: { type: string, format: password, example: "password123" }
+                username: { type: string, example: "chef_pro" }
       responses:
         '200':
-          description: OTP successfully generated and sent.
+          description: ส่ง OTP สำเร็จ
           content:
             application/json:
               schema:
                 type: object
-                properties:
-                  message:
-                    type: string
-                    example: OTP verification code has been sent to your email.
-        '400':
-          description: Invalid input or Email already registered.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: This email is already registered.
-        '500':
-          description: Internal Server Error.
-
-  /api/auth/verify-register:
-    post:
-      summary: Register - Step 2 (Verify OTP & Create Account)
-      description: Checks the submitted OTP code against Temp_auth for registration. If valid, moves data to permanent User model.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - email
-                - otpCode
-              properties:
-                email:
-                  type: string
-                  format: email
-                  example: chef@cookcult.com
-                otpCode:
-                  type: string
-                  example: "123456"
-                username:
-                  type: string
-                  example: cookcult_chef
-      responses:
-        '201':
-          description: Permanent account created successfully.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Account created successfully!
-        '400':
-          description: Missing fields or Invalid/Expired OTP.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Invalid or expired OTP code.
-        '500':
-          description: Internal Server Error.
+                properties: { message: { type: string, example: "ส่งรหัสยืนยันไปที่อีเมลเรียบร้อยแล้ว" } }
+        '400': { description: อีเมลซ้ำหรือข้อมูลไม่ครบ }
 
   /api/auth/login-step1:
     post:
-      summary: Login - Step 1 (Verify Password & Send 2FA OTP)
-      description: Checks user credentials in the database. If correct, generates a 2FA login OTP inside Temp_auth and emails it.
+      tags: [Authentication]
+      summary: เข้าสู่ระบบ - ตรวจสอบรหัสผ่าน
+      description: ตรวจสอบความถูกต้องของ Username/Password หากผ่านจะส่งรหัส 2FA ไปที่เมล
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required:
-                - email
-                - password
+              required: [email, password]
               properties:
-                email:
-                  type: string
-                  format: email
-                  example: chef@cookcult.com
-                password:
-                  type: string
-                  format: password
-                  example: securepwd123
+                email: { type: string, format: email }
+                password: { type: string, format: password }
       responses:
-        '200':
-          description: Password match. 2FA OTP sent.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Please check your email for the OTP code.
-        '400':
-          description: Missing fields or Invalid credentials.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Invalid email or password.
-        '500':
-          description: Internal Server Error.
+        '200': { description: รหัสผ่านถูกต้อง ระบบส่ง OTP 2FA แล้ว }
+        '401': { description: รหัสผ่านไม่ถูกต้อง }
 
   /api/auth/login-step2:
     post:
-      summary: Login - Step 2 (Verify OTP & Issue Token)
-      description: Validates login 2FA OTP from Temp_auth and issues a JWT token for front-end storage.
+      tags: [Authentication]
+      summary: เข้าสู่ระบบ - ยืนยัน OTP
+      description: นำรหัส 2FA มาแลกเป็น JWT Token สำหรับเข้าใช้งาน
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required:
-                - email
-                - otpCode
+              required: [email, otpCode]
               properties:
-                email:
-                  type: string
-                  format: email
-                  example: chef@cookcult.com
-                otpCode:
-                  type: string
-                  example: "654321"
+                email: { type: string }
+                otpCode: { type: string, example: "123456" }
       responses:
         '200':
-          description: 2FA successful. Returns JWT authorization token.
+          description: ล็อกอินสำเร็จ
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  message:
-                    type: string
-                    example: Login successful.
-                  token:
-                    type: string
-                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        '400':
-          description: Missing fields or Invalid/Expired OTP.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Invalid or expired OTP code.
-        '500':
-          description: Internal Server Error.
+                  token: { type: string, description: "JWT สำหรับใช้ใน Header Authorization" }
+                  message: { type: string, example: "ยินดีต้อนรับสู่ CookCult" }
 
-  /api/auth/resend-otp:
+
+  # ADMIN PATHS
+  /api/admin/badges:
+    get:
+      tags: [Admin Management]
+      summary: ดึงรายการคลัง Badge ทั้งหมด
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: รายการ Badge ทั้งหมดในระบบ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Badge' }
     post:
-      summary: Resend OTP (Auto Detect Flow)
-      description: Detects the user's latest active flow in Temp_auth (Register or Login), generates a brand new code, overwrites the record, and resends it.
+      tags: [Admin Management]
+      summary: สร้าง Badge ใหม่เข้าระบบ
+      security: [{ bearerAuth: [] }]
       requestBody:
-        required: true
         content:
           application/json:
             schema:
               type: object
-              required:
-                - email
+              required: [name, description, badge_type, icon_url]
               properties:
-                email:
-                  type: string
-                  format: email
-                  example: chef@cookcult.com
+                name: { type: string }
+                description: { type: string }
+                badge_type: { type: string, enum: [self-declared, expert-certified] }
+                icon_url: { type: string, description: "URL ของรูปไอคอน PNG" }
+      responses:
+        '201': { description: สร้างสำเร็จ พร้อม Auto-ID }
+
+  /api/admin/verify-badges:
+    get:
+      tags: [Admin Management]
+      summary: รายการรอตรวจ (Verification Queue)
+      description: ดึงรายการที่ผู้ใช้ส่งหลักฐานมาเพื่อขอรับรอง (Pending/Newly submitted)
+      security: [{ bearerAuth: [] }]
       responses:
         '200':
-          description: Fresh OTP generated and sent successfully.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  message:
-                    type: string
-                    example: A new OTP code has been successfully sent to your email.
-        '400':
-          description: Email missing or Session/Record not found in database.
+                  data: { type: array, items: { $ref: '#/components/schemas/UserBadgeDetail' } }
+    post:
+      tags: [Admin Management]
+      summary: ตัดสินผลการตรวจหลักฐาน
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userBadgeId, status]
+              properties:
+                userBadgeId: { type: string, description: "ID ของรายการคำขอ" }
+                status: { type: string, enum: [verified, declined] }
+                adminComment: { type: string, description: "ข้อความคอมเมนต์จากแอดมินส่งหา User" }
+      responses:
+        '200': { description: ดำเนินการตัดสินสำเร็จ }
+
+
+  # PROFILE PATHS
+  /api/profile:
+    get:
+      tags: [Profile & User Identity]
+      summary: ดึงข้อมูลโปรไฟล์ตัวเอง
+      description: ข้อมูลครบถ้วนรวมถึงสถิติ, รายการ Badge, และความคืบหน้าการเรียน
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  message:
-                    type: string
-                    example: Session not found. Please restart the registration or login process.
-        '500':
-          description: Internal Server Error.
+                  data: { $ref: '#/components/schemas/UserProfile' }
+    patch:
+      tags: [Profile & User Identity]
+      summary: อัปเดตโปรไฟล์ส่วนตัว
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                display_name: { type: string }
+                bio: { type: string }
+                profile_image_url: { type: string }
+                sub_namebio: { type: string }
+                social_links: { type: object }
+      responses:
+        '200': { description: อัปเดตสำเร็จ }
+
+
+  # COMMUNITY PATHS
+  /api/posts:
+    get:
+      tags: [Community & Feed]
+      summary: ดึงฟีดโพสต์
+      parameters:
+        - name: search
+          in: query
+          description: ค้นหาด้วยคำหรือแฮชแท็ก(#)
+          schema: { type: string }
+        - name: skip
+          in: query
+          schema: { type: integer, default: 0 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 10 }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: '#/components/schemas/Post' } }
+    post:
+      tags: [Community & Feed]
+      summary: สร้างโพสต์ใหม่
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  properties:
+                    attributes:
+                      type: object
+                      required: [userId, content]
+                      properties:
+                        userId: { type: string }
+                        content: { type: string }
+                        imageUrls: { type: array, items: { type: string } }
+      responses:
+        '201': { description: โพสต์สำเร็จ }
+
+
+  # LESSONS PATHS
+  /api/lessons:
+    get:
+      tags: [Culinary Lessons]
+      summary: รายการบทเรียนทั้งหมด
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: '#/components/schemas/Lesson' } }
+
+  /api/lessons/{lessonId}/progress/{userId}:
+    get:
+      tags: [Culinary Lessons]
+      summary: ดูความคืบหน้าของนักเรียนในบทเรียนนี้
+      parameters:
+        - { name: lessonId, in: path, required: true, schema: { type: string } }
+        - { name: userId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: สำเร็จ }
+    patch:
+      tags: [Culinary Lessons]
+      summary: บันทึกความคืบหน้า (ดูวิดีโอจบ / ผ่านด่าน)
+      responses:
+        '200': { description: บันทึกสำเร็จ }
+
+
+  # USER BADGES PATHS
+  /api/user-badges:
+    get:
+      tags: [Badge Ecosystem]
+      summary: ดึงรายการความสำเร็จของผู้ใช้
+      parameters: [{ name: userId, in: query, schema: { type: string } }]
+      responses: { '200': { description: สำเร็จ } }
+    post:
+      tags: [Badge Ecosystem]
+      summary: รับ Badge อัตโนมัติ
+      description: สำหรับประเภท Self-declared หรือบทเรียนที่ผ่านแล้ว
+      responses: { '201': { description: ได้รับ Badge แล้ว } }
+
+  /api/user-badges/{id}/verify:
+    patch:
+      tags: [Badge Ecosystem]
+      summary: ส่งหลักฐานขอรับรอง Badge
+      description: อัปโหลดรูปภาพ PNG/JPG และเขียนคำอธิบายส่งให้แอดมิน
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                evidenceUrls: { type: array, items: { type: string } }
+                userNote: { type: array, items: { type: string } }
+      responses:
+        '200': { description: ส่งหลักฐานสำเร็จ อยู่ในสถานะ Pending }
+
+
+  # ASSETS & UTILITIES
+  /api/upload:
+    post:
+      tags: [Assets & Utilities]
+      summary: อัปโหลดรูปภาพ
+      description: ส่งไฟล์รูปไปเก็บที่ Cloudinary เพื่อเอา URL มาใช้งาน
+      responses:
+        '200': { description: อัปโหลดสำเร็จ }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    UserProfile:
+      type: object
+      properties:
+        id: { type: string }
+        attributes:
+          type: object
+          properties:
+            display_name: { type: string }
+            email: { type: string }
+            role: { type: string }
+            follower_count: { type: integer }
+            following_count: { type: integer }
+            post_count: { type: integer }
+        relationships:
+          type: object
+          properties:
+            badges: { type: object }
+            stats: { type: object }
+
+    Badge:
+      type: object
+      properties:
+        _id: { type: string }
+        name: { type: string }
+        description: { type: string }
+        badge_type: { type: string }
+        icon_url: { type: string }
+
+    UserBadgeDetail:
+      type: object
+      properties:
+        _id: { type: string }
+        userId: { type: string }
+        status: { type: string, enum: [non-request, pending, verified, declined] }
+        evidenceUrls: { type: array, items: { type: string } }
+        userNote: { type: array, items: { type: string } }
+        submittedAt: { type: string, format: date-time }
+        user: { type: object }
+        badge: { type: object }
+
+    Post:
+      type: object
+      properties:
+        id: { type: string }
+        attributes:
+          type: object
+          properties:
+            content: { type: string }
+            imageUrls: { type: array, items: { type: string } }
+            likesCount: { type: integer }
+            commentsCount: { type: integer }
+            createdAt: { type: string, format: date-time }
+            creator: { type: object }
+
+    Lesson:
+      type: object
+      properties:
+        _id: { type: string }
+        title: { type: string }
+        description: { type: string }
+        thumbnail_url: { type: string }
+        chapters: { type: array, items: { type: string } }
