@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import connect from '@/lib/mongodb'
 import Badge from '@/models/Badge'
 import EvidenceRequirement from '@/models/EvidenceRequirement'
+import { isAdmin } from '@/lib/admin'
 
 const templates: Record<string, { description: string; requirements: string[]; examples: string[] }> = {
   'expert-certified': {
@@ -56,8 +57,13 @@ const templates: Record<string, { description: string; requirements: string[]; e
   },
 }
 
-export async function POST(_req: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
+    const admin = await isAdmin(req);
+    if (!admin) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     await connect()
     const badges = await Badge.find().lean()
     let created = 0
