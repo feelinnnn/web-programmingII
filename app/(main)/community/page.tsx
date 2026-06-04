@@ -168,7 +168,9 @@ export default function CommunityFeedPage() {
   // ─── Fetch popular creators ──────────────────────────────────────────────────
   const fetchCreators = async () => {
     try {
-      const res = await fetch('/api/popular-creations');
+      const params = new URLSearchParams();
+      if (currentUserId) params.set("currentUserId", currentUserId);
+      const res = await fetch(`/api/popular-creations?${params.toString()}`);
       if (res.ok) {
         const json = await res.json();
         if (json.success) setCreators(json.creators || []);
