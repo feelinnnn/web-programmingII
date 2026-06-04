@@ -28,7 +28,7 @@ export async function GET() {
     const creators = await Promise.all(
       top.map(async (entry: any, i: number) => {
         const u = userMap.get(entry._id);
-        const posts = await Post.find({ "post.user_id": entry._id })
+        const posts = await Post.find({ "post.user_id": entry._id, "post.likes_count": { $gt: 0 } })
           .sort({ "post.likes_count": -1 })
           .limit(2)
           .lean();
@@ -37,7 +37,7 @@ export async function GET() {
 
         return {
           id: String(i + 1),
-          userId: u?._id?.toString() || entry._id,
+          userId: u?.user_id || entry._id,
           name: u?.display_name || "Unknown",
           sub_namebio: u?.sub_namebio || u?.bio || "Home Cook",
           followers: "0",

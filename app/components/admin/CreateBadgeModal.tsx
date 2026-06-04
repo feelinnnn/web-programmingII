@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createPortal } from "react-dom";
+import Swal from "sweetalert2";
 import "./CreateBadgeModal.css";
 
 interface Props {
@@ -41,14 +42,14 @@ export default function CreateBadgeModal({ onClose, onCreated, editData }: Props
 
       const json = await res.json();
       if (res.ok) {
-        alert(editData ? "Badge updated successfully!" : "Badge created successfully!");
+        Swal.fire({ icon: 'success', title: editData ? 'Updated!' : 'Created!', text: editData ? 'Badge updated!' : 'Badge created!' });
         onCreated();
       } else {
-        alert(`Error: ${json.error}`);
+        Swal.fire({ icon: 'error', title: 'Error', text: json.error });
       }
     } catch (err) {
       console.error("Failed to save badge:", err);
-      alert("Something went wrong");
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Something went wrong' });
     } finally {
       setLoading(false);
     }

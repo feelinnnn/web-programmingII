@@ -32,6 +32,26 @@ export default function PopularCreations({ creators = [], currentUserId, onCreat
     setPostImgErrors(prev => ({ ...prev, [key]: true }));
   }, []);
 
+  // Load initial follow status for all creators
+  useEffect(() => {
+    if (!currentUserId || creators.length === 0) return;
+    const ids = creators.map(c => c.userId).filter(Boolean);
+    if (ids.length === 0) return;
+    Promise.all(
+      ids.map(async (uid) => {
+        try {
+          const res = await fetch(`/api/follow?followerUserId=${currentUserId}&followingUserId=${uid}`);
+          const json = await res.json();
+          return { uid, following: json.data?.isFollowing ?? false };
+        } catch { return { uid, following: false }; }
+      })
+    ).then(results => {
+      const map: Record<string, boolean> = {};
+      results.forEach(r => { map[r.uid!] = r.following; });
+      setFollowingMap(prev => ({ ...prev, ...map }));
+    });
+  }, [currentUserId, creators]);
+
   // Sync with community PostCard follow events
   useEffect(() => {
     const handler = (e: Event) => {
@@ -47,6 +67,10 @@ export default function PopularCreations({ creators = [], currentUserId, onCreat
   const handleFollow = async (creator: Creator) => {
     if (!currentUserId || !creator.userId) {
       Swal.fire({ icon: 'warning', title: 'Login required', text: 'Please login first!' });
+      return;
+    }
+    if (currentUserId === creator.userId) {
+      Swal.fire({ icon: 'warning', title: 'Cannot follow', text: 'You cannot follow yourself!' });
       return;
     }
     try {
