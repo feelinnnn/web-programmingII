@@ -21,6 +21,7 @@ export interface PostApiStructure {
   attributes: {
     postId: string;
     userId: string;
+    creatorId?: string;
     content: string;
     hashtags: string[];
     imageUrls: string[];
@@ -379,6 +380,32 @@ export default function CommunityFeedPage() {
           <SearchBar onSearch={(q) => { setSearchQuery(q); fetchFeed(q); }} />
         </div>
 
+        {/* Mobile-only: sidebar above CreatePost */}
+        <div className={styles.mobileSidebar}>
+          <PopularHashtags
+            hashtags={hashtags.length > 0 ? hashtags : MOCK_HASHTAGS}
+            onTagClick={(tag) => {
+              if (searchQuery === tag) {
+                setSearchQuery('');
+                activeSearchRef.current = null;
+                hashtagFilterRef.current = null;
+                fetchFeed();
+              } else {
+                setSearchQuery(tag);
+                hashtagFilterRef.current = tag;
+                activeSearchRef.current = tag;
+                fetchFeed(tag);
+              }
+            }}
+            selectedHashtag={searchQuery}
+          />
+          <PopularCreations
+            creators={(creators?.length ?? 0) > 0 ? creators : MOCK_CREATORS}
+            currentUserId={currentUserId}
+            onPostCreated={() => fetchFeed()}
+          />
+        </div>
+
         <CreatePost
           currentUserId={currentUserId}
           userAvatar={currentUserAvatar}
@@ -450,7 +477,7 @@ export default function CommunityFeedPage() {
           }}
         />
         <PopularCreations
-          creators={creators.length > 0 ? creators : MOCK_CREATORS}
+          creators={(creators?.length ?? 0) > 0 ? creators : MOCK_CREATORS}
           currentUserId={currentUserId || undefined}
           onCreatorClick={(creator) => {
             if (creator.userId) {
