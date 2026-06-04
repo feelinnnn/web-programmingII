@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useUserId } from "@/lib/useauth"; 
+import { useUserId } from "@/lib/useauth";
+import Swal from "sweetalert2";
 
 import SearchBar from '../../components/community/SearchBar/SearchBar';
 import CreatePost from '../../components/community/CreatePost/CreatePost';
@@ -52,9 +53,9 @@ export interface Bookmark {
   bookmark_id: string;
   user_id: string;
   target_id: string;
-  post_id :string;
-  target_type: 'post' | 'lesson'; // เจาะจงประเภทตามค่าที่ยอมรับได้
-  created_at: string;             // ฝั่งหน้าบ้านที่รับจาก API จะได้มาเป็น String (ISO Date)
+  post_id: string;
+  target_type: 'post' | 'lesson';
+  created_at: string;
 }
 
 export interface BookmarkDocument {
@@ -62,9 +63,6 @@ export interface BookmarkDocument {
   bookmark: Bookmark;
   __v: number;
 }
-
-// เวลาใช้งานจริง เนื่องจากข้อมูลส่งกลับมาเป็น Array []
-// ตัวแปรที่ใช้รับค่าจะเป็นชนิด BookmarkDocument[] ครับ
 
 export default function CommunityFeedPage() {
   const [posts, setPosts] = useState<PostApiStructure[]>([]);
@@ -77,6 +75,7 @@ export default function CommunityFeedPage() {
   const [creators, setCreators] = useState<Creator[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [likingPosts, setLikingPosts] = useState<Set<string>>(new Set());
+
   const hashtagFilterRef = useRef<string | null>(null);
   const creatorFilterRef = useRef<string | null>(null);
   const imageFilterRef = useRef<string | null>(null);
@@ -87,11 +86,10 @@ export default function CommunityFeedPage() {
   const activeCreatorIdRef = useRef<string | null>(null);
   const activeSearchRef = useRef<string | null>(null);
 
-  const currentUserId = useUserId() || ""; 
+  const currentUserId = useUserId() || "";
 
-    // 🔑 แก้ไขตรงส่วน fetchBookmark ในหน้าหลักของคุณ
+  // ─── Fetch bookmarks whenever userId is ready ───────────────────────────────
   useEffect(() => {
-    // ดักจับ: ถ้ายังไม่มีไอดีผู้ใช้ (ยังโหลดเซสชันไม่เสร็จ) ไม่ต้องเพิ่งยิง API ให้เสียเวลา
     if (!currentUserId) return;
 
     const fetchBookmark = async () => {
@@ -100,10 +98,9 @@ export default function CommunityFeedPage() {
           method: "GET",
           headers: { 'Content-Type': 'application/json' }
         });
-        
         if (res.ok) {
           const data = await res.json();
-          setBookmarked(data.data || []); // เก็บรายการบุ๊กมาร์กจริงลง State
+          setBookmarked(data.data || []);
         }
       } catch (error) {
         console.error("Failed to load bookmarks:", error);
@@ -111,8 +108,9 @@ export default function CommunityFeedPage() {
     };
 
     fetchBookmark();
-  }, [currentUserId]); // 👈 เพิ่ม currentUserId เข้าไปใน Dependency Array ตรงนี้!
+  }, [currentUserId]);
 
+  // ─── Fetch hashtags ──────────────────────────────────────────────────────────
   const fetchHashtags = async () => {
     try {
       const res = await fetch('/api/hashtags');
@@ -125,12 +123,7 @@ export default function CommunityFeedPage() {
     }
   };
 
-  // Load more when scrolled to bottom
-  const loadMore = useCallback(() => {
-    if (loadingMore || !hasMore) return;
-    fetchFeed(activeSearchRef.current || undefined, activeCreatorIdRef.current || undefined, activePostIdRef.current || undefined, true);
-  }, [loadingMore, hasMore]);
-
+  // ─── Fetch feed ──────────────────────────────────────────────────────────────
   const fetchFeed = async (search?: string, creatorId?: string, postId?: string, append = false) => {
     try {
       if (!append) {
@@ -147,8 +140,8 @@ export default function CommunityFeedPage() {
       if (postId) params.set("postId", postId);
       else if (creatorId) params.set("creatorId", creatorId);
       else if (search) params.set("search", search);
-      const url = `/api/posts?${params.toString()}`;
-      const res = await fetch(url);
+
+      const res = await fetch(`/api/posts?${params.toString()}`);
       if (res.ok) {
         const json = await res.json();
         if (append) {
@@ -172,6 +165,7 @@ export default function CommunityFeedPage() {
     }
   };
 
+  // ─── Fetch popular creators ──────────────────────────────────────────────────
   const fetchCreators = async () => {
     try {
       const params = new URLSearchParams();
@@ -181,10 +175,13 @@ export default function CommunityFeedPage() {
         const json = await res.json();
         if (json.success) setCreators(json.creators || []);
       }
-    } catch (err) { console.error("Failed to load creators:", err); }
+    } catch (err) {
+      console.error("Failed to load creators:", err);
+    }
   };
   fetchCreatorsRef.current = fetchCreators;
 
+  // ─── Fetch user avatar ───────────────────────────────────────────────────────
   const fetchUserProfile = async () => {
     if (!currentUserId) return;
     try {
@@ -195,15 +192,14 @@ export default function CommunityFeedPage() {
       if (res.ok) {
         const json = await res.json();
         const url = json?.data?.attributes?.profile_image_url;
-        if (url) {
-          setCurrentUserAvatar(url.replace(/=s\d+-c/, "=s400"));
-        }
+        if (url) setCurrentUserAvatar(url.replace(/=s\d+-c/, "=s400"));
       }
     } catch (error) {
       console.error("Failed to load user profile avatar:", error);
     }
   };
 
+  // ─── Initial load ────────────────────────────────────────────────────────────
   useEffect(() => {
     fetchFeed();
     fetchUserProfile();
@@ -211,7 +207,7 @@ export default function CommunityFeedPage() {
     fetchCreators();
   }, [currentUserId]);
 
-  // Refresh creators + hashtags when follow/like/post changes
+  // ─── Listen for global events (follow / like / post) ────────────────────────
   useEffect(() => {
     const refresh = () => { fetchCreatorsRef.current(); fetchHashtags(); };
     window.addEventListener("follow-changed", refresh);
@@ -224,15 +220,23 @@ export default function CommunityFeedPage() {
     };
   }, []);
 
-  // IntersectionObserver for infinite scroll
+  // ─── Infinite scroll observer ────────────────────────────────────────────────
+  const loadMore = useCallback(() => {
+    if (loadingMore || !hasMore) return;
+    fetchFeed(
+      activeSearchRef.current || undefined,
+      activeCreatorIdRef.current || undefined,
+      activePostIdRef.current || undefined,
+      true
+    );
+  }, [loadingMore, hasMore]);
+
   useEffect(() => {
     const el = loadMoreRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loadingMore) {
-          loadMore();
-        }
+        if (entries[0].isIntersecting && hasMore && !loadingMore) loadMore();
       },
       { rootMargin: "200px" }
     );
@@ -240,17 +244,18 @@ export default function CommunityFeedPage() {
     return () => observer.disconnect();
   }, [hasMore, loadingMore, loadMore]);
 
+  // ─── Like handler ────────────────────────────────────────────────────────────
   const handleLike = async (postId: string) => {
     if (!currentUserId) {
-      alert("กรุณาล็อกอินก่อนกดไลค์นะคั้บ!");
+      Swal.fire({ icon: 'warning', title: 'Login required', text: 'Please login first!' });
       return;
     }
-    // Prevent double-click
     if (likingPosts.has(postId)) return;
     setLikingPosts(prev => new Set(prev).add(postId));
 
-    setPosts((prevPosts) =>
-      prevPosts.map((p) => {
+    // Optimistic update
+    setPosts(prevPosts =>
+      prevPosts.map(p => {
         if (p.id === postId) {
           const currentlyLiked = p.attributes.isLiked;
           return {
@@ -258,8 +263,10 @@ export default function CommunityFeedPage() {
             attributes: {
               ...p.attributes,
               isLiked: !currentlyLiked,
-              likesCount: currentlyLiked ? Math.max(0, p.attributes.likesCount - 1) : p.attributes.likesCount + 1
-            }
+              likesCount: currentlyLiked
+                ? Math.max(0, p.attributes.likesCount - 1)
+                : p.attributes.likesCount + 1,
+            },
           };
         }
         return p;
@@ -270,54 +277,72 @@ export default function CommunityFeedPage() {
       const res = await fetch("/api/likes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: currentUserId, post_id: postId })
+        body: JSON.stringify({ user_id: currentUserId, post_id: postId }),
       });
 
       if (!res.ok) {
         fetchFeed();
       } else {
         const result = await res.json();
-        setPosts((prevPosts) =>
-          prevPosts.map((p) => {
+        setPosts(prevPosts =>
+          prevPosts.map(p => {
             if (p.id === postId) {
               return {
                 ...p,
                 attributes: {
                   ...p.attributes,
-                  likesCount: typeof result.likesCount !== 'undefined' ? result.likesCount : (result.likes_count ?? p.attributes.likesCount),
-                  isLiked: typeof result.isLiked !== 'undefined' ? result.isLiked : (result.is_liked ?? p.attributes.isLiked)
-                }
+                  likesCount:
+                    typeof result.likesCount !== 'undefined'
+                      ? result.likesCount
+                      : (result.likes_count ?? p.attributes.likesCount),
+                  isLiked:
+                    typeof result.isLiked !== 'undefined'
+                      ? result.isLiked
+                      : (result.is_liked ?? p.attributes.isLiked),
+                },
               };
             }
             return p;
           })
         );
+        window.dispatchEvent(new Event("like-changed"));
+        fetchCreators(); // refresh Popular Creations likes counts
       }
     } catch (error) {
       console.error("Error toggling like:", error);
       fetchFeed();
     } finally {
-      setLikingPosts(prev => { const next = new Set(prev); next.delete(postId); return next; });
-      window.dispatchEvent(new Event("like-changed"));
+      setLikingPosts(prev => {
+        const next = new Set(prev);
+        next.delete(postId);
+        return next;
+      });
     }
   };
 
+  // ─── Delete handler ──────────────────────────────────────────────────────────
   const handleDelete = async (postId: string) => {
     if (!currentUserId) return;
-    
-    const confirmDelete = window.confirm("Are you sure you want to delete this post?");
-    if (!confirmDelete) return;
+    const result = await Swal.fire({
+      title: 'Delete Post?',
+      text: 'Are you sure you want to delete this post?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#aaa',
+      confirmButtonText: 'Yes, delete it!'
+    });
+    if (!result.isConfirmed) return;
 
-    setPosts((prevPosts) => prevPosts.filter((p) => p.id !== postId));
+    setPosts(prevPosts => prevPosts.filter(p => p.id !== postId));
 
     try {
       const res = await fetch(`/api/posts?id=${postId}&currentUserId=${currentUserId}`, {
         method: "DELETE",
       });
-
       if (!res.ok) {
         const errJson = await res.json();
-        alert(errJson.errors?.[0]?.detail || "Failed to delete post.");
+        Swal.fire({ icon: 'error', title: 'Delete Failed', text: errJson.errors?.[0]?.detail || 'Failed to delete post.' });
         fetchFeed();
       } else {
         fetchHashtags();
@@ -328,22 +353,20 @@ export default function CommunityFeedPage() {
     }
   };
 
-  const handleEdit = async (postId: string, newContent: string, newImages: string[], newHashtags: string[]) => {
-    const postToEdit = posts.find((p) => p.id === postId);
+  // ─── Edit handler ────────────────────────────────────────────────────────────
+  const handleEdit = async (
+    postId: string,
+    newContent: string,
+    newImages: string[],
+    newHashtags: string[]
+  ) => {
+    const postToEdit = posts.find(p => p.id === postId);
     if (!postToEdit) return;
 
-    setPosts((prevPosts) =>
-      prevPosts.map((p) =>
+    setPosts(prevPosts =>
+      prevPosts.map(p =>
         p.id === postId
-          ? {
-              ...p,
-              attributes: {
-                ...p.attributes,
-                content: newContent,
-                imageUrls: newImages,
-                hashtags: newHashtags
-              }
-            }
+          ? { ...p, attributes: { ...p.attributes, content: newContent, imageUrls: newImages, hashtags: newHashtags } }
           : p
       )
     );
@@ -357,12 +380,11 @@ export default function CommunityFeedPage() {
           content: newContent,
           userId: currentUserId,
           imageUrls: newImages,
-          hashtags: newHashtags
-        })
+          hashtags: newHashtags,
+        }),
       });
-
       if (!res.ok) {
-        alert("แก้ไขโพสต์และรูปภาพไม่สำเร็จ");
+        Swal.fire({ icon: 'error', title: 'Edit Failed', text: 'Failed to edit post and images.' });
         fetchFeed();
       } else {
         fetchHashtags();
@@ -373,7 +395,46 @@ export default function CommunityFeedPage() {
     }
   };
 
+  // ─── Shared creator-click logic (used by both sidebars) ─────────────────────
+  const handleCreatorClick = (creator: Creator) => {
+    if (!creator.userId) return;
+    if (creatorFilterRef.current === creator.userId) {
+      creatorFilterRef.current = null;
+      activeCreatorIdRef.current = null;
+      setSearchQuery('');
+      fetchFeed();
+    } else {
+      creatorFilterRef.current = creator.userId;
+      hashtagFilterRef.current = null;
+      imageFilterRef.current = null;
+      activeCreatorIdRef.current = creator.userId;
+      activeSearchRef.current = null;
+      activePostIdRef.current = null;
+      setSearchQuery(creator.name);
+      fetchFeed(undefined, creator.userId);
+    }
+  };
 
+  const handleImageClick = (creator: Creator, postId?: string) => {
+    if (!postId) return;
+    if (imageFilterRef.current === postId) {
+      imageFilterRef.current = null;
+      activePostIdRef.current = null;
+      setSearchQuery('');
+      fetchFeed();
+    } else {
+      imageFilterRef.current = postId;
+      creatorFilterRef.current = null;
+      hashtagFilterRef.current = null;
+      activePostIdRef.current = postId;
+      activeCreatorIdRef.current = null;
+      activeSearchRef.current = null;
+      setSearchQuery('');
+      fetchFeed(undefined, undefined, postId);
+    }
+  };
+
+  // ─── Render ──────────────────────────────────────────────────────────────────
   return (
     <div className={styles.page}>
       <div className={styles.main}>
@@ -382,7 +443,7 @@ export default function CommunityFeedPage() {
           <SearchBar onSearch={(q) => { setSearchQuery(q); fetchFeed(q); }} />
         </div>
 
-        {/* Mobile-only: sidebar above CreatePost */}
+        {/* ── Mobile sidebar (shown above CreatePost on small screens) ── */}
         <div className={styles.mobileSidebar}>
           <PopularHashtags
             hashtags={hashtags.length > 0 ? hashtags : MOCK_HASHTAGS}
@@ -399,12 +460,13 @@ export default function CommunityFeedPage() {
                 fetchFeed(tag);
               }
             }}
-            selectedHashtag={searchQuery}
           />
+          {/* ✅ FIX: mobile PopularCreations now has the same handlers as desktop */}
           <PopularCreations
             creators={(creators?.length ?? 0) > 0 ? creators : MOCK_CREATORS}
-            currentUserId={currentUserId}
-            onPostCreated={() => fetchFeed()}
+            currentUserId={currentUserId || undefined}
+            onCreatorClick={handleCreatorClick}
+            onImageClick={handleImageClick}
           />
         </div>
 
@@ -436,7 +498,7 @@ export default function CommunityFeedPage() {
                   comments={post.attributes.commentsCount}
                   isLiked={post.attributes.isLiked}
                   hashtags={post.attributes.hashtags}
-                  bookmarks ={bookmarked}
+                  bookmarks={bookmarked}
                   authorUserId={post.attributes.creatorId || post.attributes.userId}
                   likingActive={likingPosts.has(post.id)}
                   onLike={handleLike}
@@ -448,7 +510,7 @@ export default function CommunityFeedPage() {
           />
         )}
 
-        {/* Infinite scroll trigger + loading spinner */}
+        {/* Infinite scroll trigger */}
         <div ref={loadMoreRef} className={styles.loadMore}>
           {loadingMore && <div className={styles.spinner} />}
           {!hasMore && posts.length > 0 && (
@@ -457,6 +519,7 @@ export default function CommunityFeedPage() {
         </div>
       </div>
 
+      {/* ── Desktop sidebar ── */}
       <aside className={styles.sidebar}>
         <PopularHashtags
           hashtags={hashtags.length > 0 ? hashtags : MOCK_HASHTAGS}
@@ -481,44 +544,8 @@ export default function CommunityFeedPage() {
         <PopularCreations
           creators={(creators?.length ?? 0) > 0 ? creators : MOCK_CREATORS}
           currentUserId={currentUserId || undefined}
-          onCreatorClick={(creator) => {
-            if (creator.userId) {
-              if (creatorFilterRef.current === creator.userId) {
-                creatorFilterRef.current = null;
-                activeCreatorIdRef.current = null;
-                setSearchQuery('');
-                fetchFeed();
-              } else {
-                creatorFilterRef.current = creator.userId;
-                hashtagFilterRef.current = null;
-                imageFilterRef.current = null;
-                activeCreatorIdRef.current = creator.userId;
-                activeSearchRef.current = null;
-                activePostIdRef.current = null;
-                setSearchQuery(creator.name);
-                fetchFeed(undefined, creator.userId);
-              }
-            }
-          }}
-          onImageClick={(creator, postId) => {
-            if (postId) {
-              if (imageFilterRef.current === postId) {
-                imageFilterRef.current = null;
-                activePostIdRef.current = null;
-                setSearchQuery('');
-                fetchFeed();
-              } else {
-                imageFilterRef.current = postId;
-                creatorFilterRef.current = null;
-                hashtagFilterRef.current = null;
-                activePostIdRef.current = postId;
-                activeCreatorIdRef.current = null;
-                activeSearchRef.current = null;
-                setSearchQuery('');
-                fetchFeed(undefined, undefined, postId);
-              }
-            }
-          }}
+          onCreatorClick={handleCreatorClick}
+          onImageClick={handleImageClick}
         />
       </aside>
     </div>

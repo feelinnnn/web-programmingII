@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Post from "@/models/Post";
-import Follow from "@/models/Follow";
 import User from "@/models/User";
-import Like from "@/models/Like"; 
+import Like from "@/models/Like";
 
 // GET: ดึงฟีดโพสต์คอมมู
 export async function GET(req: NextRequest) {
@@ -69,42 +68,12 @@ export async function GET(req: NextRequest) {
     }
     // ฟีดหน้าแรกปกติ + มียูสเซอร์ล็อกอินอยู่
     else if (currentUserId) {
-      const isCurrentValidObjectId = /^[0-9a-fA-F]{24}$/.test(currentUserId);
-      let currentUserDoc = await User.findOne({ user_id: currentUserId });
-      if (!currentUserDoc && isCurrentValidObjectId) {
-        currentUserDoc = await User.findById(currentUserId);
-      }
-      if (!currentUserDoc) {
-        try { currentUserDoc = await User.findById(currentUserId); } catch {}
-      }
-
-      const matchedUserId = currentUserDoc ? currentUserDoc.user_id : currentUserId;
-
-      const followingList = await Follow.find({ "comment.follower_user_id": matchedUserId })
-        .distinct("comment.following_user_id");
-
-      // Total: all posts
       total = await Post.countDocuments({});
-
-      // Followed posts first, then others — apply skip/limit across combined results
-      const allPosts = await Post.find({})
+      rawPosts = await Post.find({})
         .sort({ "post.created_at": -1 })
+        .skip(skip)
+        .limit(limit)
         .lean();
-
-      // Sort manually: followed first, then others
-      const seen = new Set();
-      const combined: any[] = [];
-      for (const p of allPosts) {
-        const pid = p._id.toString();
-        if (seen.has(pid)) continue;
-        seen.add(pid);
-        if (followingList.includes(p.post?.user_id)) {
-          combined.unshift(p); // followed first
-        } else {
-          combined.push(p);
-        }
-      }
-      rawPosts = combined.slice(skip, skip + limit);
     }
     // ไม่ล็อกอิน
     else {

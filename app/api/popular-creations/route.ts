@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
     const creators = await Promise.all(
       top.map(async (entry: any, i: number) => {
         const u = userMap.get(entry._id);
-        const posts = await Post.find({ "post.user_id": entry._id })
+        const posts = await Post.find({ "post.user_id": entry._id, "post.likes_count": { $gt: 0 } })
           .sort({ "post.likes_count": -1 })
           .limit(2)
           .lean();

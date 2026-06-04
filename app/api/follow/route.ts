@@ -4,9 +4,15 @@ import Follow from "@/models/Follow";
 import User from "@/models/User";
 
 async function resolveUserId(rawId: string): Promise<string> {
-  const user = await User.findOne({ user_id: rawId }).lean()
-    || await User.findById(rawId).lean();
-  return user ? (user.user_id || user._id.toString()) : rawId;
+  try {
+    const isValid = /^[0-9a-fA-F]{24}$/.test(rawId);
+    const user = isValid
+      ? (await User.findById(rawId).lean() || await User.findOne({ user_id: rawId }).lean())
+      : (await User.findOne({ user_id: rawId }).lean() || await User.findById(rawId).lean());
+    return user ? (user.user_id || user._id.toString()) : rawId;
+  } catch {
+    return rawId;
+  }
 }
 
 // POST /api/follow — toggle follow/unfollow
@@ -25,6 +31,14 @@ export async function POST(req: NextRequest) {
     // Resolve both IDs to user_id format
     const fid = await resolveUserId(followerUserId);
     const tid = await resolveUserId(followingUserId);
+
+    // Prevent self-follow
+    if (fid === tid) {
+      return NextResponse.json(
+        { errors: [{ status: "400", title: "Bad Request", detail: "Cannot follow yourself" }] },
+        { status: 400 }
+      );
+    }
 
     const existing = await Follow.findOne({
       "comment.follower_user_id": fid,

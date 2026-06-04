@@ -342,6 +342,11 @@
   animation: fadeIn 0.3s ease;
 }
 
+.bd-admin-feedback.declined {
+  background: #fff0f0;
+  border-color: #c0392b;
+}
+
 .bd-admin-label {
   display: block;
   font-size: 11px;
@@ -350,6 +355,10 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 6px;
+}
+
+.bd-admin-feedback.declined .bd-admin-label {
+  color: #a00;
 }
 
 .bd-admin-text {

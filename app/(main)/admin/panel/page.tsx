@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import Swal from 'sweetalert2';
+import Swal from "sweetalert2";
 import CreateBadgeModal from "../../../components/admin/CreateBadgeModal";
 import "./panel.css";
 
@@ -155,7 +155,7 @@ export default function ManagementHub() {
         setAllBadges(prev => prev.filter(b => b._id !== id));
       } else {
         const err = await res.json();
-        alert(`Error: ${err.error}`);
+        Swal.fire({ icon: 'error', title: 'Error', text: err.error });
       }
     } catch (err) {
       console.error("Failed to delete badge:", err);

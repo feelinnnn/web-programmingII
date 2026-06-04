@@ -290,11 +290,7 @@ export default function BadgesPage() {
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
               },
             });
-            if (!res.ok) {
-              const err = await res.json();
-              Swal.fire({ icon: 'error', title: 'Error', text: err.errors?.[0]?.detail || 'Cannot request certification' });
-              return;
-            }
+            if (!res.ok) return;
             setDetailBadge(null);
             fetchBadges();
           }}

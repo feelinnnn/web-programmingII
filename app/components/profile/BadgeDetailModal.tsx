@@ -168,7 +168,7 @@ export default function BadgeDetailModal({ badge, color, onClose, onVerify, onEd
 
               {/* Admin Feedback Section */}
               {(badge.attributes?.adminComment || badge.attributes?.admin_comment) && (
-                <div className="bd-admin-feedback">
+                <div className={`bd-admin-feedback ${status === "declined" ? "declined" : ""}`}>
                   <span className="bd-admin-label">Admin Feedback</span>
                   <div className="bd-admin-text">
                     {badge.attributes.adminComment || badge.attributes.admin_comment}
@@ -183,13 +183,6 @@ export default function BadgeDetailModal({ badge, color, onClose, onVerify, onEd
                 <div className="bd-meta">
                   {evidenceUrls.length > 0 && <span>{evidenceUrls.length} evidence {evidenceUrls.length > 1 ? "items" : "item"}</span>}
                   <span>Status: <strong>{statusLabel}</strong></span>
-                </div>
-              )}
-
-              {/* Admin feedback */}
-              {adminComment && (
-                <div className={`bd-adminFeedback ${status === "declined" ? "declined" : ""}`}>
-                  <p className="bd-adminFeedbackText">{adminComment}</p>
                 </div>
               )}
 

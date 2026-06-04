@@ -1,0 +1,48 @@
+version: "3.9"
+
+services:
+  # ── MongoDB ──────────────────────────────────────────
+  mongo:
+    image: mongo:7
+    container_name: cookcult-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: Cookcult
+    networks:
+      - cookcult-net
+
+  # ── Next.js App (Frontend + Backend / API) ────────────
+  app:
+    build: .
+    container_name: cookcult-app
+    restart: unless-stopped
+    ports:
+      - "4200:3000"
+      - "3000:3000"
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/Cookcult
+      - JWT_SECRET=${JWT_SECRET}
+      - MAIL_USER=${MAIL_USER}
+      - MAIL_PASS=${MAIL_PASS}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://naphon.ddns.net:4200}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+    depends_on:
+      - mongo
+    networks:
+      - cookcult-net
+
+volumes:
+  mongo-data:
+
+networks:
+  cookcult-net:
+    driver: bridge
