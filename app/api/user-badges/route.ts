@@ -145,19 +145,23 @@ export async function POST(req: NextRequest) {
 
     const isLesson = badgeTypeSnapshot === "lesson" || badgeTypeSnapshot === "evidence-backed"
 
-    const userBadge = await UserBadge.create({
-      userId,
-      badgeId,
-      status: isLesson ? "verified" : "non-request",
-      evidenceUrls: evidenceUrls ?? [],
-      userNote: userNote ?? null,
-      adminId: null,
-      adminComment: null,
-      submittedAt: Date.now(),
-      verifiedAt: isLesson ? Date.now() : null,
-      badgeTypeSnapshot,
-      showcased: false
-    })
+    const userBadge = await UserBadge.findOneAndUpdate(
+      { userId, badgeId },
+      {
+        $set: {
+          status: isLesson ? "verified" : "non-request",
+          evidenceUrls: evidenceUrls ?? [],
+          userNote: userNote ?? null,
+          adminId: null,
+          adminComment: null,
+          submittedAt: new Date(),
+          verifiedAt: isLesson ? new Date() : null,
+          badgeTypeSnapshot,
+        },
+        $setOnInsert: { showcased: false }
+      },
+      { upsert: true, new: true, runValidators: true }
+    )
 
     // Update Progress.badgeSubmitted if badge type is "lesson" or "evidence-backed"
     if (badgeTypeSnapshot === "lesson" || badgeTypeSnapshot === "evidence-backed") {

@@ -335,11 +335,7 @@ export default function UserProfilePage() {
             {filteredBadges.slice((page - 1) * PER_PAGE, page * PER_PAGE).map((b: any, i: number) => {
               const badge = b.relationships?.badge?.data;
               const color = getBadgeColor(b);
-              const badgeType = b.attributes?.badge_type_snapshot || badge?.attributes?.badge_type || "";
-              const isLesson = badgeType === "lesson";
-              const cardImg = isLesson
-                ? (badge?.attributes?.thumbnail_url || badge?.attributes?.icon_url)
-                : (badge?.attributes?.icon_url || badge?.attributes?.thumbnail_url);
+              const cardImg = badge?.attributes?.thumbnail_url || badge?.attributes?.icon_url || "/icon/medal.png";
               return (
                 <div key={b.id || i} className="card" onClick={() => setDetailBadge({ badge: b, color })}>
                   <div className="card-image-area">
@@ -348,6 +344,7 @@ export default function UserProfilePage() {
                         src={cardImg}
                         alt={badge?.attributes?.name || "Badge"}
                         className="card-badge-icon"
+                        style={{ objectFit: badge?.attributes?.thumbnail_url ? "cover" : "contain" }}
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = "none";
                         }}

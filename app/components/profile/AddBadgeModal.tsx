@@ -89,10 +89,26 @@ export default function AddBadgeModal({ onClose, onCreated, editData }: Props) {
 
   const loadBadges = async (q = "") => {
     try {
-      const res = await fetch(`/api/badges/search?type=expert-certified${q ? `&q=${encodeURIComponent(q)}` : ""}`);
-      const json = await res.json();
-      setBadges(json.data || []);
-    } catch {}
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+
+      // 1. Fetch available badges matching query
+      const searchRes = await fetch(`/api/badges/search?type=expert-certified${q ? `&q=${encodeURIComponent(q)}` : ""}`);
+      const searchJson = await searchRes.json();
+      const allAvailable = searchJson.data || [];
+
+      // 2. Fetch user's current badges to filter out
+      const userBadgesRes = await fetch(`/api/user-badges?userId=${userId}`, { headers: authHeaders });
+      const userBadgesJson = await userBadgesRes.json();
+      const ownedBadgeIds = (userBadgesJson.data || []).map((ub: any) => ub.attributes.badgeId);
+
+      // 3. Filter: available - owned
+      const filtered = allAvailable.filter((b: any) => !ownedBadgeIds.includes(b.id));
+      
+      setBadges(filtered);
+    } catch (err) {
+      console.error("Failed to load/filter badges:", err);
+    }
   };
 
   const selectBadge = (badge: any) => {
