@@ -102,8 +102,9 @@ export async function GET(req: NextRequest) {
       const badge = badgeMap.get(ub.badgeId?.toString()) as any;
       const lesson = lessonMap.get(ub.badgeId);
       // Fallback for self-declared badges (no matching Badge doc)
-      const badgeName = badge?.name || ub.userNote || "Self Declared";
-      const badgeDesc = badge?.description || ub.userNote || "";
+      const userNoteArr = Array.isArray(ub.userNote) ? ub.userNote : (ub.userNote ? [ub.userNote] : []);
+      const badgeName = badge?.name || userNoteArr[0] || "Self Declared";
+      const badgeDesc = badge?.description || userNoteArr[0] || "";
       const badgeType = badge?.badge_type || ub.badgeTypeSnapshot || "self-declared";
       return {
         id: ub._id,

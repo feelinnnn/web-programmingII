@@ -15,7 +15,7 @@ interface Props {
     attributes: {
       status: string;
       evidence_urls?: string[];
-      user_note?: string;
+      user_note?: string[];
       badge_type_snapshot?: string;
       showcased?: boolean;
       certification_requested?: boolean;
@@ -43,15 +43,12 @@ interface Props {
   onCancelRequest?: () => void;
 }
 
-function parseEvidenceItems(urls: string[] = [], note: string = ""): EvidenceItem[] {
-  if (urls.length === 0 && !note) return [];
+function parseEvidenceItems(urls: string[] = [], notes: string[] = []): EvidenceItem[] {
+  if (urls.length === 0 && notes.length === 0) return [];
   const items: EvidenceItem[] = [];
-  const descriptions = note.split(" | ").filter(Boolean);
-  urls.forEach((url, i) => {
-    items.push({ url, description: descriptions[i] || "" });
-  });
-  if (urls.length === 0 && note) {
-    items.push({ url: "", description: note });
+  const maxLen = Math.max(urls.length, notes.length);
+  for (let i = 0; i < maxLen; i++) {
+    items.push({ url: urls[i] || "", description: notes[i] || "" });
   }
   return items;
 }
@@ -77,15 +74,17 @@ export default function BadgeDetailModal({ badge, color, onClose, onVerify, onEd
   const badgeType = badge.attributes?.badge_type_snapshot || badgeInfo?.attributes?.badge_type || "";
   const status = badge.attributes?.status || "";
   const certRequested = badge.attributes?.certification_requested || false;
-  const isUserBadge = badgeType === "self-declared" || badgeType === "expert-certified";
+  const isUserBadge = badgeType === "self-declared" || badgeType === "expert-certified" || badgeType === "evidence-backed";
   const thumbnail = badgeInfo?.attributes?.thumbnail_url;
   const icon = badgeInfo?.attributes?.icon_url;
   const evidenceUrls = badge.attributes?.evidence_urls || [];
-  const userNote = badge.attributes?.user_note || "";
+  const userNotesArr: string[] = Array.isArray(badge.attributes?.user_note)
+    ? badge.attributes.user_note
+    : (badge.attributes?.user_note ? [badge.attributes.user_note] : []);
 
   // Show evidence for any badge that has user-submitted evidence
-  const hasEvidence = (evidenceUrls.length > 0 || !!userNote) && badgeType !== "lesson";
-  const evidenceItems = hasEvidence ? parseEvidenceItems(evidenceUrls, userNote) : [];
+  const hasEvidence = (evidenceUrls.length > 0 || userNotesArr.length > 0) && badgeType !== "lesson";
+  const evidenceItems = hasEvidence ? parseEvidenceItems(evidenceUrls, userNotesArr) : [];
 
   // Build stages: badge image first (stage 0), then evidence items (stage 1+)
   const items = hasEvidence
@@ -101,7 +100,7 @@ export default function BadgeDetailModal({ badge, color, onClose, onVerify, onEd
     : (icon || thumbnail || null);
   const currentDesc = isBadgeStage
     ? desc
-    : (currentItem?.description || userNote || desc);
+    : (currentItem?.description || userNotesArr[0] || desc);
 
   const statusLabel = status === "verified" ? "Verified" : status === "pending" ? "Pending" : status === "non-request" ? "Not Requested" : status === "declined" ? "Declined" : "";
   const typeLabel = TYPE_LABELS[badgeType] || badgeType;
