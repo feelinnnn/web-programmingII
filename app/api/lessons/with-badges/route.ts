@@ -6,15 +6,32 @@ import Badge, { IBadge } from '@/models/Badge'
 export async function GET(request: NextRequest) {
   await connect()
 
-  const lessons: ILesson[] = await Lesson.find()
-  const badges: IBadge[] = await Badge.find()
+  const url = new URL(request.url)
+  const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10))
+  const limit = Math.min(50, Math.max(1, parseInt(url.searchParams.get('limit') || '15', 10)))
+  const skip = (page - 1) * limit
 
-  // Create a map of badges by ID for quick lookup
+  const [lessons, total] = await Promise.all([
+    Lesson.find().skip(skip).limit(limit),
+    Lesson.countDocuments(),
+  ])
+
+  const badgeIds = [...new Set(lessons.map((l: ILesson) => l.badge).filter(Boolean))]
+  const badges: IBadge[] = badgeIds.length > 0
+    ? await Badge.find({ _id: { $in: badgeIds } })
+    : []
   const badgeMap = new Map(badges.map(b => [b._id, b]))
+
+  const totalPages = Math.ceil(total / limit)
 
   return NextResponse.json({
     jsonapi: { version: "1.0" },
-    links: { self: "/api/lessons/with-badges" },
+    links: {
+      self: `/api/lessons/with-badges?page=${page}&limit=${limit}`,
+      first: `/api/lessons/with-badges?page=1&limit=${limit}`,
+      last: `/api/lessons/with-badges?page=${totalPages}&limit=${limit}`,
+    },
+    meta: { total, page, limit, totalPages },
     data: lessons.map((lesson: ILesson) => {
       const badge = lesson.badge ? badgeMap.get(lesson.badge) : null
       return {

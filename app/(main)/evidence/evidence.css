@@ -1,202 +1,170 @@
-.container {
-  padding-left: 80px;
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+
+.ev-container {
+  display: flex;
   min-height: 100vh;
-  width: 100%;
-  display: flex;
-  background: linear-gradient(135deg, #fff8f0 0%, #ffe8d6 100%);
+  background: #FFF2D7;
 }
 
-.content {
+.ev-main {
   flex: 1;
-  padding: 40px;
-  background: linear-gradient(135deg, #FFE0B5 0%, #FFD9A3 100%);
-  margin: 20px;
-  border: 2px solid #352321;
-  border-radius: 20px;
-  position: relative;
-  box-shadow: 0 10px 40px rgba(53, 35, 33, 0.15);
+  width: 100%;
+  padding: 30px 40px;
+  display: flex;
+  flex-direction: column;
 }
 
-.detail-title {
-  font-size: 1.875rem;
-  font-weight: 700;
-  margin-bottom: 2rem;
-  color: #352321;
-  position: relative;
-  display: inline-block;
-  padding-bottom: 0.75rem;
-}
-
-.detail-title::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 60px;
-  height: 4px;
-  background: linear-gradient(90deg, #FF5A5A, #FFA95A);
-  border-radius: 2px;
-}
-
-.detail-list {
-  list-style-type: disc;
-  padding-left: 1.5rem;
-  margin-bottom: 1.5rem;
-  font-size: 1.125rem;
-}
-
-.detail-list li {
-  margin-bottom: 0.5rem;
-}
-
-.detail-text {
-  font-size: 1rem;
-  line-height: 1.75rem;
-  margin-bottom: 2rem;
-  color: #352321;
-}
-
-.evidence-item {
-  background: white;
-  padding: 30px;
+.ev-card {
+  background: #fff;
+  border: 1px solid #ebe4d5;
   border-radius: 16px;
-  box-shadow: 0 4px 15px rgba(53, 35, 33, 0.1);
+  padding: 32px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.ev-btnWrap {
+  margin-top: auto;
+  padding-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ev-header {
   margin-bottom: 30px;
-  border-left: 5px solid #FFA95A;
 }
 
-.evidence-description {
-  font-size: 1.1rem;
-  line-height: 1.8;
-  color: #352321;
-  margin-bottom: 25px;
-  font-weight: 500;
+.ev-title {
+  font-family: 'Great Vibes', cursive;
+  font-size: 42px;
+  font-weight: normal;
+  color: #4A3525;
+  margin: 0 0 8px;
 }
 
-.evidence-requirements-list {
-  margin-bottom: 25px;
+.ev-subtitle {
+  font-size: 0.95rem;
+  color: #8f796a;
+  margin: 0;
 }
 
-.evidence-requirements-list h4 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #352321;
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
+.ev-subtitle strong {
+  color: #4A3525;
 }
 
-.evidence-requirements-list h4::before {
-  content: '✓';
-  display: inline-block;
-  width: 24px;
-  height: 24px;
-  background: #A0D585;
-  color: white;
-  border-radius: 50%;
+.ev-card {
+  background: #fff;
+  border: 1px solid #ebe4d5;
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.ev-loading {
+  padding: 40px;
   text-align: center;
-  line-height: 24px;
-  margin-right: 10px;
-  font-size: 14px;
-  font-weight: bold;
+  background: #fff;
+  border-radius: 16px;
+  color: #999;
+  font-size: 1.1rem;
 }
 
-.evidence-requirements-list ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.ev-desc {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #4a342e;
+  margin: 0 0 24px;
 }
 
-.evidence-requirements-list li {
-  padding: 10px 0;
-  padding-left: 35px;
-  position: relative;
-  color: #4a4a4a;
-  line-height: 1.6;
-}
-
-.evidence-requirements-list li::before {
-  content: '→';
-  position: absolute;
-  left: 0;
-  color: #FFA95A;
-  font-weight: bold;
-  font-size: 1.2rem;
-}
-
-.evidence-examples {
+.ev-section {
   margin-bottom: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #f0f0f0;
 }
 
-.evidence-examples h4 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #352321;
-  margin-bottom: 12px;
+.ev-section:last-child {
+  margin-bottom: 0;
+}
+
+.ev-section h4 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #4A3525;
+  margin: 0 0 12px;
   display: flex;
   align-items: center;
+  gap: 8px;
 }
 
-.evidence-examples h4::before {
-  content: '💡';
+.ev-section h4::before {
+  content: '';
   display: inline-block;
-  margin-right: 10px;
-  font-size: 1.2rem;
+  width: 6px;
+  height: 20px;
+  background: #D8AE7E;
+  border-radius: 3px;
 }
 
-.evidence-examples ul {
+.ev-section ul {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.evidence-examples li {
-  padding: 10px 0;
-  padding-left: 35px;
+.ev-section li {
+  padding: 8px 0 8px 20px;
   position: relative;
-  color: #4a4a4a;
+  color: #5a4a3e;
   line-height: 1.6;
+  font-size: 0.9rem;
 }
 
-.evidence-examples li::before {
-  content: '★';
+.ev-section li::before {
+  content: '•';
   position: absolute;
   left: 0;
-  color: #FFD45A;
+  color: #D8AE7E;
   font-weight: bold;
   font-size: 1.2rem;
 }
 
-.add-btn {
-  position: absolute;
-  bottom: 30px;
-  right: 30px;
-  background: linear-gradient(135deg, #4a2c2a, #5a3a3a);
+.ev-addBtn {
+  background: #4a2c2a;
   color: white;
   border: none;
-  min-width: 140px;
-  padding: 12px 28px;
-  border-radius: 25px;
+  padding: 12px 32px;
+  border-radius: 12px;
   cursor: pointer;
   font-weight: 600;
   font-size: 1rem;
-  box-shadow: 0 4px 15px rgba(74, 44, 42, 0.3);
-  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(74, 44, 42, 0.2);
+  transition: all 0.2s ease;
 }
 
-.add-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(74, 44, 42, 0.4);
-  background: linear-gradient(135deg, #5a3a3a, #6a4a4a);
+.ev-addBtn:hover:not(:disabled) {
+  background: #5a3a3a;
+  transform: translateY(-1px);
 }
 
-.add-btn:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.add-btn:disabled {
-  opacity: 0.6;
+.ev-addBtn:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* ===== Tablet ===== */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .ev-main { padding: 24px 20px 100px; }
+  .ev-title { font-size: 36px; }
+  .ev-card { padding: 24px; }
+}
+
+/* ===== Phone ===== */
+@media (max-width: 768px) {
+  .ev-main { padding: 20px 16px 100px; }
+  .ev-title { font-size: 28px; }
+  .ev-subtitle { font-size: 0.85rem; }
+  .ev-card { padding: 20px 16px; border-radius: 12px; }
+  .ev-desc { font-size: 0.9rem; }
+  .ev-section li { font-size: 0.85rem; }
 }
