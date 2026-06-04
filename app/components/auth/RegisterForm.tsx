@@ -85,24 +85,19 @@ export default function RegisterForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        // If the backend returns field-specific errors, map them
         if (data.errors) {
-          setErrors(data.errors);
-        } else {
-          // Map general error to all relevant fields
-          const errMsg = data.message || 'Something went wrong';
-          setErrors({
-            username: errMsg.toLowerCase().includes('username') ? errMsg : undefined,
-            email: errMsg.toLowerCase().includes('email') ? errMsg : undefined,
-            password: errMsg.toLowerCase().includes('password') ? errMsg : undefined,
+          const fieldErrors: any = {};
+          data.errors.forEach((err: any) => {
+            if (err.source?.pointer) {
+              const field = err.source.pointer.split('/').pop();
+              fieldErrors[field] = err.detail;
+            } else {
+              fieldErrors.general = err.detail;
+            }
           });
-
-          // If it's truly general (doesn't mention any specific field), show on all
-          if (!errMsg.toLowerCase().includes('email') && 
-              !errMsg.toLowerCase().includes('username') && 
-              !errMsg.toLowerCase().includes('password')) {
-            setErrors({ email: errMsg, username: errMsg, password: errMsg });
-          }
+          setErrors(fieldErrors);
+        } else {
+          setErrors({ general: 'Something went wrong' });
         }
         return;
       }
@@ -110,7 +105,7 @@ export default function RegisterForm() {
       await Swal.fire({
         icon: 'success',
         title: 'OTP Sent!',
-        text: 'Please check your email for the verification code.',
+        text: data.data.attributes.message || 'Please check your email for the verification code.',
         timer: 2000,
         showConfirmButton: false,
       });

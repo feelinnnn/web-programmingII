@@ -65,7 +65,10 @@ function OtpFrom() {
 
             const data = await res.json();
 
-            if (!res.ok) throw new Error(data.message || "Invalid or expired OTP");
+            if (!res.ok) {
+                const errorMsg = data.errors ? data.errors[0].detail : "Invalid or expired OTP";
+                throw new Error(errorMsg);
+            }
 
             if (purpose === "login") {
                 await Swal.fire({
@@ -75,7 +78,7 @@ function OtpFrom() {
                     timer: 1500,
                     showConfirmButton: false,
                 });
-                localStorage.setItem("token", data.token);
+                localStorage.setItem("token", data.data.attributes.token);
                 // Clean up sessionStorage
                 sessionStorage.removeItem("auth_email");
                 sessionStorage.removeItem("auth_purpose");
@@ -89,13 +92,13 @@ function OtpFrom() {
                     showConfirmButton: false,
                 });
                 sessionStorage.setItem("auth_email", email);
-                sessionStorage.setItem("auth_token", data.resetToken);
+                sessionStorage.setItem("auth_token", data.data.attributes.resetToken);
                 router.push("/auth-app/reset-password");
             } else {
                 await Swal.fire({
                     icon: 'success',
                     title: 'Account Verified!',
-                    text: 'You can now login.',
+                    text: data.data.attributes.message || 'You can now login.',
                     confirmButtonText: 'Go to Login',
                     confirmButtonColor: '#3b1f1f',
                 });
@@ -127,12 +130,15 @@ function OtpFrom() {
                 body: JSON.stringify({ email }),
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.message);
+            if (!res.ok) {
+                const errorMsg = data.errors ? data.errors[0].detail : "Failed to resend OTP";
+                throw new Error(errorMsg);
+            }
 
             Swal.fire({
                 icon: 'success',
                 title: 'Resent!',
-                text: 'A new OTP has been sent to your email.',
+                text: data.data.attributes.message || 'A new OTP has been sent to your email.',
                 timer: 2000,
                 showConfirmButton: false,
             });

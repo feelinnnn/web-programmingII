@@ -23,8 +23,8 @@
 }
 
 .title {
-    font-family: var(--font-script);
-    font-size: 32px;
+    font-family: var(--font-title);
+    font-size: 42px;
     font-weight: 400;
     color: var(--dark);
     text-align: center;
@@ -162,4 +162,29 @@
 .resendBtn:disabled {
     opacity: 0.45;
     cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 1.5rem;
+    }
+
+    .card {
+        padding: 40px 24px;
+        border-radius: 16px;
+    }
+
+    .title {
+        font-size: 36px;
+    }
+
+    .inputOtp {
+        padding: 12px;
+        font-size: 24px;
+        letter-spacing: 10px;
+    }
+
+    .inputOtp::placeholder {
+        letter-spacing: 8px;
+    }
 }

@@ -55,14 +55,27 @@ function ResetPasswordFormContent() {
       const data = await res.json();
 
       if (!res.ok) {
-        setErrors({ general: data.message || 'Something went wrong' });
+        if (data.errors) {
+          const fieldErrors: any = {};
+          data.errors.forEach((err: any) => {
+            if (err.source?.pointer) {
+              const field = err.source.pointer.split('/').pop();
+              fieldErrors[field] = err.detail;
+            } else {
+              fieldErrors.general = err.detail;
+            }
+          });
+          setErrors(fieldErrors);
+        } else {
+          setErrors({ general: 'Something went wrong' });
+        }
         return;
       }
 
       await Swal.fire({
         icon: 'success',
         title: 'Success!',
-        text: 'Your password has been reset successfully. You can now login.',
+        text: data.data.attributes.message || 'Your password has been reset successfully. You can now login.',
         confirmButtonText: 'Go to Login',
         confirmButtonColor: '#3b1f1f',
       });

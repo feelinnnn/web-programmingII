@@ -97,34 +97,36 @@
 
 @media (max-width: 768px) {
   .container {
-    flex-direction: column !important;
+    flex-direction: column-reverse !important;
+    background-color: var(--cream);
+    padding: 0;
+    justify-content: center;
   }
 
   .panel {
     width: 100%;
-    min-height: 35vh;
-    padding: 2rem 1rem;
+    min-height: auto;
+    padding: 1rem 1.5rem 3rem 1.5rem;
+    background-color: transparent;
+    display: flex;
+    justify-content: center;
   }
 
-  .left .circle, .right .circle {
-    width: 150vw;
-    height: 150vw;
-    left: 50%;
-    right: auto;
-    top: -100vw;
-    transform: translateX(-50%);
-    animation: slideInTop 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  .panel .circle {
+    display: none;
   }
 
   .formSection {
     width: 100%;
-    min-height: 65vh;
-    padding: 2rem 1.5rem;
-    align-items: flex-start;
+    min-height: auto;
+    padding: 3rem 1.5rem 1rem 1.5rem;
+    align-items: center;
+    justify-content: center;
   }
 
   .panelInner {
-    padding: 1rem;
+    padding: 0;
+    animation: fadeIn 0.8s ease-out;
   }
 }
 

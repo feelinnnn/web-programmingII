@@ -22,26 +22,40 @@ export async function POST(request: Request) {
     if (!password) errors.password = "Password is required.";
 
     if (Object.keys(errors).length > 0) {
-      return NextResponse.json({ errors }, { status: 400 });
+      return NextResponse.json({
+        errors: Object.entries(errors).map(([field, detail]) => ({
+          status: "400",
+          title: "Validation Error",
+          detail,
+          source: { pointer: `/data/attributes/${field}` }
+        }))
+      }, { status: 400 });
     }
 
     // Email format validation
     const emailError = validateEmail(email);
     if (emailError) {
-      return NextResponse.json(
-        { errors: { email: emailError } },
-        { status: 400 }
-      );
+      return NextResponse.json({
+        errors: [{
+          status: "400",
+          title: "Validation Error",
+          detail: emailError,
+          source: { pointer: "/data/attributes/email" }
+        }]
+      }, { status: 400 });
     }
 
     // Find user
     const user = await User.findOne({ email });
 
     if (!user) {
-      return NextResponse.json(
-        { errors: { general: "Invalid email or password." } },
-        { status: 400 }
-      );
+      return NextResponse.json({
+        errors: [{
+          status: "400",
+          title: "Unauthorized",
+          detail: "Invalid email or password."
+        }]
+      }, { status: 400 });
     }
 
     // Google account
@@ -49,12 +63,13 @@ export async function POST(request: Request) {
       user.authProvider === "google" &&
       !user.password_hash
     ) {
-      return NextResponse.json(
-        {
-          errors: { general: "This account uses Google Login. Please sign in with Google." },
-        },
-        { status: 400 }
-      );
+      return NextResponse.json({
+        errors: [{
+          status: "400",
+          title: "Auth Provider Conflict",
+          detail: "This account uses Google Login. Please sign in with Google."
+        }]
+      }, { status: 400 });
     }
 
     // Check password
@@ -64,10 +79,13 @@ export async function POST(request: Request) {
     );
 
     if (!isMatch) {
-      return NextResponse.json(
-        { errors: { general: "Invalid email or password." } },
-        { status: 400 }
-      );
+      return NextResponse.json({
+        errors: [{
+          status: "400",
+          title: "Unauthorized",
+          detail: "Invalid email or password."
+        }]
+      }, { status: 400 });
     }
 
     // Generate OTP
@@ -97,22 +115,23 @@ export async function POST(request: Request) {
       console.error("Email send failed:", err)
     );
 
-    return NextResponse.json(
-      {
-        message:
-          "Please check your email for the OTP code.",
-      },
-      { status: 200 }
-    );
+    return NextResponse.json({
+      data: {
+        type: "auth",
+        attributes: {
+          message: "Please check your email for the OTP code."
+        }
+      }
+    }, { status: 200 });
   } catch (error: any) {
     console.error("Login Step 1 Error:", error);
 
-    return NextResponse.json(
-      {
-        message: "Login initiation failed.",
-        error: error.message,
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      errors: [{
+        status: "500",
+        title: "Internal Server Error",
+        detail: error.message || "Login initiation failed."
+      }]
+    }, { status: 500 });
   }
 }

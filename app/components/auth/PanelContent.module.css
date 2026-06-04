@@ -8,12 +8,12 @@
 }
 
 .title {
-  font-family: var(--font-script);
-  font-size: 44px;
+  font-family: var(--font-title);
+  font-size: 54px;
   font-weight: 400;
   color: var(--cream);
   text-align: center;
-  line-height: 1.2;
+  line-height: 1.1;
 }
 
 .subtitle {
@@ -59,12 +59,28 @@
 }
 
 @media (max-width: 768px) {
-  .title {
-    font-size: 34px;
-    white-space: pre-line;
+  .title, .subtitle, .divider {
+    display: none;
   }
   
-  .divider {
-    height: 40px;
+  .container {
+    padding: 0;
+    gap: 10px;
+  }
+
+  .linkLabel {
+    color: var(--brown-dark);
+    font-weight: 600;
+  }
+
+  .linkBtn {
+    border-color: var(--brown-dark);
+    color: var(--brown-dark);
+    font-weight: 700;
+  }
+
+  .linkBtn:hover {
+    background-color: var(--brown-dark);
+    color: var(--cream);
   }
 }

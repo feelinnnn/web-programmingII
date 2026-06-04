@@ -12,10 +12,13 @@ export async function POST(request: Request) {
 
     // ตรวจสอบข้อมูลที่ส่งมา
     if (!email || !otpCode) {
-      return NextResponse.json(
-        { message: "Missing required fields." },
-        { status: 400 }
-      );
+      return NextResponse.json({
+        errors: [{
+          status: "400",
+          title: "Bad Request",
+          detail: "Missing required fields."
+        }]
+      }, { status: 400 });
     }
 
     // ตรวจสอบ OTP
@@ -26,10 +29,13 @@ export async function POST(request: Request) {
     });
 
     if (!tempRecord) {
-      return NextResponse.json(
-        { message: "Invalid or expired OTP code." },
-        { status: 400 }
-      );
+      return NextResponse.json({
+        errors: [{
+          status: "400",
+          title: "Unauthorized",
+          detail: "Invalid or expired OTP code."
+        }]
+      }, { status: 400 });
     }
 
     const otpAge =
@@ -43,14 +49,13 @@ export async function POST(request: Request) {
       _id: tempRecord._id,
       });
 
-      return NextResponse.json(
-        {
-          message: "OTP code has expired.",
-        },
-        {
-          status: 400,
-        }
-      );
+      return NextResponse.json({
+        errors: [{
+          status: "400",
+          title: "Unauthorized",
+          detail: "OTP code has expired."
+        }]
+      }, { status: 400 });
     }
 
     // ป้องกัน Email ซ้ำ
@@ -64,14 +69,13 @@ export async function POST(request: Request) {
         _id: tempRecord._id,
       });
 
-      return NextResponse.json(
-        {
-          message: "This email is already registered.",
-        },
-        {
-          status: 400,
-        }
-      );
+      return NextResponse.json({
+        errors: [{
+          status: "400",
+          title: "Conflict",
+          detail: "This email is already registered."
+        }]
+      }, { status: 400 });
     }
 
     // สร้าง User
@@ -93,25 +97,23 @@ export async function POST(request: Request) {
       _id: tempRecord._id,
     });
 
-    return NextResponse.json(
-      {
-        message: "Account created successfully!",
-      },
-      {
-        status: 201,
+    return NextResponse.json({
+      data: {
+        type: "auth",
+        attributes: {
+          message: "Account created successfully!"
+        }
       }
-    );
+    }, { status: 201 });
   } catch (error: any) {
     console.error("Verify Register Error:", error);
 
-    return NextResponse.json(
-      {
-        message: "Verification failed.",
-        error: error.message,
-      },
-      {
-        status: 500,
-      }
-    );
+    return NextResponse.json({
+      errors: [{
+        status: "500",
+        title: "Internal Server Error",
+        detail: error.message || "Verification failed."
+      }]
+    }, { status: 500 });
   }
 }

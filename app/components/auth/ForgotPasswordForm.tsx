@@ -34,14 +34,27 @@ export default function ForgotPasswordForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        setErrors({ email: data.message || 'Something went wrong' });
+        if (data.errors) {
+          const fieldErrors: any = {};
+          data.errors.forEach((err: any) => {
+            if (err.source?.pointer) {
+              const field = err.source.pointer.split('/').pop();
+              fieldErrors[field] = err.detail;
+            } else {
+              fieldErrors.general = err.detail;
+            }
+          });
+          setErrors(fieldErrors);
+        } else {
+          setErrors({ general: 'Something went wrong' });
+        }
         return;
       }
 
       await Swal.fire({
         icon: 'success',
         title: 'OTP Sent!',
-        text: 'Please check your email for the verification code.',
+        text: data.data.attributes.message || 'Please check your email for the verification code.',
         timer: 2000,
         showConfirmButton: false,
       });
@@ -82,16 +95,6 @@ export default function ForgotPasswordForm() {
       <button type="submit" className={styles.submitBtn} disabled={loading}>
         {loading ? 'Sending OTP...' : 'Send OTP'}
       </button>
-
-      <div style={{ textAlign: 'center', marginTop: '10px' }}>
-        <button 
-          type="button" 
-          onClick={() => router.push('/auth-app/login')}
-          style={{ background: 'none', border: 'none', color: 'var(--brown-dark)', cursor: 'pointer', fontWeight: 600 }}
-        >
-          Back to Login
-        </button>
-      </div>
     </form>
   );
 }
