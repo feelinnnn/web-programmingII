@@ -217,43 +217,45 @@ export default function UserProfilePage() {
               </div>
             </div>
             <div className="profile-top-right">
-              <input
-                className="user-search-input"
-                type="text"
-                placeholder="Search user..."
-                value={userSearch}
-                onChange={async (e) => {
-                  setUserSearch(e.target.value);
-                  const q = e.target.value.trim();
-                  if (!q) { setUserResults([]); setShowDropdown(false); return; }
-                  try {
-                    const res = await fetch(`/api/users/search?q=${encodeURIComponent(q)}`);
-                    const json = await res.json();
-                    setUserResults(json.data || []);
-                    setShowDropdown(true);
-                  } catch { setUserResults([]); }
-                }}
-                onFocus={() => { if (userResults.length > 0) setShowDropdown(true); }}
-                onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-              />
-              {showDropdown && userResults.length > 0 && (
-                <ul className="user-dropdown">
-                  {userResults.map((u: any) => (
-                    <li key={u.id} className="user-dropdown-item"
-                      onClick={() => {
-                        setShowDropdown(false);
-                        setUserSearch("");
-                        window.location.href = `/user-profile?user_id=${u.id}`;
-                      }}>
-                      <img src={(u.profile_image_url || "/avatar/Avatar.png").replace(/=s\d+-c/, "=s400")} alt={u.display_name} className="user-dropdown-avatar" />
-                      <div className="user-dropdown-info">
-                        <span className="user-dropdown-name">{u.display_name}</span>
-                        {u.sub_namebio && <span className="user-dropdown-bio">{u.sub_namebio}</span>}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <div className="user-search-wrapper">
+                <input
+                  className="user-search-input"
+                  type="text"
+                  placeholder="Search user..."
+                  value={userSearch}
+                  onChange={async (e) => {
+                    setUserSearch(e.target.value);
+                    const q = e.target.value.trim();
+                    if (!q) { setUserResults([]); setShowDropdown(false); return; }
+                    try {
+                      const res = await fetch(`/api/users/search?q=${encodeURIComponent(q)}`);
+                      const json = await res.json();
+                      setUserResults(json.data || []);
+                      setShowDropdown(true);
+                    } catch { setUserResults([]); }
+                  }}
+                  onFocus={() => { if (userResults.length > 0) setShowDropdown(true); }}
+                  onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+                />
+                {showDropdown && userResults.length > 0 && (
+                  <ul className="user-dropdown">
+                    {userResults.map((u: any) => (
+                      <li key={u.id} className="user-dropdown-item"
+                        onClick={() => {
+                          setShowDropdown(false);
+                          setUserSearch("");
+                          window.location.href = `/user-profile?user_id=${u.id}`;
+                        }}>
+                        <img src={(u.profile_image_url || "/avatar/Avatar.png").replace(/=s\d+-c/, "=s400")} alt={u.display_name} className="user-dropdown-avatar" />
+                        <div className="user-dropdown-info">
+                          <span className="user-dropdown-name">{u.display_name}</span>
+                          {u.sub_namebio && <span className="user-dropdown-bio">{u.sub_namebio}</span>}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
           </div>
 
