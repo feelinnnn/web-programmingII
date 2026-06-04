@@ -1,0 +1,54 @@
+import { NextRequest, NextResponse } from 'next/server'
+import connect from '@/lib/mongodb'
+import Lesson, { ILesson } from '@/models/Lesson'
+import Chapter, { IChapter } from '@/models/Chapter'
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ lessonId: string }> }
+) {
+  await connect()
+  const { lessonId } = await params
+
+  const lesson: ILesson | null = await Lesson.findById(lessonId)
+
+  if (!lesson) {
+    return NextResponse.json(
+      { errors: [{ status: "404", title: "Not Found", detail: `Lesson ${lessonId} not found` }] },
+      { status: 404 }
+    )
+  }
+
+  // Fetch chapters for this lesson
+  const chapters: IChapter[] = await Chapter.find({ lessonId: lessonId }).sort({ order: 1 })
+
+  return NextResponse.json({
+    jsonapi: { version: "1.0" },
+    links: { self: `/api/lessons/${lessonId}/with-chapters` },
+    data: {
+      id: lesson._id,
+      type: "lesson",
+      attributes: {
+        title: lesson.title,
+        description: lesson.description,
+        thumbnail_url: lesson.thumbnail_url,
+        badge: lesson.badge,
+        created_at: lesson.created_at,
+        chapters: chapters.map((ch: IChapter) => ({
+          id: ch._id,
+          title: ch.title,
+          content: ch.content,
+          videoUrl: ch.videoUrl,
+          type: ch.type,
+          order: ch.order
+        }))
+      },
+      relationships: {
+        chapters: {
+          links: { related: `/api/lessons/${lessonId}/chapters` },
+          data: chapters.map((ch: IChapter) => ({ id: ch._id, type: "chapter" }))
+        }
+      }
+    }
+  })
+}

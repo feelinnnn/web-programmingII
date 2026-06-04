@@ -28,11 +28,23 @@ type Badge = {
   };
 };
 
+type EvidenceRequirement = {
+  id: string;
+  type: string;
+  attributes: {
+    description: string;
+    examples: string[];
+    requirements: string[];
+  };
+};
+
 export default function Home() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [badge, setBadge] = useState<Badge | null>(null);
+  const [evidenceRequirements, setEvidenceRequirements] = useState<EvidenceRequirement | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const userId = useUserId();
   const searchParams = useSearchParams();
@@ -76,7 +88,7 @@ export default function Home() {
 
   useEffect(() => {
     if (!lessonId) return;
-    fetch(`/api/lessons/${lessonId}`)
+  fetch(`/api/lessons/${lessonId}`)
       .then((res) => res.json())
       .then((data) => setLesson(data));
   }, [lessonId]);
@@ -84,9 +96,20 @@ export default function Home() {
   useEffect(() => {
     if (!lesson?.data?.attributes?.badge) return;
     const badgeId = lesson.data.attributes.badge;
-    fetch(`/api/badges/${badgeId}`)
-      .then((res) => res.json())
-      .then((data) => setBadge(data));
+    console.log(badgeId)
+
+    Promise.all([
+      fetch(`/api/badges/${badgeId}`).then((res) => res.json()),
+      fetch(`/api/badges/${badgeId}/evidence`).then((res) => res.json())
+    ]).then(([badgeData, evidenceData]) => {
+      setBadge(badgeData);
+      setEvidenceRequirements(evidenceData.data || null);
+      console.log(evidenceData)
+    }).catch((err) => {
+      console.error("Failed to fetch badge or evidence:", err);
+    }).finally(() => {
+      setLoading(false);
+    });
   }, [lesson?.data?.attributes?.badge]);
 
   if (!userId ) {
@@ -97,24 +120,68 @@ export default function Home() {
     <div className="container">
 
       <div className="content">
-        <h2 className="detail-title">Detail</h2>
+        <div style={{ marginBottom: "30px" }}>
+          <h2 className="detail-title">Evidence Requirements</h2>
+          {lesson && (
+            <p style={{
+              color: "#666",
+              fontSize: "0.95rem",
+              marginTop: "10px"
+            }}>
+              For: <strong>{lesson.data.attributes.title}</strong>
+              {badge && ` • Badge: ${badge.data.attributes.name}`}
+            </p>
+          )}
+        </div>
 
-        <ul className="detail-list">
-          <li>evidence 1</li>
-          <li>evidence 2</li>
-          <li>evidence 3</li>
-        </ul>
+        {loading ? (
+          <div style={{
+            padding: "40px",
+            textAlign: "center",
+            background: "white",
+            borderRadius: "16px",
+            marginBottom: "20px"
+          }}>
+            <p style={{ color: "#999", fontSize: "1.1rem" }}>⏳ Loading evidence requirements...</p>
+          </div>
+        ) : evidenceRequirements ? (
+          <div className="evidence-item">
+            <p className="evidence-description">{evidenceRequirements.attributes.description}</p>
 
-        <p className="detail-text">
-          Mauris vulputate ultrices nisi, ut scelerisque felis ornare eu...
-        </p>
+            {evidenceRequirements.attributes.requirements.length > 0 && (
+              <div className="evidence-requirements-list">
+                <h4>Requirements:</h4>
+                <ul>
+                  {evidenceRequirements.attributes.requirements.map((req, idx) => (
+                    <li key={idx}>{req}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {evidenceRequirements.attributes.examples.length > 0 && (
+              <div className="evidence-examples">
+                <h4>Examples:</h4>
+                <ul>
+                  {evidenceRequirements.attributes.examples.map((example, idx) => (
+                    <li key={idx}>{example}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        ) : (
+          <p className="detail-text">
+            ℹ️ No specific evidence requirements defined for this badge yet.
+          </p>
+        )}
 
         <button
           className="add-btn"
           onClick={() => setOpen(true)}
-          disabled={!lesson}
+          disabled={!lesson || loading}
         >
-          Add file
+          ➕ Add File
         </button>
       </div>
 
