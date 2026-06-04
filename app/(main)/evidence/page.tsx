@@ -117,73 +117,73 @@ export default function Home() {
   }
 
   return (
-    <div className="container">
-
-      <div className="content">
-        <div style={{ marginBottom: "30px" }}>
-          <h2 className="detail-title">Evidence Requirements</h2>
+    <div className="ev-container">
+      <div className="ev-main">
+        <div className="ev-header">
+          <h2 className="ev-title">Evidence Requirements</h2>
           {lesson && (
-            <p style={{
-              color: "#666",
-              fontSize: "0.95rem",
-              marginTop: "10px"
-            }}>
+            <p className="ev-subtitle">
               For: <strong>{lesson.data.attributes.title}</strong>
-              
-              {badge && ` • Badge: ${badge.data.attributes.name}`}
+              {badge && <> &bull; Badge: {badge.data.attributes.name}</>}
             </p>
           )}
         </div>
 
         {loading ? (
-          <div style={{
-            padding: "40px",
-            textAlign: "center",
-            background: "white",
-            borderRadius: "16px",
-            marginBottom: "20px"
-          }}>
-            <p style={{ color: "#999", fontSize: "1.1rem" }}>⏳ Loading evidence requirements...</p>
-          </div>
+          <div className="ev-loading">Loading evidence requirements...</div>
         ) : evidenceRequirements ? (
-          <div className="evidence-item">
-            <p className="evidence-description">{evidenceRequirements.attributes.description}</p>
+          <div className="ev-card">
+            <p className="ev-desc">{evidenceRequirements.attributes.description}</p>
 
-            {evidenceRequirements.attributes.requirements.length > 0 && (
-              <div className="evidence-requirements-list">
-                <h4>Requirements:</h4>
+            <div className="ev-section">
+              <h4>Requirements</h4>
+              {evidenceRequirements.attributes.requirements.length > 0 ? (
                 <ul>
                   {evidenceRequirements.attributes.requirements.map((req, idx) => (
                     <li key={idx}>{req}</li>
                   ))}
                 </ul>
-              </div>
-            )}
+              ) : (
+                <p style={{ color: "#999", fontSize: "0.9rem", padding: "8px 0" }}>None specified</p>
+              )}
+            </div>
 
-            {evidenceRequirements.attributes.examples.length > 0 && (
-              <div className="evidence-examples">
-                <h4>Examples:</h4>
+            <div className="ev-section">
+              <h4>Examples</h4>
+              {evidenceRequirements.attributes.examples.length > 0 ? (
                 <ul>
                   {evidenceRequirements.attributes.examples.map((example, idx) => (
                     <li key={idx}>{example}</li>
                   ))}
                 </ul>
-              </div>
-            )}
+              ) : (
+                <p style={{ color: "#999", fontSize: "0.9rem", padding: "8px 0" }}>None provided</p>
+              )}
+            </div>
+            <div className="ev-btnWrap">
+              <button className="ev-addBtn" onClick={() => setOpen(true)} disabled={!lesson}>
+                + Add Evidence
+              </button>
+            </div>
           </div>
         ) : (
-          <p className="detail-text">
-            ℹ️ No specific evidence requirements defined for this badge yet.
-          </p>
+          <div className="ev-card">
+            <p className="ev-desc">Submit your evidence for this badge.</p>
+            <div className="ev-section">
+              <h4>Requirements</h4>
+              <p style={{ color: "#999", fontSize: "0.9rem", padding: "8px 0" }}>None specified</p>
+            </div>
+            <div className="ev-section">
+              <h4>Examples</h4>
+              <p style={{ color: "#999", fontSize: "0.9rem", padding: "8px 0" }}>None provided</p>
+            </div>
+            <div className="ev-btnWrap">
+              <button className="ev-addBtn" onClick={() => setOpen(true)} disabled={!lesson}>
+                + Add Evidence
+              </button>
+            </div>
+          </div>
         )}
-
-        <button
-          className="add-btn"
-          onClick={() => setOpen(true)}
-          disabled={!lesson}
-        >
-          ➕ Add File
-        </button>
       </div>
 
       <EvidenceModal

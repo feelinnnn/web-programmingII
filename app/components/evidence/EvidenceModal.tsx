@@ -119,10 +119,11 @@ export default function EvidenceModal({ isOpen, onClose, badgeId, badgeType, bad
   const handleSubmit = async () => {
     setLoading(true); setError("");
     try {
-      const userNotes = items.filter((i) => i.description).map((i) => i.description);
-      const evidenceUrls = items.filter((i) => i.fileUrl).map((i) => i.fileUrl);
+      const validItems = items.filter((i) => i.fileUrl);
+      const userNotes = validItems.map((i) => i.description);
+      const evidenceUrls = validItems.map((i) => i.fileUrl);
 
-      if (evidenceUrls.length === 0) {
+      if (validItems.length === 0) {
         setError("Please upload at least one evidence file");
         setLoading(false);
         return;

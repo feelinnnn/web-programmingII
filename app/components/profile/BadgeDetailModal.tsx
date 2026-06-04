@@ -73,16 +73,15 @@ export default function BadgeDetailModal({ badge, color, onClose, onVerify, onEd
   const badgeInfo = badge.relationships?.badge?.data;
   const name = badgeInfo?.attributes?.name || "Badge";
   const desc = badgeInfo?.attributes?.description || "";
-  const badgeType = badge.attributes?.badge_type_snapshot || badgeInfo?.attributes?.badge_type || "";
+  const badgeType = badge.attributes?.badge_type_snapshot || badge.attributes?.badgeTypeSnapshot || badgeInfo?.attributes?.badge_type || "";
   const status = badge.attributes?.status || "";
-  const certRequested = badge.attributes?.certification_requested || false;
+  const certRequested = badge.attributes?.certification_requested || badge.attributes?.certificationRequested || false;
   const isUserBadge = badgeType === "self-declared" || badgeType === "expert-certified" || badgeType === "evidence-backed";
   const thumbnail = badgeInfo?.attributes?.thumbnail_url;
   const icon = badgeInfo?.attributes?.icon_url;
-  const evidenceUrls = badge.attributes?.evidence_urls || [];
-  const userNotesArr: string[] = Array.isArray(badge.attributes?.user_note)
-    ? badge.attributes.user_note
-    : (badge.attributes?.user_note ? [badge.attributes.user_note] : []);
+  const evidenceUrls = badge.attributes?.evidence_urls || badge.attributes?.evidenceUrls || [];
+  const rawNote = badge.attributes?.user_note || badge.attributes?.userNote || [];
+  const userNotesArr: string[] = Array.isArray(rawNote) ? rawNote : (rawNote ? [rawNote] : []);
 
   // Show evidence for any badge that has user-submitted evidence
   const hasEvidence = (evidenceUrls.length > 0 || userNotesArr.length > 0) && badgeType !== "lesson";

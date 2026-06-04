@@ -1,94 +1,48 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
 import connect from "@/lib/mongodb";
 import UserBadge from "@/models/UserBadge";
 import Badge from "@/models/Badge";
 import User from "@/models/User";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "COOKCULT_SECRET_KEY";
-const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET || "COOKCULT_SECRET_KEY";
-
-async function isAdmin(req: NextRequest): Promise<{userId: string, email: string} | null> {
-  let decoded: any = null;
-
-  // 1. Check Bearer Token first
-  const authHeader = req.headers.get("authorization");
-  if (authHeader?.startsWith("Bearer ")) {
-    try {
-      const token = authHeader.slice(7);
-      if (token && token !== "null") {
-        decoded = jwt.verify(token, JWT_SECRET);
-      }
-    } catch (err) {}
-  }
-
-  // 2. Check NextAuth Session
-  if (!decoded) {
-    try {
-      decoded = await getToken({ req, secret: NEXTAUTH_SECRET });
-    } catch (err) {}
-  }
-
-  if (!decoded) return null;
-
-  const email = decoded.email;
-  const userId = decoded.id || decoded.user_id || decoded.sub;
-
-  if (!email && !userId) return null;
-
-  // Instant bypass for hardcoded admin email
-  if (email === "admin@cookcult.com") return { userId: userId || "admin-fixed-id-001", email };
-
-  await connect();
-  
-  const query: any = {};
-  if (email) query.email = email;
-  if (userId) {
-    if (query.email) {
-      query.$or = [{ user_id: userId }, { email: email }];
-      if (userId.length === 24) query.$or.push({ _id: userId });
-      delete query.email;
-    } else {
-      query.$or = [{ user_id: userId }];
-      if (userId.length === 24) query.$or.push({ _id: userId });
-    }
-  }
-
-  const user = await User.findOne(query, { role: 1, user_id: 1, email: 1 }).lean();
-
-  if (user?.role === "admin") {
-    return { 
-      userId: user.user_id || user._id.toString(), 
-      email: user.email 
-    };
-  }
-  
-  return null;
-}
+import { isAdmin } from "@/lib/admin";
 
 export async function GET(req: NextRequest) {
   try {
     const admin = await isAdmin(req);
     if (!admin) {
+      console.log("Admin check failed for verify-badges");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await connect();
+    const conn = await connect();
+    console.log("Connected to DB:", conn.connection.name);
+    
+    // Check collection existence
+    const collections = await conn.connection.db.listCollections().toArray();
+    console.log("Collections:", collections.map(c => c.name));
 
-    // Fetch pending requests
+    // Fetch requests: Anything with evidence that isn't verified yet
+    // This catches 'pending', 'declined', and even 'non-request' if it has evidence.
     const pendingBadges = await UserBadge.find({
-      status: "pending"
+      $and: [
+        { status: { $ne: "verified" } },
+        { evidenceUrls: { $exists: true, $not: { $size: 0 } } }
+      ]
     })
-    .sort({ submittedAt: 1 })
+    .sort({ submittedAt: -1 }) // Show newest first
     .lean();
 
+    console.log(`Found ${pendingBadges.length} total reviewable badges in collection ${UserBadge.collection.name}`);
+
     if (!pendingBadges || pendingBadges.length === 0) {
+      console.log("No pending badges found in DB");
       return NextResponse.json({ data: [] });
     }
 
     const userIds = Array.from(new Set(pendingBadges.map(b => b.userId)));
     const badgeIds = Array.from(new Set(pendingBadges.map(b => b.badgeId)));
+
+    console.log("User IDs to fetch:", userIds);
+    console.log("Badge IDs to fetch:", badgeIds);
 
     const [users, badgeDefs] = await Promise.all([
       User.find(
@@ -107,23 +61,45 @@ export async function GET(req: NextRequest) {
       ).lean()
     ]);
 
+    console.log(`Found ${users.length} users and ${badgeDefs.length} badges`);
+
     const userMap = new Map();
     users.forEach(u => {
-      if (u.user_id) userMap.set(u.user_id, u);
-      if (u.email) userMap.set(u.email, u);
-      userMap.set(u._id.toString(), u);
+      const doc: any = u;
+      if (doc.user_id) userMap.set(doc.user_id, doc);
+      if (doc.email) userMap.set(doc.email, doc);
+      userMap.set(doc._id.toString(), doc);
     });
     
     const badgeMap = new Map(badgeDefs.map(b => [b._id.toString(), b]));
 
-    const result = pendingBadges.map(ub => ({
-      ...ub,
-      user: userMap.get(ub.userId) || null,
-      badge: badgeMap.get(ub.badgeId) ? {
-        ...badgeMap.get(ub.badgeId),
-        thumbnail_url: ub.evidenceUrls?.[0] || (badgeMap.get(ub.badgeId) as any).icon_url || null
-      } : null
-    }));
+    const result = pendingBadges.map(ub => {
+      const badgeData: any = badgeMap.get(ub.badgeId);
+      const userData = userMap.get(ub.userId) || null;
+
+      return {
+        _id: ub._id.toString(),
+        userId: ub.userId,
+        badgeId: ub.badgeId,
+        status: ub.status,
+        evidenceUrls: ub.evidenceUrls || [],
+        userNote: ub.userNote || [],
+        badgeTypeSnapshot: ub.badgeTypeSnapshot,
+        submittedAt: ub.submittedAt,
+        user: userData ? {
+          display_name: userData.display_name || userData.email,
+          profile_image_url: userData.profile_image_url || "/avatar/Avatar.png",
+          email: userData.email
+        } : null,
+        badge: badgeData ? {
+          name: badgeData.name,
+          description: badgeData.description,
+          icon_url: badgeData.icon_url,
+          badge_type: badgeData.badge_type,
+          thumbnail_url: ub.evidenceUrls?.[0] || badgeData.icon_url || null
+        } : null
+      };
+    });
 
     return NextResponse.json({ 
       data: result,

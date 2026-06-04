@@ -205,8 +205,9 @@ export default function AddBadgeModal({ onClose, onCreated, editData }: Props) {
       const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
       const headers: Record<string, string> = { "Content-Type": "application/json" };
       if (token) headers["Authorization"] = `Bearer ${token}`;
-      const evidenceUrls = items.filter((i) => i.fileUrl).map((i) => i.fileUrl);
-      const userNotes = items.filter((i) => i.description).map((i) => i.description);
+      const validItems = items.filter((i) => i.fileUrl);
+      const evidenceUrls = validItems.map((i) => i.fileUrl);
+      const userNotes = validItems.map((i) => i.description);
 
       if (isEdit) {
         const res = await fetch(`/api/user-badges/${editData.id}`, {
