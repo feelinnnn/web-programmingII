@@ -259,7 +259,7 @@ export default function Home() {
         <div className="main-footer" />
       </main>
 
-      <LessonModal lesson={selectedLesson} onClose={() => setSelectedLesson(null)} />
+      <LessonModal lesson={selectedLesson}  onClose={() => setSelectedLesson(null)} />
     </div>
   );
 }
