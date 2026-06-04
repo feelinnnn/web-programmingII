@@ -115,7 +115,15 @@ export default function UserProfilePage() {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       const data = await res.json();
-      setFollowing(data.following);
+      const newState = data.following;
+      setFollowing(newState);
+
+      // DISPATCH SYNC EVENT
+      const profileUid = (window as any).__profileUserId || userId;
+      window.dispatchEvent(new CustomEvent("follow-changed", {
+        detail: { authorUserId: profileUid, isFollowing: newState }
+      }));
+
       // Refresh to update counts
       const fres = await fetch(`/api/users/${userId}`);
       const fjson = await fres.json();
