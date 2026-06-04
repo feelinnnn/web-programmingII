@@ -50,8 +50,10 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const user = await User.findOne({ user_id: userId }).lean()
-      || await User.findById(userId).lean();
+    const isValid = /^[0-9a-fA-F]{24}$/.test(userId);
+    const user = isValid
+      ? (await User.findById(userId).lean() || await User.findOne({ user_id: userId }).lean())
+      : (await User.findOne({ user_id: userId }).lean() || await User.findById(userId).lean());
 
     if (!user) {
       return NextResponse.json(

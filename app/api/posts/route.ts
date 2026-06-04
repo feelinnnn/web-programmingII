@@ -131,20 +131,23 @@ export async function GET(req: NextRequest) {
           try { creator = await User.findById(postUserId); } catch {}
         }
 
+        const creatorId = creator?._id?.toString() || p.post?.user_id || "";
+
         return {
           id: postIdStr,
           type: "post",
           attributes: {
             postId: p.post?.post_id || postIdStr,
             userId: p.post?.user_id || "",
+            creatorId,
             content: p.post?.content || "",
             hashtags: p.post?.hashtags || [],
-            imageUrls: p.post?.image_url || [], 
+            imageUrls: p.post?.image_url || [],
             recipeUrl: p.post?.recipe_url || "",
             likesCount: p.post?.likes_count || 0,
             commentsCount: p.post?.comments_count || 0,
             createdAt: p.post?.created_at || p.createdAt,
-            isLiked: isLiked, 
+            isLiked: isLiked,
             creator: {
               displayName: creator?.display_name || "Unknown User",
               profileImageUrl: creator?.profile_image_url || "/avatar/Avatar.png",

@@ -39,6 +39,7 @@ export default function AddBadgeModal({ onClose, onCreated, editData }: Props) {
   const [uploadingIds, setUploadingIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [requirements, setRequirements] = useState<{ description: string; requirements: string[]; examples: string[] } | null>(null);
 
   const workerRef = useRef<Worker | null>(null);
 
@@ -139,11 +140,16 @@ export default function AddBadgeModal({ onClose, onCreated, editData }: Props) {
   const selectBadge = (badge: any) => {
     setSelectedBadge(badge);
     setStep("evidence");
+    setRequirements(null);
     if (items.length === 0) {
       const first = { id: String(Date.now()), fileUrl: "", description: "" };
       setItems([first]);
       setActiveItem(first.id);
     }
+    fetch(`/api/badges/${badge.id}/evidence`)
+      .then((res) => res.json())
+      .then((data) => { if (data?.data?.attributes) setRequirements(data.data.attributes); })
+      .catch(() => {});
   };
 
   const addEvidence = () => {
@@ -333,6 +339,24 @@ export default function AddBadgeModal({ onClose, onCreated, editData }: Props) {
                   {activeType.tag}
                 </span>
               </div>
+
+              {requirements && (
+                <div className="ab-reqInfo">
+                  <p className="ab-reqDesc">{requirements.description}</p>
+                  {requirements.requirements.length > 0 && (
+                    <div className="ab-reqSection">
+                      <h4>Requirements</h4>
+                      <ul>{requirements.requirements.map((r, i) => <li key={i}>{r}</li>)}</ul>
+                    </div>
+                  )}
+                  {requirements.examples.length > 0 && (
+                    <div className="ab-reqSection">
+                      <h4>Examples</h4>
+                      <ul>{requirements.examples.map((e, i) => <li key={i}>{e}</li>)}</ul>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Col 2: Evidence list */}
