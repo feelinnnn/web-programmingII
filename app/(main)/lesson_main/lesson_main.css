@@ -15,6 +15,7 @@
   width: calc(100% - 60px);
   padding: 30px 40px 300px 40px;
   box-sizing: border-box;
+  transition: margin-left 0.3s ease, width 0.3s ease;
 }
 
 .page:has(> .main-content) .section {
@@ -112,7 +113,7 @@
 }
 
 .page:has(> .main-content) .lesson-card.large {
-  width: 400px;
+  width: 500px;
 }
 
 .page:has(> .main-content) .card-image-area {
@@ -123,6 +124,7 @@
 
 .page:has(> .main-content) .large .card-image-area {
   height: 220px;
+  background: #3f2d29;
 }
 
 .page:has(> .main-content) .card-thumbnail {
@@ -141,8 +143,6 @@
   font-size: 10px;
   font-weight: 600;
   opacity: 0.65;
-  background: #FFD45A;
-  color: #6a5c00;
 }
 
 .page:has(> .main-content) .card-label {
@@ -264,4 +264,3 @@
 .page:has(> .main-content) .main-footer {
   height: 5px;
 }
-

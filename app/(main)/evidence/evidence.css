@@ -3,7 +3,7 @@
   min-height: 100vh;
   width: 100%;
   display: flex;
-  
+
 }
 
 .content {
@@ -14,6 +14,29 @@
   border: 1px solid #352321;
   border-radius: 10px;
   position: relative;
+}
+
+.detail-title {
+  font-size: 1.875rem;      /* text-3xl */
+  font-weight: 700;          /* font-bold */
+  margin-bottom: 1.5rem;     /* mb-6 */
+}
+
+.detail-list {
+  list-style-type: disc;     /* list-disc */
+  padding-left: 1.5rem;      /* pl-6 */
+  margin-bottom: 1.5rem;     /* mb-6 */
+  font-size: 1.125rem;       /* text-lg */
+}
+
+.detail-list li {
+  margin-bottom: 0.5rem;     /* space-y-2 */
+}
+
+.detail-text {
+  font-size: 1rem;           /* text-base */
+  line-height: 1.75rem;      /* leading-7 */
+  margin-bottom: 2rem;       /* mb-8 */
 }
 
 .add-btn {

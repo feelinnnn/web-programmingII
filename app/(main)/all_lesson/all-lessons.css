@@ -164,6 +164,17 @@
   color: #fff;
 }
 
+.al-badgePill {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  opacity: 0.65;
+}
+
 @media (max-width: 1200px) { .al-grid { grid-template-columns: repeat(4, 1fr); } }
 @media (max-width: 900px) { .al-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 600px) {
