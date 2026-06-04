@@ -38,9 +38,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${greatVibes.variable} ${satisfy.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${greatVibes.variable} ${satisfy.variable}`}
     >
-      <body className="min-h-full flex flex-col" suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <Providers>
         {children}
         </Providers>

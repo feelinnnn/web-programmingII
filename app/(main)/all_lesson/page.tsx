@@ -33,6 +33,13 @@ type LessonProgress = {
   };
 };
 
+type Badge = {
+  id: string;
+  attributes: {
+    badge_type: string;
+  };
+};
+
 export default function AllLessons() {
   const userId = useUserId();
   const router = useRouter();
@@ -41,6 +48,7 @@ export default function AllLessons() {
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [progressMap, setProgressMap] = useState<Map<string, LessonProgress>>(new Map());
+  const [badgeTypeMap, setBadgeTypeMap] = useState<Map<string, string>>(new Map());
   const [searchTerm, setSearchTerm] = useState("");
   const [hideCompleted, setHideCompleted] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -63,6 +71,22 @@ export default function AllLessons() {
   }, []);
 
   useEffect(() => {
+    async function fetchBadges() {
+      try {
+        const res = await fetch("/api/badges");
+        if (!res.ok) return;
+        const json = await res.json();
+        const map = new Map<string, string>();
+        (json.data || []).forEach((b: Badge) => {
+          map.set(b.id, b.attributes.badge_type);
+        });
+        setBadgeTypeMap(map);
+      } catch {}
+    }
+    fetchBadges();
+  }, []);
+
+  useEffect(() => {
     if (!userId) return;
     async function fetchProgress() {
       try {
@@ -81,6 +105,17 @@ export default function AllLessons() {
     }
     fetchProgress();
   }, [userId]);
+
+  function getBadgeColor(badgeId: string): string {
+    const type = badgeTypeMap.get(badgeId) || "lesson";
+    switch (type) {
+      case "self-declared":   return "#A0D585";  // green
+      case "evidence-backed": return "#FFA95A";  // orange
+      case "expert-certified": return "#FF5A5A"; // red
+      case "lesson":
+      default:                return "#FFD45A";  // yellow
+    }
+  }
 
   const filteredLessons = lessons.filter(lesson => {
     if (searchTerm) {
@@ -146,7 +181,9 @@ export default function AllLessons() {
 
         {!loading && !error && filteredLessons.length > 0 && (
           <div className="al-grid">
-            {filteredLessons.map((lesson) => (
+            {filteredLessons.map((lesson) => {
+                const badgeColor = getBadgeColor(lesson.attributes.badge);
+                return (
               <div className="al-card" key={lesson.id} onClick={() => setSelectedLesson(lesson)}>
                 <div className="al-cardImage">
                   <div
@@ -155,10 +192,12 @@ export default function AllLessons() {
                       backgroundImage: lesson.attributes.thumbnail_url ? `url(${lesson.attributes.thumbnail_url})` : undefined,
                     }}
                   />
+                  <span className="al-badgePill" style={{ backgroundColor: badgeColor, color: "#333" }}>Badge</span>
                   <div className="al-cardLabel">{lesson.attributes.title}</div>
                 </div>
               </div>
-            ))}
+                );
+            })}
           </div>
         )}
       </div>
