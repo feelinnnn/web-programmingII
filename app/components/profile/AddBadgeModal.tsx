@@ -210,9 +210,10 @@ export default function AddBadgeModal({ onClose, onCreated, editData }: Props) {
       const userNotes = validItems.map((i) => i.description);
 
       if (isEdit) {
+        const isDeclined = editData?.attributes?.status === "declined";
         const res = await fetch(`/api/user-badges/${editData.id}`, {
           method: "PATCH", headers,
-          body: JSON.stringify({ evidenceUrls, userNote: userNotes }),
+          body: JSON.stringify({ evidenceUrls, userNote: userNotes, ...(isDeclined && { resubmit: true }) }),
         });
         if (!res.ok) throw new Error("Failed to update");
       } else {

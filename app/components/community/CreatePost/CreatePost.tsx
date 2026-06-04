@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import styles from './CreatePost.module.css';
+import Swal from 'sweetalert2';
 
 interface CreatePostProps {
   currentUserId: string;      
@@ -96,12 +97,12 @@ export default function CreatePost({ currentUserId, userAvatar, onPostCreated }:
         onPostCreated?.();
       } else {
         const errData = await res.json();
-        alert(errData.errors?.[0]?.detail || 'Failed to create post.');
+        Swal.fire({ icon: 'error', title: 'Error', text: errData.errors?.[0]?.detail || 'Failed to create post.' });
       }
 
     } catch (error) {
       console.error('Error creating post:', error);
-      alert('An error occurred while creating the post.');
+      Swal.fire({ icon: 'error', title: 'Error', text: 'An error occurred while creating the post.' });
     } finally {
       setLoading(false);
     }

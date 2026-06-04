@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
+import Swal from 'sweetalert2';
 import "./panel.css";
 
 interface PendingBadge {
@@ -128,7 +129,7 @@ export default function ManagementHub() {
         setAdminComment("");
       } else {
         const err = await res.json();
-        alert(`Error: ${err.error}`);
+        Swal.fire({ icon: 'error', title: 'Error', text: err.error });
       }
     } catch (error) {
       console.error("Failed to process badge:", error);
