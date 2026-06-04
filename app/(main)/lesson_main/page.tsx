@@ -43,9 +43,21 @@ interface LessonCardProps {
   progressPercentage?: number;
   remainingChapters?: number;
   submissionNeeded?: boolean;
+  badgeType?: string;
 }
 
-function LessonCard({ lesson, large = false, onClick, progressPercentage, remainingChapters, submissionNeeded }: LessonCardProps) {
+function getBadgeColor(badgeType?: string): string {
+  switch (badgeType) {
+    case "self-declared":   return "#A0D585";  // green
+    case "evidence-backed": return "#FFA95A";  // orange
+    case "expert-certified": return "#FF5A5A"; // red
+    case "lesson":
+    default:                return "#FFD45A";  // yellow
+  }
+}
+
+function LessonCard({ lesson, large = false, onClick, progressPercentage, remainingChapters, submissionNeeded, badgeType }: LessonCardProps) {
+  const badgeColor = getBadgeColor(badgeType);
   return (
     <div className={`lesson-card ${large ? "large" : ""}`} onClick={onClick}>
       <div className="card-image-area">
@@ -59,7 +71,7 @@ function LessonCard({ lesson, large = false, onClick, progressPercentage, remain
             }}
           />
         ) : null}
-        <span className="card-badge-pill">Lesson</span>
+        <span className="card-badge-pill" style={{ backgroundColor: badgeColor, color: "#333" }}>Badge</span>
         {!large && <div className="card-label">{lesson.attributes.title}</div>}
       </div>
 
@@ -123,6 +135,7 @@ export default function Home() {
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [allLessons, setAllLessons] = useState<Lesson[]>([]);
   const [progressMap, setProgressMap] = useState<Map<string, Progress>>(new Map());
+  const [badgeTypeMap, setBadgeTypeMap] = useState<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -158,6 +171,22 @@ export default function Home() {
     fetchData();
   }, [userId]);
 
+  useEffect(() => {
+    async function fetchBadges() {
+      try {
+        const res = await fetch("/api/badges");
+        if (!res.ok) return;
+        const json = await res.json();
+        const map = new Map<string, string>();
+        (json.data || []).forEach((b: any) => {
+          map.set(b.id, b.attributes.badge_type);
+        });
+        setBadgeTypeMap(map);
+      } catch {}
+    }
+    fetchBadges();
+  }, []);
+
   const latestLessons = [...allLessons].sort((a, b) => {
     const dateA = new Date(a.attributes.created_at).getTime();
     const dateB = new Date(b.attributes.created_at).getTime();
@@ -177,7 +206,7 @@ export default function Home() {
   return (
     <div className="page">
       {/* Main */}
-      <main className="main-content">
+      <main className="main-content" >
         {/* Latest */}
         {latestLessons.length > 0 && (
           <section className="section">
@@ -189,13 +218,14 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="horizontal-scroll" style={navExpanded ? { width: "calc(100% - 200px)" } : undefined}>
+            <div className="horizontal-scroll">
               {latestLessons.map(lesson => (
                 <LessonCard
                   key={lesson.id}
                   lesson={lesson}
                   large
                   onClick={() => setSelectedLesson(lesson)}
+                  badgeType={badgeTypeMap.get(lesson.attributes.badge)}
                 />
               ))}
             </div>
@@ -207,7 +237,7 @@ export default function Home() {
           <h2 className="script-title">Continue</h2>
 
           {continueLessons.length > 0 ? (
-            <div className="horizontal-scroll small-cards" style={navExpanded ? { width: "calc(100% - 200px)" } : undefined}>
+            <div className="horizontal-scroll small-cards">
               {continueLessons.map(lesson => {
                 const progress = progressMap.get(lesson.id);
                 const percentage = progress ? (progress.attributes.completedCount / progress.attributes.totalChapters) * 100 : 0;
@@ -221,6 +251,7 @@ export default function Home() {
                     progressPercentage={percentage}
                     remainingChapters={remaining}
                     submissionNeeded={needsSubmission}
+                    badgeType={badgeTypeMap.get(lesson.attributes.badge)}
                   />
                 );
               })}

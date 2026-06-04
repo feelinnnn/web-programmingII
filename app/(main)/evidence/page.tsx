@@ -97,15 +97,15 @@ export default function Home() {
     <div className="container">
 
       <div className="content">
-        <h2 className="text-3xl font-bold mb-6">Detail</h2>
+        <h2 className="detail-title">Detail</h2>
 
-        <ul className="list-disc pl-6 space-y-2 mb-6 text-lg">
+        <ul className="detail-list">
           <li>evidence 1</li>
           <li>evidence 2</li>
           <li>evidence 3</li>
         </ul>
 
-        <p className="text-base leading-7 mb-8">
+        <p className="detail-text">
           Mauris vulputate ultrices nisi, ut scelerisque felis ornare eu...
         </p>
 
