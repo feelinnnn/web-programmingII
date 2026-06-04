@@ -23,7 +23,7 @@ export default function EvidenceModal({
   const userId = useUserId();
   const router = useRouter();
   const [files, setFiles] = useState<File[]>([]);
-  const [note, setNote] = useState("");
+  const [notes, setNotes] = useState<string>("")
   const [loading, setLoading] = useState(false);
   const [badgeIcon, setBadgeIcon] = useState<string | null>(null);
 
@@ -76,7 +76,7 @@ export default function EvidenceModal({
               userId,
               badgeId,
               badgeTypeSnapshot,
-              userNote: note,
+              userNote: notes,
               evidenceUrls: urls,
             }
           }
@@ -141,8 +141,8 @@ export default function EvidenceModal({
           <div className="note-box">
             <textarea
               placeholder="note..."
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
             />
           </div>
         </div>
