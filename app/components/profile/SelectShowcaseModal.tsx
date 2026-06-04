@@ -12,8 +12,7 @@ interface BadgeData {
     evidence_url?: string;
     evidence_urls?: string[];
     evidenceUrls?: string[];
-    user_note?: string;
-    userNote?: string;
+    user_note?: string[];
     badge_type_snapshot?: string;
     badgeTypeSnapshot?: string;
     certification_requested?: boolean;

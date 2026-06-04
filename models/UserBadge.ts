@@ -5,7 +5,7 @@ export interface IUserBadge extends Document {
   badgeId: string
   status: 'non-request' | 'pending' | 'verified' | 'declined'
   evidenceUrls: string[]
-  userNote: string
+  userNote: string[]
   adminId: string | null
   adminComment: string | null
   submittedAt: Date
@@ -24,7 +24,7 @@ const UserBadgeSchema = new Schema<IUserBadge>({
     default: 'non-request'
   },
   evidenceUrls: [String],
-  userNote: { type: String },
+  userNote: { type: [String], default: [] },
   adminId: { type: String, default: null },
   adminComment: { type: String, default: null },
   submittedAt: { type: Date, default: Date.now },

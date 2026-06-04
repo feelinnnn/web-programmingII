@@ -84,8 +84,8 @@ export async function GET(req: NextRequest) {
     const data = userBadges.map((ub: any) => {
       const badge = badgeMap.get(ub.badgeId?.toString()) as any
       const lesson = lessonMap.get(ub.badgeId)
-      const badgeName = badge?.name || ub.userNote || "Badge"
-      const badgeDesc = badge?.description || ub.userNote || ""
+      const badgeName = badge?.name || (Array.isArray(ub.userNote) && ub.userNote[0]) || "Badge"
+      const badgeDesc = badge?.description || (Array.isArray(ub.userNote) && ub.userNote[0]) || ""
       const badgeType = badge?.badge_type || ub.badgeTypeSnapshot || "self-declared"
 
       return {
@@ -143,7 +143,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const { userId, badgeId, badgeTypeSnapshot, userNote, evidenceUrls } = body.data.attributes
 
-    const isLesson = badgeTypeSnapshot === "lesson" || badgeTypeSnapshot === "evidence-backed"
+    const isLesson = badgeTypeSnapshot === "lesson"
 
     const userBadge = await UserBadge.findOneAndUpdate(
       { userId, badgeId },
@@ -151,7 +151,7 @@ export async function POST(req: NextRequest) {
         $set: {
           status: isLesson ? "verified" : "non-request",
           evidenceUrls: evidenceUrls ?? [],
-          userNote: userNote ?? null,
+          userNote: Array.isArray(userNote) ? userNote : (userNote ? [userNote] : []),
           adminId: null,
           adminComment: null,
           submittedAt: new Date(),
