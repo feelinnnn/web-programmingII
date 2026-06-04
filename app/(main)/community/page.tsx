@@ -240,7 +240,7 @@ export default function CommunityFeedPage() {
 
   const handleLike = async (postId: string) => {
     if (!currentUserId) {
-      alert("กรุณาล็อกอินก่อนกดไลค์นะคั้บ!");
+      Swal.fire({ icon: 'warning', title: 'Login required', text: 'กรุณาล็อกอินก่อนกดไลค์นะคั้บ!' });
       return;
     }
     // Prevent double-click
@@ -303,8 +303,8 @@ export default function CommunityFeedPage() {
   const handleDelete = async (postId: string) => {
     if (!currentUserId) return;
     
-    const confirmDelete = window.confirm("Are you sure you want to delete this post?");
-    if (!confirmDelete) return;
+    const result = await Swal.fire({ icon: 'warning', title: 'Delete post?', text: 'This action cannot be undone.', showCancelButton: true, confirmButtonText: 'Delete', confirmButtonColor: '#e74c3c' });
+    if (!result.isConfirmed) return;
 
     setPosts((prevPosts) => prevPosts.filter((p) => p.id !== postId));
 
@@ -315,7 +315,7 @@ export default function CommunityFeedPage() {
 
       if (!res.ok) {
         const errJson = await res.json();
-        alert(errJson.errors?.[0]?.detail || "Failed to delete post.");
+        Swal.fire({ icon: 'error', title: 'Error', text: errJson.errors?.[0]?.detail || 'Failed to delete post.' });
         fetchFeed();
       } else {
         fetchHashtags();
@@ -360,7 +360,7 @@ export default function CommunityFeedPage() {
       });
 
       if (!res.ok) {
-        alert("แก้ไขโพสต์และรูปภาพไม่สำเร็จ");
+        Swal.fire({ icon: 'error', title: 'Error', text: 'แก้ไขโพสต์และรูปภาพไม่สำเร็จ' });
         fetchFeed();
       } else {
         fetchHashtags();
@@ -519,6 +519,56 @@ export default function CommunityFeedPage() {
           }}
         />
       </aside>
+
+      <div className={styles.main}>
+        <CreatePost
+          currentUserId={currentUserId}
+          userAvatar={currentUserAvatar}
+          onPostCreated={() => { fetchFeed(); fetchHashtags(); fetchCreators(); }}
+        />
+
+        {loading ? (
+          <div className={styles.loading}>กำลังโหลดข้อมูลคอมมูนิตี้...</div>
+        ) : (
+          <TodayFeed
+            posts={posts}
+            renderPost={(post) => {
+              const isOwner = currentUserId && post.attributes.userId === currentUserId;
+              return (
+                <PostCard
+                  key={post.id}
+                  id={post.id}
+                  author={post.attributes.creator.displayName}
+                  sub_namebio={post.attributes.creator.sub_namebio}
+                  time={post.attributes.createdAt}
+                  content={post.attributes.content}
+                  imageUrls={post.attributes.imageUrls}
+                  imageUrl={post.attributes.imageUrls}
+                  avatarUrl={post.attributes.creator.profileImageUrl}
+                  likes={post.attributes.likesCount}
+                  comments={post.attributes.commentsCount}
+                  isLiked={post.attributes.isLiked}
+                  hashtags={post.attributes.hashtags}
+                  bookmarks ={bookmarked}
+                  authorUserId={post.attributes.userId}
+                  likingActive={likingPosts.has(post.id)}
+                  onLike={handleLike}
+                  onEdit={isOwner ? (id, content, images, hashtags) => handleEdit(id, content, images, hashtags) : undefined}
+                  onDelete={isOwner ? handleDelete : undefined}
+                />
+              );
+            }}
+          />
+        )}
+
+        {/* Infinite scroll trigger + loading spinner */}
+        <div ref={loadMoreRef} className={styles.loadMore}>
+          {loadingMore && <div className={styles.spinner} />}
+          {!hasMore && posts.length > 0 && (
+            <p className={styles.noMore}>— You're all caught up —</p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
