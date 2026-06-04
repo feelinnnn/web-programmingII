@@ -17,7 +17,10 @@ export async function GET(
   try {
     await connect();
 
-    const user = await User.findById(id).lean();
+    const isValid = /^[0-9a-fA-F]{24}$/.test(id);
+    const user = isValid
+      ? (await User.findById(id).lean() || await User.findOne({ user_id: id }).lean())
+      : (await User.findOne({ user_id: id }).lean() || await User.findById(id).lean());
     if (!user) {
       return NextResponse.json(
         { errors: [{ detail: "User not found" }] },
