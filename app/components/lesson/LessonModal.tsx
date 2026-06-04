@@ -1,9 +1,15 @@
-import { useState, useEffect } from "react";
 import "./LessonModal.css";
 import { useRouter } from "next/navigation";
 import { useUserId } from "@/lib/useauth";
 
 type Chapter = { id: string; type: string };
+
+type BadgeInfo = {
+  id: string;
+  name: string;
+  badge_type: string;
+  icon_url: string | null;
+};
 
 type Lesson = {
   id: string;
@@ -11,7 +17,7 @@ type Lesson = {
     title: string;
     description: string;
     thumbnail_url: string;
-    badge: string;
+    badge: BadgeInfo | null;
   };
   relationships: {
     chapters: {
@@ -28,19 +34,19 @@ type Props = {
 export default function LessonModal({ lesson, onClose }: Props) {
   const router = useRouter();
   const userId = useUserId();
-  const [badgeIcon, setBadgeIcon] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!lesson?.attributes?.badge) return;
-    fetch(`/api/badges/${lesson.attributes.badge}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data?.data?.attributes?.icon_url) {
-          setBadgeIcon(data.data.attributes.icon_url);
-        }
-      })
-      .catch(() => {});
-  }, [lesson?.attributes?.badge]);
+  const badge = lesson?.attributes?.badge ?? null;
+  const badgeIcon = badge?.icon_url ?? null;
+
+  function getBadgeColor(type?: string | null): string {
+    switch (type) {
+      case "self-declared":    return "#A0D585";
+      case "evidence-backed":  return "#FFA95A";
+      case "expert-certified": return "#FF5A5A";
+      case "lesson":
+      default:                 return "#FFD45A";
+    }
+  }
 
   const gotoLesson = async (id: string) => {
     try {
@@ -85,7 +91,9 @@ export default function LessonModal({ lesson, onClose }: Props) {
           {/* Right: Info */}
           <div className="lm-right">
             <div className="lm-rightTop">
-              <span className="lm-badgeTag">Lesson</span>
+              <span className="lm-badgeTag" style={{ backgroundColor: getBadgeColor(badge?.badge_type), color: "#333" }}>
+                {badge?.badge_type ?? "lesson"}
+              </span>
               <h2 className="lm-name">{title}</h2>
               <p className="lm-desc">{description}</p>
             </div>

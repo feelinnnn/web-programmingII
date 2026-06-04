@@ -310,15 +310,13 @@ export default function LessonPage() {
           <div className="submit-row">
             {selectedChapter ? (
               <>
-                {lesson?.attributes.badge?.badge_type !== "lesson" && (
-                  <button
-                    className="submit-btn"
-                    onClick={() => handleChapterSubmit()}
-                    disabled={submittingChapter === selectedChapter.id || completedChapters.has(selectedChapter.id)}
-                  >
-                    {submittingChapter === selectedChapter.id ? "Submitting..." : completedChapters.has(selectedChapter.id) ? "Completed" : "Submit Chapter"}
-                  </button>
-                )}
+                <button
+                  className="submit-btn"
+                  onClick={() => handleChapterSubmit()}
+                  disabled={submittingChapter === selectedChapter.id || completedChapters.has(selectedChapter.id)}
+                >
+                  {submittingChapter === selectedChapter.id ? "Submitting..." : completedChapters.has(selectedChapter.id) ? "Completed" : "Submit Chapter"}
+                </button>
                 {selectedChapter && chapters.length > 0 && chapters[chapters.length - 1].id === selectedChapter.id &&  badgeType !== "lesson" &&(
                   <button className="submit-btn" onClick={handleSubmitClick} style={{ marginLeft: "10px" }}>
                     Submit Evidence
