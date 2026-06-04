@@ -7,6 +7,14 @@ import Link from "next/link";
 import LessonModal from "../../components/lesson/LessonModal";
 import { useUserId } from "@/lib/useauth";
 
+type BadgeInfo = {
+  id: string;
+  name: string;
+  description: string;
+  badge_type: string;
+  icon_url: string | null;
+};
+
 type Lesson = {
   id: string;
   type: string;
@@ -14,7 +22,7 @@ type Lesson = {
     title: string;
     description: string;
     thumbnail_url: string;
-    badge: string;
+    badge: BadgeInfo | null;
     created_at: string;
   };
   relationships: {
@@ -33,6 +41,8 @@ type Progress = {
     totalChapters: number;
     remainingCount: number;
     badgeSubmitted?: boolean;
+    badge: BadgeInfo | null;
+    lesson: { id: string; title: string; thumbnail_url: string } | null;
   };
 };
 
@@ -120,7 +130,6 @@ export default function Home() {
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [allLessons, setAllLessons] = useState<Lesson[]>([]);
   const [progressMap, setProgressMap] = useState<Map<string, Progress>>(new Map());
-  const [badgeTypeMap, setBadgeTypeMap] = useState<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -143,8 +152,8 @@ export default function Home() {
     async function fetchData() {
       try {
         const [lessonsRes, progressRes] = await Promise.all([
-          fetch("/api/lessons"),
-          fetch(`/api/lessons/continue/${userId}`),
+          fetch("/api/lessons/with-badges"),
+          fetch(`/api/lessons/continue/${userId}/with-badges`),
         ]);
         if (!lessonsRes.ok) throw new Error("Failed to fetch lessons");
         const lessonsJson = await lessonsRes.json();
@@ -167,21 +176,6 @@ export default function Home() {
     fetchData();
   }, [userId]);
 
-  useEffect(() => {
-    async function fetchBadges() {
-      try {
-        const res = await fetch("/api/badges");
-        if (!res.ok) return;
-        const json = await res.json();
-        const map = new Map<string, string>();
-        (json.data || []).forEach((b: any) => {
-          map.set(b.id, b.attributes.badge_type);
-        });
-        setBadgeTypeMap(map);
-      } catch {}
-    }
-    fetchBadges();
-  }, []);
 
   const latestLessons = [...allLessons]
     .sort((a, b) =>
@@ -221,7 +215,7 @@ export default function Home() {
                   lesson={lesson}
                   large
                   onClick={() => setSelectedLesson(lesson)}
-                  badgeType={badgeTypeMap.get(lesson.attributes.badge)}
+                  badgeType={lesson.attributes.badge?.badge_type}
                 />
               ))}
             </div>
@@ -252,7 +246,7 @@ export default function Home() {
                     progressPercentage={percentage}
                     remainingChapters={remaining}
                     submissionNeeded={needsSubmission}
-                    badgeType={badgeTypeMap.get(lesson.attributes.badge)}
+                    badgeType={lesson.attributes.badge?.badge_type}
                   />
                 );
               })}

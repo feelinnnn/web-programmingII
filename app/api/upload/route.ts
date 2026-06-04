@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
 
     const result = await cloudinary.uploader.upload(base64, {
         folder: 'evidence',
-        resource_type: 'auto', // ← add this line
+        resource_type: 'auto', 
         })
         console.log("file type:", file.type, "file size:", file.size);
 

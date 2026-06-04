@@ -6,6 +6,13 @@ import { useRouter } from "next/navigation";
 import LessonModal from "../../components/lesson/LessonModal";
 import { useUserId } from "@/lib/useauth";
 
+type BadgeInfo = {
+  id: string;
+  name: string;
+  badge_type: string;
+  icon_url: string | null;
+};
+
 type Lesson = {
   id: string;
   type: string;
@@ -13,7 +20,7 @@ type Lesson = {
     title: string;
     description: string;
     thumbnail_url: string;
-    badge: string;
+    badge: BadgeInfo | null;
     created_at: string;
   };
   relationships: {
@@ -33,13 +40,6 @@ type LessonProgress = {
   };
 };
 
-type Badge = {
-  id: string;
-  attributes: {
-    badge_type: string;
-  };
-};
-
 export default function AllLessons() {
   const userId = useUserId();
   const router = useRouter();
@@ -48,7 +48,6 @@ export default function AllLessons() {
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [progressMap, setProgressMap] = useState<Map<string, LessonProgress>>(new Map());
-  const [badgeTypeMap, setBadgeTypeMap] = useState<Map<string, string>>(new Map());
   const [searchTerm, setSearchTerm] = useState("");
   const [hideCompleted, setHideCompleted] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -57,7 +56,7 @@ export default function AllLessons() {
   useEffect(() => {
     async function fetchLessons() {
       try {
-        const res = await fetch("/api/lessons");
+        const res = await fetch("/api/lessons/with-badges");
         if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
         const json = await res.json();
         setLessons(json.data);
@@ -70,21 +69,6 @@ export default function AllLessons() {
     fetchLessons();
   }, []);
 
-  useEffect(() => {
-    async function fetchBadges() {
-      try {
-        const res = await fetch("/api/badges");
-        if (!res.ok) return;
-        const json = await res.json();
-        const map = new Map<string, string>();
-        (json.data || []).forEach((b: Badge) => {
-          map.set(b.id, b.attributes.badge_type);
-        });
-        setBadgeTypeMap(map);
-      } catch {}
-    }
-    fetchBadges();
-  }, []);
 
   useEffect(() => {
     if (!userId) return;
@@ -106,14 +90,13 @@ export default function AllLessons() {
     fetchProgress();
   }, [userId]);
 
-  function getBadgeColor(badgeId: string): string {
-    const type = badgeTypeMap.get(badgeId) || "lesson";
-    switch (type) {
-      case "self-declared":   return "#A0D585";  // green
-      case "evidence-backed": return "#FFA95A";  // orange
-      case "expert-certified": return "#FF5A5A"; // red
+  function getBadgeColor(badgeType?: string | null): string {
+    switch (badgeType) {
+      case "self-declared":    return "#A0D585";
+      case "evidence-backed":  return "#FFA95A";
+      case "expert-certified": return "#FF5A5A";
       case "lesson":
-      default:                return "#FFD45A";  // yellow
+      default:                 return "#FFD45A";
     }
   }
 
@@ -182,7 +165,7 @@ export default function AllLessons() {
         {!loading && !error && filteredLessons.length > 0 && (
           <div className="al-grid">
             {filteredLessons.map((lesson) => {
-                const badgeColor = getBadgeColor(lesson.attributes.badge);
+                const badgeColor = getBadgeColor(lesson.attributes.badge?.badge_type);
                 return (
               <div className="al-card" key={lesson.id} onClick={() => setSelectedLesson(lesson)}>
                 <div className="al-cardImage">

@@ -21,13 +21,20 @@ type Chapter = {
   };
 };
 
+type BadgeInfo = {
+  id: string;
+  name: string;
+  badge_type: string;
+  icon_url: string | null;
+};
+
 type Lesson = {
   id: string;
   attributes: {
     title: string;
     description: string;
     thumbnail_url: string;
-    badge?: string;
+    badge?: BadgeInfo | null;
   };
 };
 
@@ -61,7 +68,7 @@ export default function LessonPage() {
 
     async function checkAccess() {
       try {
-        const res = await fetch(`/api/lessons/continue/${userId}`);
+        const res = await fetch(`/api/lessons/continue/${userId}/with-badges`);
         if (!res.ok) {
           router.push('/all_lesson');
           return;
@@ -88,9 +95,9 @@ export default function LessonPage() {
     async function fetchData() {
       try {
         const [lessonRes, chaptersRes, progressRes] = await Promise.all([
-          fetch(`/api/lessons/${lessonId}`),
+          fetch(`/api/lessons/${lessonId}/with-badge`),
           fetch(`/api/lessons/${lessonId}/chapters`),
-          fetch(`/api/lessons/continue/${userId}`),
+          fetch(`/api/lessons/continue/${userId}/with-badges`),
         ]);
 
         if (!lessonRes.ok) throw new Error("Failed to fetch lesson");
@@ -104,16 +111,7 @@ export default function LessonPage() {
         );
 
         setLesson(lessonJson.data);
-
-        // Fetch badge type from badge API
-        const badgeId = lessonJson.data.attributes.badge;
-        if (badgeId) {
-          const badgeRes = await fetch(`/api/badges/${badgeId}`);
-          if (badgeRes.ok) {
-            const badgeJson = await badgeRes.json();
-            setBadgeType(badgeJson.data.attributes.badge_type);
-          }
-        }
+        setBadgeType(lessonJson.data.attributes.badge?.badge_type ?? null);
 
         setChapters(sortedChapters);
         setSelectedChapter(sortedChapters[0] ?? null);
@@ -243,7 +241,7 @@ export default function LessonPage() {
     if (!lesson || !badgeType) return;
 
     try {
-      const badgeId = lesson.attributes.badge;
+      const badgeId = lesson.attributes.badge?.id;
       await fetch('/api/user-badges', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -312,7 +310,7 @@ export default function LessonPage() {
           <div className="submit-row">
             {selectedChapter ? (
               <>
-                {lesson?.attributes.badge !== "lesson" && (
+                {lesson?.attributes.badge?.badge_type !== "lesson" && (
                   <button
                     className="submit-btn"
                     onClick={() => handleChapterSubmit()}
