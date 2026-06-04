@@ -36,7 +36,22 @@ export async function GET(req: NextRequest) {
         .limit(limit)
         .lean();
     }
-    // (Search)
+    // (Search by @username)
+    else if (searchQuery && searchQuery.startsWith("@")) {
+      const username = searchQuery.slice(1);
+      const matchedUsers = await User.find({ display_name: { $regex: username, $options: "i" } }).lean();
+      const matchedIds = matchedUsers.map((u: any) => u.user_id || u._id.toString());
+      const filter = matchedIds.length > 0
+        ? { "post.user_id": { $in: matchedIds } }
+        : { "post.user_id": "__no_match__" };
+      total = await Post.countDocuments(filter);
+      rawPosts = await Post.find(filter)
+        .sort({ "post.created_at": -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean();
+    }
+    // (Search by hashtag/content)
     else if (searchQuery) {
       const cleanQuery = searchQuery.replace(/^#/, '');
       const filter = {
